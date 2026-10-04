@@ -1,0 +1,28 @@
+name: Bramblehog
+about: the Orchard's old guardian; curls up and rolls at you, and calls up grubs
+hp: 8
+speed: 0.5
+move: chase
+size: 2
+every: 300
+ability: roll
+summon: grub
+points: 5000
+colors: b=120,85,55 d=80,55,35 s=200,175,140 e=20,20,28 n=40,30,30 r=200,40,40 w=255,255,255
+art:
+................
+....bdbdbdbd....
+...dbdbdbdbdb...
+..bdbdbdbdbdbd..
+.bdbdbdbdbdbdbd.
+.dbdbdbdbdbsssd.
+bdbdbdbdbdsssss.
+dbdbdbdbdssessss
+bdbdbdbdbsswsess
+dbdbdbdbsssssssn
+bdbdbdbdssssssnn
+.dbdbdbsssssss..
+.bdbdbdssrrss...
+..ssssssss......
+...ss....ss.....
+...ss....ss.....

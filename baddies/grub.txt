@@ -1,0 +1,25 @@
+name: Grub
+about: a fat orchard grub; wanders about, slowly
+hp: 1
+speed: 0.5
+move: wander
+points: 100
+colors: a=196,214,120 b=150,170,80 e=255,255,255 k=20,20,28
+art:
+........
+........
+..aaaa..
+.aeaaea.
+abaaaaba
+aaaaaaaa
+.babbab.
+........
+art2:
+........
+........
+...aaaa.
+..aeaaea
+.abaaaab
+aaaaaaaa
+babbab..
+........

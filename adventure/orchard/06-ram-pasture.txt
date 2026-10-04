@@ -1,0 +1,31 @@
+name: Ram Pasture
+world: The Orchard
+theme: orchard
+goal: clear
+time: 180
+story: Rams graze the pasture. Step into a ram's line
+story: and it charges until something stops it.
+story: Tame one and you can dash.
+baddie: g grub
+baddie: b beetle
+baddie: h hedgehog
+baddie: f frog
+baddie: r ram
+baddie: c crow
+baddie: x bramblehog
+grid:
+#########################
+#1.2....................#
+#.............?......?..#
+#.....#?..r...g...#..???#
+#....................?..#
+#..###.#####.#####.###..#
+#.?.?............?......#
+#...g.......#..?....r..?#
+#.?.?..?....??..........#
+#..###.#####.#####.###..#
+#..........?......??....#
+#.....#.r..??...r.#.....#
+#?....??.....?....??....#
+#......................E#
+#########################

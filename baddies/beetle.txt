@@ -1,0 +1,25 @@
+name: Ladybeetle
+about: goes straight on and only turns at walls
+hp: 1
+speed: 0.9
+move: straight
+points: 200
+colors: r=215,45,40 k=24,20,28 w=255,255,255 d=140,25,25
+art:
+........
+..kkkk..
+.kwkkwk.
+.rrkkrr.
+rkrrkrkr
+rrrkrrrr
+.rkrrkr.
+..d..d..
+art2:
+........
+..kkkk..
+.kwkkwk.
+.rrkkrr.
+rkrrkrkr
+rrrkrrrr
+.rkrrkr.
+.d....d.

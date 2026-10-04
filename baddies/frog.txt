@@ -1,0 +1,28 @@
+name: Hopper
+about: a pond frog; every so often it hops two tiles, over anything
+hp: 1
+speed: 0.6
+move: wander
+every: 160
+ability: hop
+points: 300
+egg: hop
+colors: g=90,190,80 d=50,130,50 w=255,255,255 k=20,20,28 y=230,230,150
+art:
+........
+.ww..ww.
+.wk..kw.
+gggggggg
+gyyyyyyg
+dggggggd
+dd....dd
+........
+art2:
+........
+.ww..ww.
+.wk..kw.
+gggggggg
+gyyyyyyg
+.dggggd.
+d.d..d.d
+........

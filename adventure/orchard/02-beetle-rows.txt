@@ -1,0 +1,29 @@
+name: Beetle Rows
+world: The Orchard
+theme: orchard
+goal: clear
+time: 150
+story: Ladybeetles march up and down the tree rows.
+story: They never turn until something stops them.
+story: Put something in their way.
+baddie: g grub
+baddie: b beetle
+baddie: h hedgehog
+baddie: f frog
+baddie: r ram
+baddie: c crow
+baddie: x bramblehog
+grid:
+#####################
+#1.2................#
+#.?.???.b....?......#
+#.#??.#???#???.???#.#
+#..?............g.?.#
+#.#??.#???#??.#???#.#
+#?.?..........b.?.??#
+#.#?.?#???#???#??.#.#
+#.??......g....??..?#
+#.#???#?.?#???#??.#.#
+#..?.b......?.?..g..#
+#....?.?...?...?...E#
+#####################

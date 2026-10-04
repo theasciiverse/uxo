@@ -1,0 +1,34 @@
+name: The Bramblehog
+world: The Orchard
+theme: orchard
+goal: boss
+time: 240
+story: Something old guards the heart of the Orchard.
+story: It curls into a ball of brambles and rolls at whatever
+story: moves, and the grubs come when it calls.
+ending: The Bramblehog uncurls, blinks at the sky full of your
+ending: fireworks, and wanders off to sleep under the oldest tree.
+ending: The Orchard is quiet again. But past the hills, something
+ending: is ticking: more duds came down in the Clockworks.
+ending: To be continued.
+baddie: g grub
+baddie: b beetle
+baddie: h hedgehog
+baddie: f frog
+baddie: r ram
+baddie: c crow
+baddie: x bramblehog
+grid:
+###################
+#1.2.....??......?#
+#....??.?.........#
+#.?..........?....#
+#?...#.......#.?..#
+#.?......x........#
+#.................#
+#............?...?#
+#..?.#.......#...?#
+#..............?..#
+#.................#
+#.................#
+###################

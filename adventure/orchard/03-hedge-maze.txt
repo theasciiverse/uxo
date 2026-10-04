@@ -1,0 +1,31 @@
+name: Hedge Maze
+world: The Orchard
+theme: orchard
+goal: duds
+time: 180
+story: Some of these hedges have eyes.
+story: Five of your duds came down in the maze.
+story: Set every one of them off, and the hatch opens.
+baddie: g grub
+baddie: b beetle
+baddie: h hedgehog
+baddie: f frog
+baddie: r ram
+baddie: c crow
+baddie: x bramblehog
+grid:
+#####################
+#1.2.....?...g.??...#
+#.#.#####.#########.#
+#.?...?.#h#..?#.?*?.#
+#?#######?#?#.#?#####
+#?#..?#*..#?#?#?#?..#
+#.#?#.#.###.###?#.#.#
+#.#g#?#...#.??.h#?#.#
+#?#?#?#?#.#.#?###.###
+#???#?#.#?#h..#...??#
+#####?#.#.#.###?###?#
+#???#h#.#?#?.*??.*#.#
+#?###.###.#######?#.#
+#.?*?....?#?.??.??.E#
+#####################

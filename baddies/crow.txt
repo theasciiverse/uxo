@@ -1,0 +1,28 @@
+name: Crow
+about: flies over the hedges and swoops after you when it sees you
+hp: 1
+speed: 0.8
+move: wander
+sees: 6
+on_sight: chase
+flies: yes
+points: 400
+colors: k=30,30,40 b=60,60,80 y=240,190,40 w=255,255,255
+art:
+........
+k......k
+kk.kk.kk
+.kkwkkk.
+..kkkyy.
+..kkkk..
+...bb...
+........
+art2:
+........
+........
+.k.kk.k.
+kkkwkkkk
+..kkkyy.
+..kkkk..
+...bb...
+........

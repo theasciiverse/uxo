@@ -1,0 +1,28 @@
+name: Ram
+about: wanders until it sees you lined up, then charges until it hits something
+hp: 2
+speed: 0.7
+move: wander
+sees: 6
+on_sight: charge
+points: 500
+egg: dash
+colors: w=235,230,215 g=190,185,170 h=150,110,70 k=20,20,28 p=230,170,160
+art:
+........
+hh....hh
+h.wwww.h
+.wkwwkw.
+.wwppww.
+wwwwwwww
+.gwwwwg.
+.k.kk.k.
+art2:
+........
+hh....hh
+h.wwww.h
+.wkwwkw.
+.wwppww.
+wwwwwwww
+.gwwwwg.
+k..kk..k

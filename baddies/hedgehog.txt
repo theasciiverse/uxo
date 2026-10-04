@@ -1,0 +1,28 @@
+name: Hedgehog
+about: hides as a hedge until you come close, then shuffles after you
+hp: 1
+speed: 0.6
+move: wander
+sees: 5
+on_sight: chase
+mimic: yes
+points: 300
+colors: b=120,85,55 d=80,55,35 s=200,175,140 e=20,20,28 n=40,30,30
+art:
+........
+..bdbd..
+.dbdbdb.
+bdbdbsss
+dbdbsess
+bdbsssns
+.ssssss.
+..s..s..
+art2:
+........
+..bdbd..
+.dbdbdb.
+bdbdbsss
+dbdbsess
+bdbsssns
+.ssssss.
+.s....s.

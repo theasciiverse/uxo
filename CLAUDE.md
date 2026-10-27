@@ -149,6 +149,45 @@ SB6 fan project's model of the rules.
 - **Battle stages**: a classic arena plus one per adventure world, each built
   around that world's gimmick.
 
+## New direction (David, 2026-10-27): escape from inside the machine
+
+Replaces the fireworks premise below for Adventure; Battle stays the pure
+party bomb game.
+
+- **Story:** "Blast your way out to the real world!" A rogue bomb-making
+  program has pulled you into the machine; each world is a part of the
+  computer, closer to the edge of the system, ending with the terminal worlds
+  (Scrollback, Static) and the escape out through the prompt. The duds become
+  the program's live charges, planted all through the system. Hero, villain
+  and names still to write; check every name against games and marks first.
+- **A puzzle mashup:** bomb action plus tile puzzles in the manner of the
+  early-90s chip-board puzzle games: pushable blocks (they stop a blast where
+  a soft block breaks, bridge gaps, hold switches down), coloured keys and
+  doors, gates that open once enough parts are collected, and the floors uXo
+  already has (conveyors, ice, warps). Bombs and blocks combine: shield
+  yourself behind a pushed block, kick a bomb along a conveyor.
+- **Rights (checked 2026-10-27):** the name "Chip's Challenge" is live and
+  licensed (Epyx licenses it to its designer, Chuck Sommerville, through
+  Niffler Ltd.; the sequel sat shelved about 15 years over the trademark).
+  Never use the name in the game, its copy or its credits; the mechanics are
+  free, as for the bomb-arena genre (see Rights).
+- **World 1, the Orchard:** to be rebuilt, or at least retuned, as the first
+  world inside the machine (David). Its nine stages, species and the
+  Bramblehog are the starting material.
+- **The mix (David, 2026-10-27: "definitely different emphasis on
+  different levels"):** stages vary their weight, some mostly bomb puzzle,
+  some mostly fast "clear the baddies" action, most a blend; a world's
+  stages alternate so the pace keeps changing.
+- **Layouts (David, 2026-10-27):** not every stage the classic square of
+  pillars on a checker; some are open spaces with irregular shapes, rooms,
+  corridors and wide floors, closer to a puzzle board than an arena.
+- **Open:** the hero; the villain; the world list in machine terms.
+- **Store copy waits for the story.** The catalog page written on
+  2026-10-27 sells bombs and chain reactions with no story; David found it
+  "nowhere how to present a bomb-arena game". The classics sold a villain
+  with a scheme plus the multiplayer party as the headline (Super Bomberman
+  2's Five Dastardly Bombers, Saturn Bomberman's "all-out party game").
+
 ## Adventure (approved 2026-10-04)
 
 Built from the SB3, SB4 and SB5 research in `research/` (mechanics only).

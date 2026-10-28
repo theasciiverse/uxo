@@ -6,6 +6,7 @@ time: 240
 story: purged has woken the screensaver's oldest creature
 story: to guard the way out. It curls into a ball of brambles,
 story: rolls at whatever moves, and the grubs come when it calls.
+story: A crate stops it rolling: get one between you and it!
 ending: The Bramblehog uncurls, blinks, and wanders off to sleep
 ending: under the oldest tree. The screensaver goes quiet, and a door
 ending: opens behind it. Deep in the machine, purged has noticed:
@@ -21,14 +22,14 @@ baddie: x bramblehog
 grid:
 ###################
 #1.2.....??......?#
-#....??.?.........#
+#....??.?B........#
 #.?..........?....#
 #?...#.......#.?..#
 #.?......x........#
-#.................#
+#..B...........B..#
 #............?...?#
 #..?.#.......#...?#
 #..............?..#
-#.................#
+#........B........#
 #.................#
 ###################

@@ -113,10 +113,12 @@ pub enum Goal {
     None,
     /// Beat every baddie.
     Clear,
-    /// Set off every dud.
+    /// Set off every one of purged's charges.
     Duds,
     /// Beat the boss (no exit: it ends the stage).
     Boss,
+    /// The hatch is open from the start: find the way to it.
+    Exit,
 }
 
 /// How the arena looks (soft blocks, mostly).
@@ -774,6 +776,7 @@ impl Game {
         g.give = st.give.clone();
         g.theme = st.theme;
         g.goal = st.goal;
+        g.exit_open = st.goal == Goal::Exit;
         for (id, x, y) in placed {
             let si = g.species.iter().position(|s| s.id == id).unwrap_or_else(|| panic!("{}: no baddie {id:?}", st.name));
             let sp = g.species[si].clone();
@@ -813,6 +816,11 @@ impl Game {
         *p = Player::new();
         p.joined = true;
         Self::spawn(p, at);
+        self.give_items(i);
+    }
+
+    /// Hand player `i` the items the stage gives everyone.
+    pub fn give_items(&mut self, i: usize) {
         for item in self.give.clone() {
             self.apply(i, item);
         }
@@ -987,6 +995,7 @@ impl Game {
             Goal::None => false,
             Goal::Clear => self.baddies.iter().all(|b| !b.alive),
             Goal::Duds => !self.tiles.iter().flatten().any(|&t| t == Tile::Dud),
+            Goal::Exit => true,
             Goal::Boss => {
                 let boss = self.species.iter().position(|s| s.size > 1);
                 !self.baddies.iter().any(|b| b.alive && Some(b.species) == boss)

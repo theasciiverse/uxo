@@ -3,9 +3,11 @@ world: The Screensaver
 theme: orchard
 goal: clear
 time: 180
-story: Rams graze the pasture. Step into a ram's line
-story: and it charges until something stops it.
-story: Tame one and you can dash.
+story: Rams graze the open pasture. Step into a ram's line
+story: and it charges until something stops it. Tame one and you can dash.
+story: Out here in the open, your bombs surge: the blast floods out
+story: every way at once, round corners. Mind where it spreads!
+give: surge
 baddie: g grub
 baddie: b beetle
 baddie: h hedgehog

@@ -25,8 +25,10 @@ machine, built one world at a time. 1.0.0 is when all three acts are in.
 - [x] Names: Dot the hero, purged the villain, checked against games
 - [x] Act 1's opening, the title line, and World 1's cards and ending
 - [x] Dot's own art, with the blinking cursor underscore
-- [ ] World 1, the Screensaver: the Orchard rebuilt, stages that mix bomb
-  puzzles and fast action, open rooms as well as pillar grids
+- [x] World 1, the Screensaver: the Orchard rebuilt, stages that mix bomb
+  puzzles and fast action, with crates, keys and doors, gates, parts and the
+  surge; starting a stage over from the pause screen
+- [ ] World 1 played through and tuned
 - [ ] The store page and README with the story
 
 ## 0.5.0: the rest of act 1

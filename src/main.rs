@@ -193,6 +193,18 @@ fn run() -> io::Result<()> {
             info!("zoom auto");
         }
 
+        // paused in the adventure, bomb starts the stage over: the way out of a
+        // puzzle gone wrong (a crate in a corner), for a life
+        if paused && let Mode::Adventure(r) = &mut mode {
+            let mut again = false;
+            for &ctl in &seats {
+                again |= input.take_bomb(ctl);
+            }
+            if again && r.start_over() {
+                info!("stage started over");
+                paused = false;
+            }
+        }
         acc = if paused { 0.0 } else { acc + dt };
         while acc >= step {
             let mut cmds = [Cmd::default(); MAX_PLAYERS];
@@ -306,7 +318,7 @@ fn run() -> io::Result<()> {
                     render::draw_arena(&r.game, cam.zoom, cam.at(), shake_off, lay.play, buf);
                     adv_hud(r, &input, &seats, &cam, &lay, area, buf);
                     if paused {
-                        banner(&["PAUSED", "P or Start to play on", "Esc or Select: back to the title"], area, buf);
+                        banner(&["PAUSED", "P or Start to play on", "bomb: start the stage over (costs a life)", "Esc or Select: back to the title"], area, buf);
                     } else {
                         adv_banner(r, area, buf);
                     }
@@ -1074,7 +1086,8 @@ fn adv_banner(r: &Run, area: Rect, buf: &mut Buffer) {
             lines.push(Line::raw(""));
             let goal = match r.game.goal {
                 game::Goal::Clear => "Goal: beat every baddie, then reach the hatch.",
-                game::Goal::Duds => "Goal: set off every dud, then reach the hatch.",
+                game::Goal::Duds => "Goal: set off every charge, then reach the hatch.",
+                game::Goal::Exit => "Goal: find your way to the hatch.",
                 game::Goal::Boss => "Goal: beat the guardian.",
                 game::Goal::None => "",
             };

@@ -3,9 +3,9 @@ world: The Screensaver
 theme: orchard
 goal: clear
 time: 150
-story: Ladybeetles march up and down the tree rows.
-story: They never turn until something stops them.
-story: Put something in their way.
+story: Ladybeetles march up and down the rows, and never turn
+story: until something stops them. A crate will: lean on one to push it.
+story: Blasts stop at crates too, so a crate makes good cover!
 baddie: g grub
 baddie: b beetle
 baddie: h hedgehog
@@ -15,15 +15,15 @@ baddie: c crow
 baddie: x bramblehog
 grid:
 #####################
-#1.2................#
+#1.2....B.....B.....#
 #.?.???.b....?......#
 #.#??.#???#???.???#.#
-#..?............g.?.#
+#..?..B.........g.?.#
 #.#??.#???#??.#???#.#
 #?.?..........b.?.??#
 #.#?.?#???#???#??.#.#
-#.??......g....??..?#
+#.??......g.B..??..?#
 #.#???#?.?#???#??.#.#
 #..?.b......?.?..g..#
-#....?.?...?...?...E#
+#....?.?..B?...?...E#
 #####################

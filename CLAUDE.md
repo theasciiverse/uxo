@@ -247,6 +247,19 @@ party bomb game.
   - `$` part, `S` socket: the sockets open once every part is picked up.
   - Doors, gates and sockets stop blasts; keys and parts are never burnt.
   - `--snapshot out.ppm --puzzle --secs 0` shows them all.
+- **World 1 rebuilt (2026-10-28):** the pace alternates. 1 Windfall Lane,
+  action. 2 Beetle Rows, crates (stop beetles, give cover). 3 Hedge Maze,
+  charges and a red key, the hatch behind its door. 4 Frog Pond, action and
+  the hop mount. 5 Cider Press, the press room's gates held open by a crate
+  on the switch. 6 Ram Pasture, open ground, `give: surge`. 7 Crow Tree,
+  `goal: exit` (the hatch open from the start), four parts open the sockets
+  before it. 8 The Old Grove, everything: charges, a gated charge with crate
+  and switch, the hatch behind a blue door. 9 The Bramblehog, crates as
+  cover (it can't roll through them). Stage `give:` items now come on top of
+  what carries over. Paused in the adventure, bomb starts the stage over for
+  a life, the way out of a crate pushed into a corner. A test
+  (`every_hatch_can_be_reached`) checks each hatch can be reached with doors
+  opening only once their key is reachable, sockets once every part is.
 - **Store copy waits for the story.** The catalog page written on
   2026-10-27 sells bombs and chain reactions with no story; David found it
   "nowhere how to present a bomb-arena game". The classics sold a villain

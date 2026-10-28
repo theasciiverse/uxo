@@ -3,10 +3,11 @@ world: The Screensaver
 theme: orchard
 goal: duds
 time: 180
-story: Some of these hedges have eyes.
-story: purged planted five of its charges in the maze.
-story: Set every one of them off, and the hatch opens.
+story: Some of these hedges have eyes. purged planted five charges
+story: in the maze, and locked the hatch behind a red door.
+story: The key is in here somewhere. Set off every charge, and find it.
 story: A charge goes off with a real blast: don't stand beside it!
+key: a red
 baddie: g grub
 baddie: b beetle
 baddie: h hedgehog
@@ -22,11 +23,11 @@ grid:
 #?#######?#?#.#?#####
 #?#..?#*..#?#?#?#?..#
 #.#?#.#.###.###?#.#.#
-#.#g#?#...#.??.h#?#.#
+#.#g#?#a..#.??.h#?#.#
 #?#?#?#?#.#.#?###.###
 #???#?#.#?#h..#...??#
 #####?#.#.#.###?###?#
 #???#h#.#?#?.*??.*#.#
-#?###.###.#######?#.#
-#.?*?....?#?.??.??.E#
+#?###.###.#######?###
+#.?*?....?#?.??.??AE#
 #####################

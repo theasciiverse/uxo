@@ -20,7 +20,7 @@
 //! - `$` a part, `S` a socket (open once every part is picked up)
 //!
 //! Adventure stages also have `world:`, `story:` lines (the card before the stage),
-//! `goal:` clear | duds | boss, `time:` seconds, `theme:` brick | orchard, and
+//! `goal:` clear | duds | boss | exit (the hatch open from the start), `time:` seconds, `theme:` brick | orchard, and
 //! `ending:` lines (after a world's last stage).
 
 use crate::game::{Dir, Goal, Item, Theme};
@@ -144,6 +144,7 @@ pub fn parse(text: &str) -> Result<Stage, String> {
                     "clear" => Goal::Clear,
                     "duds" => Goal::Duds,
                     "boss" => Goal::Boss,
+                    "exit" => Goal::Exit,
                     _ => return Err(format!("bad goal {v:?}")),
                 }
             }

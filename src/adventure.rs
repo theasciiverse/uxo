@@ -125,6 +125,8 @@ impl Run {
                 p.heart = o.heart;
                 p.mount = o.mount;
                 p.spare = o.spare.clone();
+                // what the stage hands out comes on top of what was carried
+                self.game.give_items(i);
             }
         }
         self.left = self.stage.time * HZ;
@@ -221,6 +223,25 @@ impl Run {
         events
     }
 
+    /// Start the stage over from the pause screen, for a life each. False when not
+    /// playing a stage.
+    pub fn start_over(&mut self) -> bool {
+        if self.phase != Phase::Play {
+            return false;
+        }
+        for i in 0..self.players {
+            if self.game.players[i].joined && !self.game.players[i].out {
+                self.lose_life(i);
+            }
+        }
+        if self.all_out() {
+            self.phase = Phase::GameOver;
+        } else {
+            self.begin(true);
+        }
+        true
+    }
+
     fn all_out(&self) -> bool {
         (0..self.players).all(|i| self.lives[i] == 0)
     }
@@ -296,6 +317,60 @@ mod tests {
             let g = Game::from_stage(&s, 1);
             assert!(!g.baddies.is_empty(), "{} has no baddies", s.name);
             crate::stage::assert_connected(&s);
+        }
+    }
+
+    /// The hatch can be reached the honest way: soft blocks can be blown up, crates
+    /// are in the way, a door opens once its key can be reached, the sockets once
+    /// every part can, and gates only on a stage with a crate to hold the switch.
+    #[test]
+    fn every_hatch_can_be_reached() {
+        use crate::stage::Cell;
+        for i in 0..STAGES.len() {
+            let s = load(i);
+            let Some(exit) = (0..s.h).flat_map(|y| (0..s.w).map(move |x| (x, y))).find(|&(x, y)| s.cells[y][x] == Cell::Exit) else {
+                continue;
+            };
+            let crates = s.cells.iter().flatten().any(|c| *c == Cell::Block);
+            let parts = s.cells.iter().flatten().filter(|c| **c == Cell::Part).count();
+            let start = (0..s.h).flat_map(|y| (0..s.w).map(move |x| (x, y))).find(|&(x, y)| s.cells[y][x] == Cell::Start(0)).unwrap();
+            let mut keys = [false; 4];
+            let mut found = 0;
+            // widen the reachable area until nothing new opens up
+            loop {
+                let open = |c: &Cell| match c {
+                    Cell::Wall | Cell::Water | Cell::Tree | Cell::Block => false,
+                    Cell::Door(k) => keys[*k as usize],
+                    Cell::Gate => crates,
+                    Cell::Socket => found == parts,
+                    _ => true,
+                };
+                let mut seen = vec![vec![false; s.w]; s.h];
+                let mut todo = vec![start];
+                while let Some((x, y)) = todo.pop() {
+                    if seen[y][x] || !open(&s.cells[y][x]) {
+                        continue;
+                    }
+                    seen[y][x] = true;
+                    todo.extend([(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]);
+                }
+                let mut got = keys;
+                let mut n = 0;
+                for y in 0..s.h {
+                    for x in 0..s.w {
+                        match s.cells[y][x] {
+                            Cell::Key(k) if seen[y][x] => got[k as usize] = true,
+                            Cell::Part if seen[y][x] => n += 1,
+                            _ => {}
+                        }
+                    }
+                }
+                if seen[exit.1][exit.0] {
+                    break;
+                }
+                assert!(got != keys || n != found, "{}: the hatch can't be reached", s.name);
+                (keys, found) = (got, n);
+            }
         }
     }
 }

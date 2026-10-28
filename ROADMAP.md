@@ -29,7 +29,7 @@ machine, built one world at a time. 1.0.0 is when all three acts are in.
   puzzles and fast action, with crates, keys and doors, gates, parts and the
   surge; starting a stage over from the pause screen
 - [ ] World 1 played through and tuned
-- [ ] The store page and README with the story
+- [x] The store page and README with the story
 
 ## 0.5.0: the rest of act 1
 

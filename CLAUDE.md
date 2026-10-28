@@ -203,8 +203,11 @@ party bomb game.
   inside uXo. Rejected: xkill (the X Window tool, and a GitHub game,
   XKILL: Heartaches by the Cycle, about processes fighting in arenas).
   The Bramblehog stays as the Screensaver's guard.
-- **Hero art (proposed):** the round body and single-pixel eyes, with a
-  blinking cursor underscore under its feet as its own detail.
+- **Dot's art (2026-10-28, `hero` in `src/render.rs`):** the round body
+  with a light spot on top, single-pixel eyes, feet, and its own mark: a
+  cursor underscore under its feet that blinks at a terminal's pace (half a
+  second on, half off), drawn lighter in the player's colour. At the 4 art
+  the lit cursor stands in for the feet.
 - **Act 1 story, in the game (2026-10-28):** the title line "Blast your way
   out to the real world!"; World 1's name is now the Screensaver (stage
   `world:` lines; folder and theme stay `orchard`); its cards and ending tell
@@ -499,7 +502,8 @@ are ideas only.
 - [x] Default size: auto-fit to the largest that fits (8 on David's screen)
 - [ ] Movement and corner assist feel: tune by playing (`ASSIST_MIN`, speeds in `src/game.rs`)
 - [x] Battle rules: rounds to three wins, last one standing; practice respawns
-- [ ] Our hero and mount creatures: look and abilities
+- [x] Our hero: Dot (2026-10-28)
+- [ ] Mount creatures: look and abilities
 - [ ] Power-up naming and icon set
 - [x] Story premise: three acts inside the machine (2026-10-28)
 - [x] David approved the Adventure, Baddies and Mounts proposals and the build order

@@ -273,7 +273,9 @@ fn bomb(a: i32) -> &'static [&'static str] {
     }
 }
 
-fn hero(a: i32, facing: Dir, step: bool) -> Vec<&'static str> {
+/// Dot: a round body with a light on top, single-pixel eyes, and its own mark, a
+/// cursor underscore under its feet that blinks like a terminal's (`cursor` on).
+fn hero(a: i32, facing: Dir, step: bool, cursor: bool) -> Vec<&'static str> {
     match a {
         8 => {
             // single-pixel eyes, like the 6 art: bigger ones read as googly
@@ -283,7 +285,8 @@ fn hero(a: i32, facing: Dir, step: bool) -> Vec<&'static str> {
                 Dir::Left => "cecceccc",
                 Dir::Right => "ccceccec",
             };
-            vec!["..cccc..", ".cccccc.", eyes, "cccccccc", "cccccccc", ".dccccd.", "..dddd..", if step { "kk...kk." } else { ".kk..kk." }]
+            let feet = if step { "kk....kk" } else { ".kk..kk." };
+            vec!["..cccc..", ".chhcccc", eyes, "cccccccc", ".dccccd.", "..dddd..", feet, if cursor { ".uuuuuu." } else { "........" }]
         }
         6 => {
             let eyes = match facing {
@@ -292,7 +295,8 @@ fn hero(a: i32, facing: Dir, step: bool) -> Vec<&'static str> {
                 Dir::Left => "eccecc",
                 Dir::Right => "ccecce",
             };
-            vec![".cccc.", eyes, "cccccc", "dccccd", ".dddd.", if step { "k...k." } else { ".k..k." }]
+            let feet = if step { "k....k" } else { ".k..k." };
+            vec![".hccc.", eyes, "cccccc", ".dddd.", feet, if cursor { ".uuuu." } else { "......" }]
         }
         _ => {
             let eyes = match facing {
@@ -301,7 +305,9 @@ fn hero(a: i32, facing: Dir, step: bool) -> Vec<&'static str> {
                 Dir::Left => "eecc",
                 Dir::Right => "ccee",
             };
-            vec![".cc.", eyes, "dccd", if step { "k..k" } else { ".kk." }]
+            // no room for both: the cursor stands in for the feet while it is lit
+            let feet = if cursor { "uuuu" } else if step { "k..k" } else { ".kk." };
+            vec![".hc.", eyes, "dccd", feet]
         }
     }
 }
@@ -1009,8 +1015,13 @@ fn draw_hero(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, i: usize, p: &Pl
         c = mix(base, [255, 255, 255], f * 0.6);
     }
     let step = p.walk > 0 && (p.walk / 6) % 2 == 1;
-    cv.sprite(x0, y0, k, &hero(a, p.facing, step), |ch| match ch {
+    // the cursor blinks at a terminal's pace, half a second on, half off
+    let cursor = (t / 30) % 2 == 0;
+    let (h, u) = (mix(c, [255, 255, 255], 0.45), mix(c, [255, 255, 255], 0.7));
+    cv.sprite(x0, y0, k, &hero(a, p.facing, step, cursor), |ch| match ch {
         'c' => Some(c),
+        'h' => Some(h),
+        'u' => Some(u),
         'd' => Some(d),
         'e' => Some([255, 255, 255]),
         'p' | 'k' => Some([20, 20, 28]),

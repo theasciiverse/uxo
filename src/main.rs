@@ -518,6 +518,29 @@ fn feel(ev: Event, g: &Game, seats: &[Ctl], input: &mut Input, shake: &mut u32, 
                 input.rumble(c, 0.9, 0.3, 250);
             }
         }
+        Event::Shoved { player } => {
+            debug!("player {} pushed a block", player + 1);
+            if let Some(c) = pad(player) {
+                input.rumble(c, 0.2, 0.0, 60);
+            }
+        }
+        Event::DoorOpened { player } => {
+            info!("player {} unlocked a door", player + 1);
+            if let Some(c) = pad(player) {
+                input.rumble(c, 0.0, 0.5, 100);
+            }
+        }
+        Event::Gates { open } => info!("gates {}", if open { "open" } else { "shut" }),
+        Event::Got { player, what } => {
+            info!("player {} picked up {what:?}", player + 1);
+            if let Some(c) = pad(player) {
+                input.rumble(c, 0.0, 0.4, 60);
+            }
+        }
+        Event::SocketOpen => {
+            info!("every part found: the sockets open");
+            *toast = Some(("EVERY PART FOUND!".to_string(), HZ * 3));
+        }
     }
 }
 
@@ -1249,6 +1272,57 @@ fn snapshot(args: &[String], out: &str) -> io::Result<()> {
         g.players[0].fire = 8;
         g.place_bomb(0, 7, 6);
         g.bombs[0].fuse = 1;
+    }
+    // --puzzle: every puzzle tile in an open room, one block on the move
+    if args.iter().any(|a| a == "--puzzle") {
+        use game::{Ground, Pickup};
+        let g = &mut m.game;
+        g.bombs.clear();
+        for y in 1..H - 1 {
+            for x in 1..W - 1 {
+                g.tiles[y][x] = Tile::Floor;
+                g.items[y][x] = None;
+            }
+        }
+        for (x, y) in [(3, 3), (4, 3), (6, 8)] {
+            g.tiles[y][x] = Tile::Block;
+        }
+        g.pickups[3][6] = Some(Pickup::Key(0));
+        g.pickups[3][7] = Some(Pickup::Key(1));
+        g.tiles[3][9] = Tile::Door(0);
+        g.tiles[3][10] = Tile::Door(1);
+        g.ground[5][3] = Ground::Switch;
+        g.ground[5][5] = Ground::Switch;
+        g.tiles[5][5] = Tile::Block;
+        for x in 8..11 {
+            g.tiles[5][x] = Tile::Gate;
+            g.ground[5][x] = Ground::Gate;
+        }
+        g.pickups[9][3] = Some(Pickup::Part);
+        g.pickups[9][5] = Some(Pickup::Part);
+        g.tiles[9][10] = Tile::Socket;
+        for x in 9..12 {
+            g.tiles[7][x] = Tile::Wall;
+            g.ground[7][x] = Ground::Water;
+        }
+        g.tiles[7][9] = Tile::Floor;
+        g.ground[7][9] = Ground::Sunk;
+        for (i, (x, y)) in [(1, 1), (13, 1), (1, 11), (13, 11)].into_iter().enumerate() {
+            g.players[i].x = game::centre(x);
+            g.players[i].y = game::centre(y);
+            g.players[i].out = false;
+            g.players[i].alive = true;
+            g.players[i].rider = None;
+        }
+        // player 1 leaning on the block at 6,8, about to push it right
+        g.players[0].x = game::centre(5);
+        g.players[0].y = game::centre(8);
+        g.players[0].facing = Dir::Right;
+        let mut push = [Cmd::default(); MAX_PLAYERS];
+        push[0].primary = Some(Dir::Right);
+        for _ in 0..16 {
+            g.step(&push);
+        }
     }
     let idle = [Cmd::default(); MAX_PLAYERS];
     for _ in 0..(secs * HZ as f32) as usize {

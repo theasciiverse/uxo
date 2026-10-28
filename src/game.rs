@@ -56,6 +56,10 @@ pub const DROP: u32 = 10;
 const RIDER_FIRE: u32 = 2;
 /// A surge spreads one tile further every this many steps.
 const SURGE_RING: u32 = 4;
+/// Steps of leaning on a block before it moves, so brushing past doesn't shove it.
+const PUSH_DELAY: u32 = 10;
+/// Steps a pushed block takes to move one tile.
+pub const SHOVE_STEPS: u32 = 12;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Tile {
@@ -68,6 +72,30 @@ pub enum Tile {
     Pressure(u32),
     /// An unexploded firework: solid, and a blast sets it off (adventure "duds" goal).
     Dud,
+    /// A pushable block: solid, blasts stop at it and don't break it.
+    Block,
+    /// A locked door of one of four colours; walking into it with that key opens it.
+    Door(u8),
+    /// A gate, shut (on `Ground::Gate`); it opens while every switch is held down.
+    Gate,
+    /// A socket, shut until every part on the stage has been picked up.
+    Socket,
+}
+
+/// Things lying on the floor that are picked up and kept, never burnt.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Pickup {
+    Key(u8),
+    Part,
+}
+
+/// A block on its way from one tile to the next (it already fills `to`).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Shove {
+    pub from: (usize, usize),
+    pub to: (usize, usize),
+    pub dir: Dir,
+    pub t: u32,
 }
 
 /// What a stage asks of you before the exit opens.
@@ -125,6 +153,12 @@ pub enum Ground {
     Water,
     /// Under a wall: it is a tree's canopy (looks only).
     Tree,
+    /// Water a block was pushed into: floor now.
+    Sunk,
+    /// Held down by a player, a baddie, a bomb or a block, it opens the gates.
+    Switch,
+    /// Where a gate stands, shut (`Tile::Gate`) or open (floor).
+    Gate,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -395,6 +429,10 @@ pub struct Player {
     pub blocks: u32,
     pub items_got: u32,
     pub dropped: u32,
+    /// Keys held, by colour; kept through a lost life.
+    pub keys: [u8; 4],
+    /// Steps spent leaning on a block.
+    push: u32,
 }
 
 impl Player {
@@ -438,6 +476,8 @@ impl Player {
             blocks: 0,
             items_got: 0,
             dropped: 0,
+            keys: [0; 4],
+            push: 0,
         }
     }
     pub fn tile(&self) -> (usize, usize) {
@@ -477,6 +517,11 @@ pub enum Event {
     Cleared,
     Mounted { player: usize },
     MountLost { player: usize },
+    Shoved { player: usize },
+    DoorOpened { player: usize },
+    Gates { open: bool },
+    Got { player: usize, what: Pickup },
+    SocketOpen,
 }
 
 pub struct Game {
@@ -505,6 +550,8 @@ pub struct Game {
     pub eggs: Vec<Egg>,
     pub sparks: Vec<Spark>,
     pub items: Vec<Vec<Option<Item>>>,
+    pub pickups: Vec<Vec<Option<Pickup>>>,
+    pub shoves: Vec<Shove>,
     pub flames: Vec<Vec<Option<Flame>>>,
     pub bombs: Vec<Bomb>,
     pub surges: Vec<Surge>,
@@ -604,6 +651,8 @@ impl Game {
             eggs: Vec::new(),
             sparks: Vec::new(),
             items: vec![vec![None; w]; h],
+            pickups: vec![vec![None; w]; h],
+            shoves: Vec::new(),
             flames: vec![vec![None; w]; h],
             bombs: Vec::new(),
             surges: Vec::new(),
@@ -684,6 +733,16 @@ impl Game {
                         g.ground[y][x] = Ground::Tree;
                     }
                     Cell::Baddie(ref id) => placed.push((id.clone(), x, y)),
+                    Cell::Block => g.tiles[y][x] = Tile::Block,
+                    Cell::Key(c) => g.pickups[y][x] = Some(Pickup::Key(c)),
+                    Cell::Door(c) => g.tiles[y][x] = Tile::Door(c),
+                    Cell::Switch => g.ground[y][x] = Ground::Switch,
+                    Cell::Gate => {
+                        g.tiles[y][x] = Tile::Gate;
+                        g.ground[y][x] = Ground::Gate;
+                    }
+                    Cell::Part => g.pickups[y][x] = Some(Pickup::Part),
+                    Cell::Socket => g.tiles[y][x] = Tile::Socket,
                 }
             }
         }
@@ -857,6 +916,7 @@ impl Game {
                 }
             }
         }
+        self.tick_puzzles();
         self.move_bombs();
         self.tick_bombs();
         self.tick_surges();
@@ -1015,6 +1075,9 @@ impl Game {
             moved = self.walk(i, d, speed);
             if !moved {
                 self.try_kick(i, d);
+                self.try_push(i, d);
+            } else {
+                self.players[i].push = 0;
             }
             if !moved && let Some(s) = c.secondary {
                 moved = self.walk(i, s, speed);
@@ -1022,6 +1085,9 @@ impl Game {
                     self.players[i].facing = s;
                 }
             }
+        }
+        if c.primary.is_none() {
+            self.players[i].push = 0;
         }
         let (tx, ty) = self.players[i].tile();
         let on_ice = self.ground[ty][tx] == Ground::Ice;
@@ -1183,6 +1249,138 @@ impl Game {
         {
             self.bombs[k].motion = Motion::Slide { dx, dy, speed: KICK_SPEED };
             self.events.push(Event::Kick { player: i });
+        }
+    }
+
+    /// Walking into a door with its key opens it; leaning on a block a moment pushes it.
+    fn try_push(&mut self, i: usize, d: Dir) {
+        let p = &self.players[i];
+        let (dx, dy) = d.vec();
+        let (tx, ty) = p.tile();
+        // touching it: at or past the middle of your own tile, lined up with it
+        let (along, mid, off) = if dx != 0 { (p.x, centre(tx), p.y - centre(ty)) } else { (p.y, centre(ty), p.x - centre(tx)) };
+        if (along - mid) * (dx + dy) < 0 || off.abs() > TILE / 4 {
+            self.players[i].push = 0;
+            return;
+        }
+        let (ax, ay) = ((tx as i32 + dx) as usize, (ty as i32 + dy) as usize);
+        match self.tiles[ay][ax] {
+            Tile::Door(c) if p.keys[c as usize] > 0 => {
+                self.players[i].keys[c as usize] -= 1;
+                self.tiles[ay][ax] = Tile::Floor;
+                self.events.push(Event::DoorOpened { player: i });
+            }
+            Tile::Block if !self.shoves.iter().any(|s| s.to == (ax, ay)) => {
+                self.players[i].push += 1;
+                if self.players[i].push >= PUSH_DELAY && self.shove(ax, ay, d) {
+                    self.players[i].push = 0;
+                    self.events.push(Event::Shoved { player: i });
+                }
+            }
+            _ => self.players[i].push = 0,
+        }
+    }
+
+    /// Can a block move into tile (x, y)? Onto empty floor, or into water to sink.
+    fn block_free(&self, x: usize, y: usize) -> bool {
+        let water = self.tiles[y][x] == Tile::Wall && self.ground[y][x] == Ground::Water;
+        (self.tiles[y][x] == Tile::Floor || water)
+            && self.ground[y][x] != Ground::Warp
+            && self.exit != Some((x, y))
+            && self.pickups[y][x].is_none()
+            && !self.occupied(x, y)
+    }
+
+    /// Is anyone or anything standing on tile (x, y): a player, a baddie, a bomb?
+    fn occupied(&self, x: usize, y: usize) -> bool {
+        (0..MAX_PLAYERS).any(|j| self.players[j].joined && self.overlaps(j, x, y))
+            || self.bomb_at(x, y).is_some()
+            || self.baddies.iter().any(|b| {
+                let (bx, by) = b.tile();
+                let n = self.species[b.species].size as usize;
+                b.alive && (bx..bx + n).contains(&x) && (by..by + n).contains(&y)
+            })
+    }
+
+    /// Start the block on (x, y) moving one tile toward `d`, if it can.
+    fn shove(&mut self, x: usize, y: usize, d: Dir) -> bool {
+        let (dx, dy) = d.vec();
+        let (nx, ny) = ((x as i32 + dx) as usize, (y as i32 + dy) as usize);
+        if !self.block_free(nx, ny) {
+            return false;
+        }
+        self.tiles[y][x] = Tile::Floor;
+        self.tiles[ny][nx] = Tile::Block;
+        self.items[ny][nx] = None;
+        self.shoves.push(Shove { from: (x, y), to: (nx, ny), dir: d, t: 0 });
+        true
+    }
+
+    /// Blocks in motion arrive; in water they sink, on ice they slide on, belts carry
+    /// them. Then gates follow the switches and the socket the parts.
+    fn tick_puzzles(&mut self) {
+        let mut arrived = Vec::new();
+        for s in &mut self.shoves {
+            s.t += 1;
+            if s.t >= SHOVE_STEPS {
+                arrived.push(*s);
+            }
+        }
+        self.shoves.retain(|s| s.t < SHOVE_STEPS);
+        for s in arrived {
+            let (x, y) = s.to;
+            match self.ground[y][x] {
+                Ground::Water => {
+                    self.tiles[y][x] = Tile::Floor;
+                    self.ground[y][x] = Ground::Sunk;
+                }
+                Ground::Ice => {
+                    self.shove(x, y, s.dir);
+                }
+                _ => {}
+            }
+        }
+        for y in 0..self.h {
+            for x in 0..self.w {
+                if let Ground::Belt(d) = self.ground[y][x]
+                    && self.tiles[y][x] == Tile::Block
+                    && !self.shoves.iter().any(|s| s.to == (x, y))
+                {
+                    self.shove(x, y, d);
+                }
+            }
+        }
+        let switches: Vec<(usize, usize)> =
+            (0..self.h).flat_map(|y| (0..self.w).map(move |x| (x, y))).filter(|&(x, y)| self.ground[y][x] == Ground::Switch).collect();
+        if !switches.is_empty() {
+            let open = switches.iter().all(|&(x, y)| self.tiles[y][x] == Tile::Block || self.occupied(x, y));
+            let mut changed = false;
+            for y in 0..self.h {
+                for x in 0..self.w {
+                    if self.ground[y][x] != Ground::Gate {
+                        continue;
+                    }
+                    if open && self.tiles[y][x] == Tile::Gate {
+                        self.tiles[y][x] = Tile::Floor;
+                        changed = true;
+                    } else if !open && self.tiles[y][x] == Tile::Floor && !self.occupied(x, y) && self.flames[y][x].is_none() {
+                        // a gate won't shut on anyone standing in it
+                        self.tiles[y][x] = Tile::Gate;
+                        changed = true;
+                    }
+                }
+            }
+            if changed {
+                self.events.push(Event::Gates { open });
+            }
+        }
+        if self.tiles.iter().flatten().any(|&t| t == Tile::Socket) && !self.pickups.iter().flatten().any(|&p| p == Some(Pickup::Part)) {
+            for t in self.tiles.iter_mut().flatten() {
+                if *t == Tile::Socket {
+                    *t = Tile::Floor;
+                }
+            }
+            self.events.push(Event::SocketOpen);
         }
     }
 
@@ -1421,7 +1619,7 @@ impl Game {
                 for r in 1..=b.fire as i32 {
                     let (tx, ty) = ((x as i32 + dx * r) as usize, (y as i32 + dy * r) as usize);
                     match self.tiles[ty][tx] {
-                        Tile::Wall | Tile::Pressure(_) => break,
+                        Tile::Wall | Tile::Pressure(_) | Tile::Block | Tile::Door(_) | Tile::Gate | Tile::Socket => break,
                         Tile::Dud => {
                             self.tiles[ty][tx] = Tile::Floor;
                             self.events.push(Event::DudPopped { x: tx, y: ty, by: b.owner });
@@ -1487,7 +1685,7 @@ impl Game {
                     }
                     s.seen.push((tx, ty));
                     match self.tiles[ty][tx] {
-                        Tile::Wall | Tile::Pressure(_) | Tile::Burning(_) => continue,
+                        Tile::Wall | Tile::Pressure(_) | Tile::Burning(_) | Tile::Block | Tile::Door(_) | Tile::Gate | Tile::Socket => continue,
                         Tile::Dud => {
                             self.tiles[ty][tx] = Tile::Floor;
                             self.events.push(Event::DudPopped { x: tx, y: ty, by: s.owner });
@@ -1601,6 +1799,12 @@ impl Game {
             if let Some(item) = self.items[ty][tx].take() {
                 self.apply(i, item);
                 self.events.push(Event::Pickup { player: i, item });
+            }
+            if let Some(what) = self.pickups[ty][tx].take() {
+                if let Pickup::Key(c) = what {
+                    self.players[i].keys[c as usize] += 1;
+                }
+                self.events.push(Event::Got { player: i, what });
             }
         }
     }
@@ -1865,6 +2069,10 @@ impl Game {
                     Tile::Burning(n) => 3 + *n as u64,
                     Tile::Pressure(n) => 100 + *n as u64,
                     Tile::Dud => 200,
+                    Tile::Block => 300,
+                    Tile::Door(c) => 400 + *c as u64,
+                    Tile::Gate => 500,
+                    Tile::Socket => 600,
                 });
             }
         }
@@ -2107,6 +2315,145 @@ mod tests {
             g.step(&idle());
         }
         assert!(g.bombs.is_empty(), "the bomb two tiles off the diagonal should have gone off");
+    }
+
+    /// A room with player 1 standing on (x, y).
+    fn stand(x: usize, y: usize) -> Game {
+        let mut g = room(1);
+        g.players[0].x = centre(x);
+        g.players[0].y = centre(y);
+        g
+    }
+
+    fn walk_for(g: &mut Game, d: Dir, steps: u32) {
+        for _ in 0..steps {
+            g.step(&go(d));
+        }
+    }
+
+    #[test]
+    fn leaning_on_a_block_pushes_it() {
+        let mut g = stand(5, 6);
+        g.tiles[6][6] = Tile::Block;
+        walk_for(&mut g, Dir::Right, PUSH_DELAY + 1);
+        assert_eq!(g.tiles[6][7], Tile::Block);
+        assert_eq!(g.tiles[6][6], Tile::Floor);
+        walk_for(&mut g, Dir::Right, SHOVE_STEPS + 30);
+        assert!(g.players[0].x > centre(6), "should follow the block: {}", g.players[0].x);
+    }
+
+    #[test]
+    fn brushing_a_block_does_not_push_it() {
+        let mut g = stand(5, 6);
+        g.tiles[6][6] = Tile::Block;
+        walk_for(&mut g, Dir::Right, PUSH_DELAY / 2);
+        g.step(&idle());
+        walk_for(&mut g, Dir::Right, PUSH_DELAY / 2);
+        assert_eq!(g.tiles[6][6], Tile::Block);
+    }
+
+    #[test]
+    fn a_block_stops_at_a_wall_and_at_a_bomb() {
+        let mut g = stand(5, 6);
+        g.tiles[6][6] = Tile::Block;
+        g.tiles[6][7] = Tile::Wall;
+        g.tiles[4][5] = Tile::Block;
+        g.place_bomb(0, 5, 3);
+        g.bombs[0].fuse = 999;
+        walk_for(&mut g, Dir::Right, 40);
+        assert_eq!(g.tiles[6][6], Tile::Block);
+        g.players[0].x = centre(5);
+        walk_for(&mut g, Dir::Up, 40);
+        assert_eq!(g.tiles[4][5], Tile::Block);
+    }
+
+    #[test]
+    fn a_block_pushed_into_water_makes_floor() {
+        let mut g = stand(5, 6);
+        g.tiles[6][6] = Tile::Block;
+        g.tiles[6][7] = Tile::Wall;
+        g.ground[6][7] = Ground::Water;
+        walk_for(&mut g, Dir::Right, PUSH_DELAY + SHOVE_STEPS + 2);
+        assert_eq!((g.tiles[6][7], g.ground[6][7]), (Tile::Floor, Ground::Sunk));
+        walk_for(&mut g, Dir::Right, 60);
+        assert!(g.players[0].x > centre(7), "should walk over the sunk block");
+    }
+
+    #[test]
+    fn a_block_slides_across_ice() {
+        let mut g = stand(5, 6);
+        g.tiles[6][6] = Tile::Block;
+        for x in 7..10 {
+            g.ground[6][x] = Ground::Ice;
+        }
+        walk_for(&mut g, Dir::Right, PUSH_DELAY + 1);
+        for _ in 0..(SHOVE_STEPS * 5) {
+            g.step(&idle());
+        }
+        assert_eq!(g.tiles[6][10], Tile::Block, "should slide off the ice onto plain floor");
+    }
+
+    #[test]
+    fn a_belt_carries_a_block() {
+        let mut g = stand(1, 1);
+        g.tiles[6][6] = Tile::Block;
+        g.ground[6][6] = Ground::Belt(Dir::Down);
+        for _ in 0..(SHOVE_STEPS + 2) {
+            g.step(&idle());
+        }
+        assert_eq!(g.tiles[7][6], Tile::Block);
+    }
+
+    #[test]
+    fn a_blast_stops_at_a_block_and_leaves_it() {
+        let mut g = stand(1, 1);
+        g.tiles[6][7] = Tile::Block;
+        g.players[0].fire = 4;
+        g.place_bomb(0, 5, 6);
+        g.bombs[0].fuse = 1;
+        g.step(&idle());
+        assert_eq!(g.tiles[6][7], Tile::Block);
+        assert!(g.flames[6][6].is_some() && g.flames[6][8].is_none());
+    }
+
+    #[test]
+    fn a_key_opens_its_door_only() {
+        let mut g = stand(5, 6);
+        g.pickups[6][6] = Some(Pickup::Key(1));
+        g.tiles[6][8] = Tile::Door(1);
+        g.tiles[6][10] = Tile::Door(2);
+        walk_for(&mut g, Dir::Right, 120);
+        assert_eq!(g.tiles[6][8], Tile::Floor);
+        assert_eq!(g.tiles[6][10], Tile::Door(2));
+        assert_eq!(g.players[0].keys, [0; 4]);
+    }
+
+    #[test]
+    fn gates_open_while_every_switch_is_held() {
+        let mut g = stand(3, 6);
+        g.ground[6][3] = Ground::Switch;
+        g.ground[2][9] = Ground::Switch;
+        g.tiles[10][10] = Tile::Gate;
+        g.ground[10][10] = Ground::Gate;
+        g.step(&idle());
+        assert_eq!(g.tiles[10][10], Tile::Gate, "one switch of two is not enough");
+        g.tiles[2][9] = Tile::Block;
+        g.step(&idle());
+        assert_eq!(g.tiles[10][10], Tile::Floor);
+        walk_for(&mut g, Dir::Left, 40);
+        assert_eq!(g.tiles[10][10], Tile::Gate, "stepping off shuts it again");
+    }
+
+    #[test]
+    fn the_socket_opens_once_every_part_is_found() {
+        let mut g = stand(5, 6);
+        g.pickups[6][6] = Some(Pickup::Part);
+        g.pickups[6][8] = Some(Pickup::Part);
+        g.tiles[10][10] = Tile::Socket;
+        walk_for(&mut g, Dir::Right, 40);
+        assert_eq!(g.tiles[10][10], Tile::Socket);
+        walk_for(&mut g, Dir::Right, 40);
+        assert_eq!(g.tiles[10][10], Tile::Floor);
     }
 
     #[test]

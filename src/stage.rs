@@ -13,6 +13,11 @@
 //! - `E` the exit hatch, `*` a dud (adventure)
 //! - `w` water and `T` trees: solid like walls, drawn as a pond or a canopy
 //! - a letter from a `baddie: g grub` legend line: that baddie starts there
+//! - `B` a pushable block (into water it sinks and makes floor)
+//! - a letter from a `key: a red` line (red, blue, green or yellow): that key, and
+//!   the same letter in capitals its door
+//! - `_` a switch, `|` a gate (open while every switch is held down)
+//! - `$` a part, `S` a socket (open once every part is picked up)
 //!
 //! Adventure stages also have `world:`, `story:` lines (the card before the stage),
 //! `goal:` clear | duds | boss, `time:` seconds, `theme:` brick | orchard, and
@@ -36,7 +41,16 @@ pub enum Cell {
     Water,
     Tree,
     Baddie(String),
+    Block,
+    Key(u8),
+    Door(u8),
+    Switch,
+    Gate,
+    Part,
+    Socket,
 }
+
+const COLOURS: [&str; 4] = ["red", "blue", "green", "yellow"];
 
 #[derive(Clone, Debug)]
 pub struct Stage {
@@ -107,6 +121,7 @@ pub fn parse(text: &str) -> Result<Stage, String> {
         cells: Vec::new(),
     };
     let mut legend: Vec<(char, String)> = Vec::new();
+    let mut keys: Vec<(char, u8)> = Vec::new();
     let mut lines = text.lines();
     for line in lines.by_ref() {
         let Some((k, v)) = line.split_once(':') else { continue };
@@ -143,6 +158,16 @@ pub fn parse(text: &str) -> Result<Stage, String> {
                 let (c, id) = v.split_once(' ').ok_or(format!("bad baddie line {v:?}"))?;
                 let c = c.chars().next().filter(|c| c.is_ascii_lowercase() && !"ovw".contains(*c)).ok_or(format!("baddie letter {c:?} must be lower case, not o, v or w"))?;
                 legend.push((c, id.trim().to_string()));
+            }
+            "key" => {
+                let (c, colour) = v.split_once(' ').ok_or(format!("bad key line {v:?}"))?;
+                let c = c.chars().next().filter(|c| c.is_ascii_lowercase() && !"ovw".contains(*c)).ok_or(format!("key letter {c:?} must be lower case, not o, v or w"))?;
+                let n = COLOURS.iter().position(|k| *k == colour.trim()).ok_or(format!("key colour {colour:?}: red, blue, green or yellow"))?;
+                // its door is the capital, so not one another tile already uses
+                if "belrduts".contains(c) || legend.iter().any(|(k, _)| *k == c) {
+                    return Err(format!("key letter {c:?} is taken"));
+                }
+                keys.push((c, n as u8));
             }
             "grid" => break,
             other => return Err(format!("unknown header {other:?}")),
@@ -185,9 +210,16 @@ pub fn parse(text: &str) -> Result<Stage, String> {
                 'w' => Cell::Water,
                 'T' => Cell::Tree,
                 '*' => Cell::Dud,
-                _ => match legend.iter().find(|(k, _)| *k == c) {
-                    Some((_, id)) => Cell::Baddie(id.clone()),
-                    None => return Err(format!("unknown cell {c:?} at {x},{y}")),
+                'B' => Cell::Block,
+                '_' => Cell::Switch,
+                '|' => Cell::Gate,
+                '$' => Cell::Part,
+                'S' => Cell::Socket,
+                _ => match (legend.iter().find(|(k, _)| *k == c), keys.iter().find(|(k, _)| *k == c.to_ascii_lowercase())) {
+                    (_, Some(&(k, n))) if k == c => Cell::Key(n),
+                    (_, Some(&(_, n))) => Cell::Door(n),
+                    (Some((_, id)), None) => Cell::Baddie(id.clone()),
+                    (None, None) => return Err(format!("unknown cell {c:?} at {x},{y}")),
                 },
             });
         }
@@ -219,6 +251,14 @@ mod tests {
     }
 
     #[test]
+    fn puzzle_tiles_parse() {
+        let s = parse("name: t\nkey: a red\nkey: g green\ngrid:\n#########\n#1.B_|$S#\n#2.aAgG.#\n#3.....4#\n#.......#\n#.......#\n#########\n").unwrap();
+        assert_eq!(&s.cells[1][3..8], &[Cell::Block, Cell::Switch, Cell::Gate, Cell::Part, Cell::Socket]);
+        assert_eq!(&s.cells[2][3..7], &[Cell::Key(0), Cell::Door(0), Cell::Key(2), Cell::Door(2)]);
+        assert!(parse("name: t\nkey: b red\ngrid:\n#######\n#1....#\n#2....#\n#3...4#\n#.....#\n#.....#\n#######\n").is_err(), "B is the block");
+    }
+
+    #[test]
     fn every_stage_is_connected() {
         for i in 0..count() {
             assert_connected(&load(i));
@@ -231,6 +271,7 @@ mod tests {
 /// has a free tile beside it to dodge into.
 #[cfg(test)]
 pub fn assert_connected(s: &Stage) {
+    // doors, gates, sockets and blocks open or move in play, so they count as open
     let open = |x: usize, y: usize| !matches!(s.cells[y][x], Cell::Wall | Cell::Water | Cell::Tree);
     let (w, h) = (s.w, s.h);
     let start = (0..h).flat_map(|y| (0..w).map(move |x| (x, y))).find(|&(x, y)| s.cells[y][x] == Cell::Start(0)).unwrap();

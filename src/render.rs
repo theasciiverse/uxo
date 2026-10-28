@@ -6,7 +6,7 @@
 //! move in pixels, not tiles, so movement stays smooth at every pixel size.
 
 use crate::baddie::{Species, State};
-use crate::game::{Bomb, BombKind, Dir, Disease, Flame, Game, Ground, Item, Motion, Player, Theme, Tile, DOWN, DROP, FUSE, LEFT, RIGHT, TILE, UP};
+use crate::game::{Bomb, BombKind, Dir, Disease, Flame, Game, Ground, Item, Motion, Pickup, Player, Theme, Tile, DOWN, DROP, FUSE, LEFT, RIGHT, SHOVE_STEPS, TILE, UP};
 use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
 use ratatui::style::Color;
@@ -488,6 +488,20 @@ pub fn draw_arena(g: &Game, zoom: Zoom, cam: (i32, i32), shake: i16, area: Rect,
                     });
                 }
                 Tile::Pressure(_) => {}
+                Tile::Block => {
+                    // what is under it: water it is sinking into, or the floor
+                    if g.ground[ty][tx] == Ground::Water {
+                        water(&mut cv, x0, y0, a, k, t);
+                    } else {
+                        ground(&mut cv, x0, y0, a, k, g.ground[ty][tx], t);
+                    }
+                    if !g.shoves.iter().any(|m| m.to == (tx, ty)) {
+                        crate_block(&mut cv, x0, y0, a, k);
+                    }
+                }
+                Tile::Door(c) => door(&mut cv, x0, y0, a, k, KEY_COLOURS[c as usize]),
+                Tile::Gate => gate(&mut cv, x0, y0, a, k),
+                Tile::Socket => socket(&mut cv, x0, y0, a, k, t),
                 Tile::Soft => soft_block(&mut cv, x0, y0, a, k, None, t, g.theme),
                 Tile::Burning(left) => soft_block(&mut cv, x0, y0, a, k, Some(left), t, g.theme),
                 Tile::Dud => {
@@ -525,9 +539,22 @@ pub fn draw_arena(g: &Game, zoom: Zoom, cam: (i32, i32), shake: i16, area: Rect,
                     if let Some(item) = g.items[ty][tx] {
                         draw_item(&mut cv, x0, y0, a, k, item);
                     }
+                    match g.pickups[ty][tx] {
+                        Some(Pickup::Key(c)) => key(&mut cv, x0, y0, a, k, KEY_COLOURS[c as usize], t),
+                        Some(Pickup::Part) => part(&mut cv, x0, y0, a, k, t),
+                        None => {}
+                    }
                 }
             }
         }
+    }
+
+    // blocks on the move, between their two tiles
+    for m in &g.shoves {
+        let f = m.t as i32 * s / SHOVE_STEPS as i32;
+        let (fx, fy) = (m.from.0 as i32 * s, m.from.1 as i32 * s);
+        let (dx, dy) = m.dir.vec();
+        crate_block(&mut cv, (fx + dx * f).div_euclid(k) * k, (fy + dy * f).div_euclid(k) * k, a, k);
     }
 
     // grounded bombs; armed mines are buried out of sight
@@ -709,6 +736,109 @@ fn blit(cv: &Canvas, ox: i32, oy: i32, area: Rect, buf: &mut Buffer) {
     }
 }
 
+pub const KEY_COLOURS: [Rgb; 4] = [[225, 60, 60], [70, 120, 235], [70, 190, 90], [240, 205, 60]];
+
+/// A pushable crate: planks in a frame, braced corner to corner.
+fn crate_block(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32) {
+    for v in 0..a {
+        for u in 0..a {
+            let frame = u == 0 || v == 0 || u == a - 1 || v == a - 1;
+            let brace = u == v || u == a - 1 - v;
+            let c = if frame {
+                if u == 0 || v == 0 { [235, 190, 110] } else { [110, 70, 35] }
+            } else if brace {
+                [200, 150, 80]
+            } else if v % 2 == 0 {
+                [165, 115, 55]
+            } else {
+                [150, 102, 48]
+            };
+            cv.block(x0 + u * k, y0 + v * k, k, c);
+        }
+    }
+}
+
+/// A locked door in its key's colour, with a keyhole.
+fn door(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, c: Rgb) {
+    let dark = [c[0] / 2, c[1] / 2, c[2] / 2];
+    let m = a / 2;
+    for v in 0..a {
+        for u in 0..a {
+            let frame = u == 0 || v == 0 || u == a - 1 || v == a - 1;
+            let hole = (u == m - 1 || u == m) && (v == m - 1 || (a >= 6 && v == m));
+            let col = if hole { [20, 20, 26] } else if frame { dark } else { c };
+            cv.block(x0 + u * k, y0 + v * k, k, col);
+        }
+    }
+}
+
+/// A shut gate: bars between two rails.
+fn gate(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32) {
+    for v in 0..a {
+        for u in 0..a {
+            let rail = v == 0 || v == a - 1;
+            let bar = u % 2 == 1;
+            if rail {
+                cv.block(x0 + u * k, y0 + v * k, k, [70, 110, 130]);
+            } else if bar {
+                cv.block(x0 + u * k, y0 + v * k, k, if u == 1 { [200, 240, 255] } else { [120, 200, 230] });
+            }
+        }
+    }
+}
+
+/// A socket waiting for its parts: a dark plate, a gold outline that pulses.
+fn socket(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, t: u64) {
+    let glow = if (t / 20) % 2 == 0 { [235, 195, 70] } else { [170, 135, 40] };
+    for v in 0..a {
+        for u in 0..a {
+            let edge = u == 0 || v == 0 || u == a - 1 || v == a - 1;
+            let outline = !edge && (u == 1 || v == 1 || u == a - 2 || v == a - 2);
+            cv.block(x0 + u * k, y0 + v * k, k, if outline { glow } else if edge { [50, 50, 60] } else { [28, 28, 36] });
+        }
+    }
+}
+
+/// A key lying on the floor, bobbing.
+fn key(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, c: Rgb, t: u64) {
+    let bob = if (t / 20) % 2 == 0 { 0 } else { k };
+    let m = a / 2;
+    let light = [c[0].saturating_add(60), c[1].saturating_add(60), c[2].saturating_add(60)];
+    // a ring on the left (with a hole when there is room), the blade to the right
+    // with its teeth
+    let r = if a >= 6 { 3 } else { 2 };
+    for v in 0..r {
+        for u in 0..r {
+            if !(r == 3 && u == 1 && v == 1) {
+                cv.block(x0 + u * k, y0 + (m - r / 2 + v - 1) * k - bob, k, if v == 0 { light } else { c });
+            }
+        }
+    }
+    for u in r..a {
+        cv.block(x0 + u * k, y0 + (m - 1) * k - bob, k, c);
+    }
+    cv.block(x0 + (a - 1) * k, y0 + m * k - bob, k, c);
+    if a >= 6 {
+        cv.block(x0 + (a - 3) * k, y0 + m * k - bob, k, c);
+    }
+}
+
+/// A part: a little chip with gold pins, glinting.
+fn part(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, t: u64) {
+    let glint = (t / 8) % 8 == 0;
+    for v in 1..a - 1 {
+        for u in 1..a - 1 {
+            let pin = (u == 1 || u == a - 2) && v % 2 == 0 || (v == 1 || v == a - 2) && u % 2 == 0;
+            let body = u > 1 && v > 1 && u < a - 2 && v < a - 2;
+            if body {
+                cv.block(x0 + u * k, y0 + v * k, k, if glint && u == 2 && v == 2 { [255, 255, 255] } else { [40, 40, 52] });
+            } else if pin {
+                cv.block(x0 + u * k, y0 + v * k, k, [235, 195, 70]);
+            }
+        }
+    }
+}
+
 /// Stage ground under a floor tile: belts, arrows, warps, ice.
 fn ground(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, gr: Ground, t: u64) {
     // art pixel (u, v) in a frame where the direction `d` points right
@@ -720,8 +850,40 @@ fn ground(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, gr: Ground, t: u64)
             Dir::Up => (v, a - 1 - u),
         }
     };
+    let px = |cv: &mut Canvas, u: i32, v: i32, c: Rgb| cv.block(x0 + u * k, y0 + v * k, k, c);
     match gr {
         Ground::Plain | Ground::Water | Ground::Tree => {}
+        Ground::Sunk => {
+            // a block's top, flush with the water round it
+            for v in 0..a {
+                for u in 0..a {
+                    let rim = u == 0 || v == 0 || u == a - 1 || v == a - 1;
+                    px(cv, u, v, if rim { [45, 95, 175] } else if (u + v) % 3 == 0 { [120, 92, 52] } else { [140, 108, 62] });
+                }
+            }
+        }
+        Ground::Switch => {
+            // a raised plate, lit on top, its shadow on the bottom and right
+            for v in 0..a {
+                for u in 0..a {
+                    let c = if u == 0 || v == 0 {
+                        [245, 140, 130]
+                    } else if u == a - 1 || v == a - 1 {
+                        [110, 35, 40]
+                    } else {
+                        [210, 70, 65]
+                    };
+                    px(cv, u, v, c);
+                }
+            }
+        }
+        Ground::Gate => {
+            // the open gate's rails, top and bottom
+            for u in 0..a {
+                px(cv, u, 0, [70, 110, 130]);
+                px(cv, u, a - 1, [70, 110, 130]);
+            }
+        }
         Ground::Belt(d) => {
             let shift = (t / 5) as i32;
             for v in 0..a {
@@ -1000,8 +1162,19 @@ fn draw_small(g: &Game, cam: (i32, i32), area: Rect, buf: &mut Buffer) {
                 Tile::Dud => put(x, y, "!!", [250, 205, 60], [150, 30, 35]),
                 Tile::Soft => put(x, y, "▒▒", [205, 130, 66], [108, 58, 32]),
                 Tile::Burning(_) => put(x, y, "▒▒", [255, 200, 60], [200, 70, 25]),
+                Tile::Block => put(x, y, "[]", [235, 190, 110], [150, 102, 48]),
+                Tile::Door(c) => put(x, y, "##", KEY_COLOURS[c as usize], [30, 30, 38]),
+                Tile::Gate => put(x, y, "||", [120, 200, 230], floor),
+                Tile::Socket => put(x, y, "[]", [235, 195, 70], [28, 28, 36]),
                 Tile::Floor => match (g.items[ty][tx], g.ground[ty][tx]) {
                     (Some(item), _) => put(x, y, item_label(item), [255, 255, 255], item_frame(item)),
+                    _ if g.pickups[ty][tx].is_some() => match g.pickups[ty][tx] {
+                        Some(Pickup::Key(c)) => put(x, y, "o-", KEY_COLOURS[c as usize], floor),
+                        _ => put(x, y, "$$", [235, 195, 70], [40, 40, 52]),
+                    },
+                    (None, Ground::Sunk) => put(x, y, "  ", floor, [140, 108, 62]),
+                    (None, Ground::Switch) => put(x, y, "__", [240, 130, 120], [205, 75, 70]),
+                    (None, Ground::Gate) => put(x, y, "::", [70, 110, 130], floor),
                     (None, Ground::Belt(d) | Ground::Arrow(d)) => {
                         let ch = match d {
                             Dir::Right => ">>",

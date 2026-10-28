@@ -206,8 +206,20 @@ party bomb game.
   rule; the surge is a bomb type (`surge` in stage `give:`/item names),
   dropped rarely in battle too. `--snapshot out.ppm --surge --secs 0.2`
   shows one. Name is a working name.
-- **Pushable blocks, keys and doors, switches, gates:** engine work to do
-  first in 0.4.0, before World 1 is rebuilt.
+- **Puzzle tiles, built 2026-10-28** (stage characters in `src/stage.rs`):
+  - `B` a crate: lean on it a moment (`PUSH_DELAY`) to push it a tile
+    (`SHOVE_STEPS`); it won't move onto a bomb, a player, a baddie, a pickup,
+    a warp or the exit. Blasts stop at it and leave it. Belts carry it, on
+    ice it slides on, pushed into water it sinks and becomes floor.
+  - `key: a red` (red, blue, green, yellow): `a` that key, `A` its door.
+    Walking into a door with its key opens it. Keys are kept through a lost
+    life, fresh each stage.
+  - `_` switch, `|` gate: the gates are open while every switch on the stage
+    is held down (by a player, a baddie, a bomb or a crate), and won't shut
+    on anyone standing in them.
+  - `$` part, `S` socket: the sockets open once every part is picked up.
+  - Doors, gates and sockets stop blasts; keys and parts are never burnt.
+  - `--snapshot out.ppm --puzzle --secs 0` shows them all.
 - **Store copy waits for the story.** The catalog page written on
   2026-10-27 sells bombs and chain reactions with no story; David found it
   "nowhere how to present a bomb-arena game". The classics sold a villain
@@ -432,7 +444,8 @@ place with its own shape, not the pillar grid with a gimmick sprinkled on.
 Battle stages are `stages/*.txt` (format documented in `src/stage.rs`): `name:`,
 `about:`, optional `give:` (items everyone starts with), `items:`, then the grid, any
 size, walled all round (the six are 25x17): `#` wall, `+` soft, `?` soft three times in four, `.` floor, `1`-`4`
-starts, `> < ^ v` belts, `R L U D` arrows, `o` warps, `~` ice. `cargo test` checks
+starts, `> < ^ v` belts, `R L U D` arrows, `o` warps, `~` ice, and the puzzle
+tiles (`B`, keys and doors, `_` `|`, `$` `S`; see the new direction above). `cargo test` checks
 every map parses, every tile is reachable and no start is boxed in.
 
 1. **Open Field**: the classic arena.

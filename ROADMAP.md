@@ -1,8 +1,9 @@
 # Roadmap
 
-uXo is at 0.3.0 (2026-10-28): battle mode complete, and the first adventure
-world playable. The adventure becomes a story in three acts, inside the
-machine, built one world at a time. 1.0.0 is when all three acts are in.
+uXo is at 0.4.0 (2026-10-28): battle mode complete, and act 1's first
+world, the Screensaver, played through. The adventure is a story in three
+acts, inside the machine, built one world at a time. 1.0.0 is when all
+three acts are in.
 
 ## 0.3.0: built
 
@@ -13,7 +14,7 @@ machine, built one world at a time. 1.0.0 is when all three acts are in.
 - [x] The Orchard: nine stages, six species and the Bramblehog
 - [x] Keyboard and every gamepad its own player, with rumble; session logging
 
-## 0.4.0: inside the machine
+## 0.4.0: built
 
 - [x] The surge: a bomb whose blast floods outward round corners, for open
   spaces
@@ -28,7 +29,7 @@ machine, built one world at a time. 1.0.0 is when all three acts are in.
 - [x] World 1, the Screensaver: the Orchard rebuilt, stages that mix bomb
   puzzles and fast action, with crates, keys and doors, gates, parts and the
   surge; starting a stage over from the pause screen
-- [ ] World 1 played through and tuned
+- [x] World 1 played through and tuned
 - [x] The store page and README with the story
 
 ## 0.5.0: the rest of act 1

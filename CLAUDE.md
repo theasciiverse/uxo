@@ -7,7 +7,7 @@ that made those games feel like chaos you could still read. Same kind of
 mechanics, our own identity. Not a clone.
 
 Own git repo, private at github.com/theasciiverse/uxo (`main`).
-Version 0.3.0 (2026-10-28). What comes next, release by release, is in `ROADMAP.md`.
+Version 0.4.0 (2026-10-28). What comes next, release by release, is in `ROADMAP.md`.
 
 **Status:** World 1 of Adventure playable, battle mode complete (2026-10-04).
 A title screen (big pixel logo over fireworks) leads to **Adventure** (alone or two

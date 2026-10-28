@@ -1,15 +1,15 @@
 name: The Bramblehog
-world: The Orchard
+world: The Screensaver
 theme: orchard
 goal: boss
 time: 240
-story: Something old guards the heart of the Orchard.
-story: It curls into a ball of brambles and rolls at whatever
-story: moves, and the grubs come when it calls.
-ending: The Bramblehog uncurls, blinks at the sky full of your
-ending: fireworks, and wanders off to sleep under the oldest tree.
-ending: The Orchard is quiet again. But past the hills, something
-ending: is ticking: more duds came down in the Clockworks.
+story: purged has woken the screensaver's oldest creature
+story: to guard the way out. It curls into a ball of brambles,
+story: rolls at whatever moves, and the grubs come when it calls.
+ending: The Bramblehog uncurls, blinks, and wanders off to sleep
+ending: under the oldest tree. The screensaver goes quiet, and a door
+ending: opens behind it. Deep in the machine, purged has noticed:
+ending: its charges are going off, one by one. Next: the Clock!
 ending: To be continued.
 baddie: g grub
 baddie: b beetle

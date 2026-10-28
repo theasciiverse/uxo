@@ -1,10 +1,10 @@
 name: The Old Grove
-world: The Orchard
+world: The Screensaver
 theme: orchard
 goal: duds
 time: 210
-story: The oldest grove in the Orchard,
-story: where the rest of your duds came down.
+story: The oldest grove in the screensaver,
+story: where purged hid the last eight of its charges.
 story: Everything that lives here is awake.
 baddie: g grub
 baddie: b beetle

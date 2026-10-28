@@ -53,6 +53,9 @@ pub struct Tally {
     pub time_bonus: u32,
 }
 
+/// Percent of bombs that fizzle into UXOs in the adventure.
+const FIZZLE: u32 = 3;
+
 pub struct Run {
     pub game: Game,
     pub stage: Stage,
@@ -100,6 +103,8 @@ impl Run {
         self.game = Game::from_stage(&self.stage, seed);
         self.game.adventure = true;
         self.game.hurry_at = u32::MAX;
+        // now and then a bomb fizzles: a surprise, not a rule
+        self.game.fizzle = FIZZLE;
         for i in 0..self.players {
             if self.lives[i] == 0 {
                 continue;

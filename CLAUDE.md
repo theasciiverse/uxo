@@ -194,10 +194,33 @@ party bomb game.
   3. **The Virus:** Payload has ridden along all the time and races you to
      the way out, onto the network. Worlds: the Power Supply, Scrollback,
      Static, the Prompt.
-  Each act ends with its own ending. Names (villains, hero, bosses) still
-  to choose and check against games and marks.
-- **Hero (proposed):** the round body and single-pixel eyes, with a blinking
-  cursor underscore under its feet as its own detail.
+  Each act ends with its own ending.
+- **Names (David, 2026-10-28):** the hero is **Dot**, act 1's villain is
+  **purged** (lower case, a daemon's name; reads as purge-d and purged).
+  Checked 2026-10-28: no game called Purged on Steam or itch.io; Dot is a
+  plain word a few small indie games also use for a character (Dotted
+  Hero's mushroom, the prototype Dot is Escaping), fine for a character
+  inside uXo. Rejected: xkill (the X Window tool, and a GitHub game,
+  XKILL: Heartaches by the Cycle, about processes fighting in arenas).
+  The Bramblehog stays as the Screensaver's guard.
+- **Hero art (proposed):** the round body and single-pixel eyes, with a
+  blinking cursor underscore under its feet as its own detail.
+- **Act 1 story, in the game (2026-10-28):** the title line "Blast your way
+  out to the real world!"; World 1's name is now the Screensaver (stage
+  `world:` lines; folder and theme stay `orchard`); its cards and ending tell
+  purged's story, the duds are purged's charges.
+- **UXOs (David, 2026-10-28: "brilliant"), built:** now and then a bomb
+  fizzles instead of bursting and lies there live, grey and smoking: it no
+  longer counts as one of its owner's bombs, it goes off when a blast reaches
+  it, once it comes to rest after a kick, punch or throw, or by itself after
+  4 to 12 seconds (wobbling for the last `UXO_WOBBLE` steps). Remote bombs
+  and mines never fizzle. How often: battle setup "Bombs that fizzle (UXO)"
+  none / some (6%, the default) / lots (20%); adventure 3% (`FIZZLE` in
+  `src/adventure.rs`); the skull's new disease Duds makes every bomb you drop
+  fizzle.
+- **Charges go off for real (2026-10-28):** a blast that reaches one of
+  purged's charges (`*`) sets it off with a blast of its own (`CHARGE_FIRE`,
+  3), at once in a chain, so defusing one means standing clear.
 - **Surge bomb (David, 2026-10-28: "lets try it"), built:** the blast for
   open spaces. Instead of the cross it floods outward a ring at a time
   (every `SURGE_RING` steps, `surge_reach(fire)` tiles, shorter than the
@@ -478,7 +501,7 @@ are ideas only.
 - [x] Battle rules: rounds to three wins, last one standing; practice respawns
 - [ ] Our hero and mount creatures: look and abilities
 - [ ] Power-up naming and icon set
-- [ ] Story premise (fireworks idea in Adventure)
+- [x] Story premise: three acts inside the machine (2026-10-28)
 - [x] David approved the Adventure, Baddies and Mounts proposals and the build order
 - [x] Battle stage files and gimmicks: belts, arrows, warps, ice (darkness was
       tried and dropped)

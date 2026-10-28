@@ -1,11 +1,12 @@
 name: Hedge Maze
-world: The Orchard
+world: The Screensaver
 theme: orchard
 goal: duds
 time: 180
 story: Some of these hedges have eyes.
-story: Five of your duds came down in the maze.
+story: purged planted five of its charges in the maze.
 story: Set every one of them off, and the hatch opens.
+story: A charge goes off with a real blast: don't stand beside it!
 baddie: g grub
 baddie: b beetle
 baddie: h hedgehog

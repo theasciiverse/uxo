@@ -56,6 +56,13 @@ pub const DROP: u32 = 10;
 const RIDER_FIRE: u32 = 2;
 /// A surge spreads one tile further every this many steps.
 const SURGE_RING: u32 = 4;
+/// A fizzled bomb lies live for this long, plus up to `UXO_SPAN` more, then goes
+/// off by itself; it wobbles for the last `UXO_WOBBLE` steps.
+const UXO_MIN: u32 = 4 * HZ;
+const UXO_SPAN: u32 = 8 * HZ;
+pub const UXO_WOBBLE: u32 = 50;
+/// The blast of one of purged's charges when it is set off.
+const CHARGE_FIRE: u32 = 3;
 /// Steps of leaning on a block before it moves, so brushing past doesn't shove it.
 const PUSH_DELAY: u32 = 10;
 /// Steps a pushed block takes to move one tile.
@@ -70,7 +77,8 @@ pub enum Tile {
     Burning(u32),
     /// Dropped during sudden death; solid like a wall. Steps since it fell.
     Pressure(u32),
-    /// An unexploded firework: solid, and a blast sets it off (adventure "duds" goal).
+    /// One of purged's charges: solid, and a blast sets it off with a real blast of its
+    /// own (adventure "duds" goal).
     Dud,
     /// A pushable block: solid, blasts stop at it and don't break it.
     Block,
@@ -239,9 +247,11 @@ pub enum Disease {
     /// Can't stop walking.
     NoStop,
     Invisible,
+    /// Every bomb you drop fizzles into a UXO.
+    Duds,
 }
 
-const DISEASES: [Disease; 10] = [
+const DISEASES: [Disease; 11] = [
     Disease::Slow,
     Disease::Fast,
     Disease::ShortFuse,
@@ -252,6 +262,7 @@ const DISEASES: [Disease; 10] = [
     Disease::Reverse,
     Disease::NoStop,
     Disease::Invisible,
+    Disease::Duds,
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -340,6 +351,14 @@ pub struct Bomb {
     pub from_rider: bool,
     /// Players still standing on the bomb since it landed may walk off it.
     pass: [bool; MAX_PLAYERS],
+    /// A UXO: it fizzled, and goes off by itself after this many steps.
+    pub uxo: Option<u32>,
+    /// A UXO that has been kicked, punched, thrown or carried goes off once it is at rest.
+    jolted: bool,
+    /// Dropped with the duds disease: it will fizzle.
+    dud: bool,
+    /// No longer counts as one of its owner's bombs (a UXO, a charge going off).
+    loose: bool,
 }
 
 impl Bomb {
@@ -522,6 +541,8 @@ pub enum Event {
     Gates { open: bool },
     Got { player: usize, what: Pickup },
     SocketOpen,
+    /// A bomb fizzled and lies there live.
+    Fizzled { x: usize, y: usize },
 }
 
 pub struct Game {
@@ -555,6 +576,8 @@ pub struct Game {
     pub flames: Vec<Vec<Option<Flame>>>,
     pub bombs: Vec<Bomb>,
     pub surges: Vec<Surge>,
+    /// Percent of bombs that fizzle into UXOs instead of bursting.
+    pub fizzle: u32,
     pub players: [Player; MAX_PLAYERS],
     pub steps: u64,
     pub events: Vec<Event>,
@@ -656,6 +679,7 @@ impl Game {
             flames: vec![vec![None; w]; h],
             bombs: Vec::new(),
             surges: Vec::new(),
+            fizzle: 0,
             players: std::array::from_fn(|_| Player::new()),
             steps: 0,
             events: Vec::new(),
@@ -859,6 +883,10 @@ impl Game {
             age: 0,
             from_rider: false,
             pass: self.passes(x, y),
+            uxo: None,
+            jolted: false,
+            dud: false,
+            loose: false,
         }
     }
 
@@ -874,14 +902,16 @@ impl Game {
             Some(Disease::LongFuse) => FUSE * 2,
             _ => FUSE,
         };
-        let b = self.new_bomb(i, x, y, fire, p.kind, fuse);
+        let dud = p.disease == Some(Disease::Duds);
+        let mut b = self.new_bomb(i, x, y, fire, p.kind, fuse);
+        b.dud = dud;
         self.bombs.push(b);
         self.players[i].dropped += 1;
         true
     }
 
     fn owned(&self, i: usize) -> u32 {
-        self.bombs.iter().filter(|b| b.owner == i && !b.from_rider).count() as u32
+        self.bombs.iter().filter(|b| b.owner == i && !b.from_rider && !b.loose).count() as u32
     }
 
     /// Advance one step with each player's command.
@@ -1567,11 +1597,25 @@ impl Game {
     fn tick_bombs(&mut self) {
         let mut burst: Vec<u32> = Vec::new();
         for k in 0..self.bombs.len() {
+            if self.bombs[k].uxo.is_some() && self.bombs[k].motion != Motion::Still {
+                self.bombs[k].jolted = true;
+            }
             let b = &self.bombs[k];
             if !b.grounded() {
                 continue;
             }
             let (tx, ty) = b.tile();
+            let burning = self.flames[ty][tx].is_some();
+            // a UXO goes off when a blast reaches it, once it is at rest after being
+            // moved, or by itself when its time comes
+            if let Some(left) = b.uxo {
+                let rest = b.jolted && b.motion == Motion::Still;
+                if left <= 1 || rest || burning {
+                    burst.push(b.id);
+                }
+                self.bombs[k].uxo = Some(left.saturating_sub(1));
+                continue;
+            }
             let owner_gone = !self.players[b.owner].alive && !b.from_rider;
             let b = &mut self.bombs[k];
             b.age += 1;
@@ -1585,7 +1629,11 @@ impl Game {
                 }
                 _ => b.fuse = b.fuse.saturating_sub(1),
             }
-            if b.fuse == 0 || self.flames[ty][tx].is_some() {
+            if b.fuse == 0 && !burning && self.fizzles(k) {
+                continue;
+            }
+            let b = &self.bombs[k];
+            if b.fuse == 0 || burning {
                 burst.push(b.id);
             }
         }
@@ -1621,9 +1669,8 @@ impl Game {
                     match self.tiles[ty][tx] {
                         Tile::Wall | Tile::Pressure(_) | Tile::Block | Tile::Door(_) | Tile::Gate | Tile::Socket => break,
                         Tile::Dud => {
-                            self.tiles[ty][tx] = Tile::Floor;
-                            self.events.push(Event::DudPopped { x: tx, y: ty, by: b.owner });
-                            self.fireworks(centre(tx), centre(ty), 28);
+                            let id = self.set_off_charge(tx, ty, b.owner);
+                            burst.push(id);
                             break;
                         }
                         Tile::Soft => {
@@ -1654,6 +1701,37 @@ impl Game {
                 }
             }
         }
+    }
+
+    /// Does bomb `k`, its fuse run down, fizzle into a UXO instead of bursting?
+    fn fizzles(&mut self, k: usize) -> bool {
+        let b = &self.bombs[k];
+        if b.loose || matches!(b.kind, BombKind::Remote | BombKind::Mine) {
+            return false;
+        }
+        if !b.dud && (self.fizzle == 0 || self.rand(100) >= self.fizzle) {
+            return false;
+        }
+        let left = UXO_MIN + self.rand(UXO_SPAN);
+        let b = &mut self.bombs[k];
+        b.uxo = Some(left);
+        b.loose = true;
+        let (x, y) = b.tile();
+        self.events.push(Event::Fizzled { x, y });
+        true
+    }
+
+    /// A blast reached one of purged's charges: it goes off with a real blast of its
+    /// own, a step later for a surge, at once in a cross's chain. Returns its bomb.
+    fn set_off_charge(&mut self, x: usize, y: usize, by: usize) -> u32 {
+        self.tiles[y][x] = Tile::Floor;
+        self.events.push(Event::DudPopped { x, y, by });
+        self.fireworks(centre(x), centre(y), 28);
+        let mut c = self.new_bomb(by, x, y, CHARGE_FIRE, BombKind::Normal, 1);
+        c.loose = true;
+        let id = c.id;
+        self.bombs.push(c);
+        id
     }
 
     fn flame(&mut self, x: usize, y: usize, a: u8, b: u8, owner: usize, surge: bool) {
@@ -1687,9 +1765,7 @@ impl Game {
                     match self.tiles[ty][tx] {
                         Tile::Wall | Tile::Pressure(_) | Tile::Burning(_) | Tile::Block | Tile::Door(_) | Tile::Gate | Tile::Socket => continue,
                         Tile::Dud => {
-                            self.tiles[ty][tx] = Tile::Floor;
-                            self.events.push(Event::DudPopped { x: tx, y: ty, by: s.owner });
-                            self.fireworks(centre(tx), centre(ty), 28);
+                            self.set_off_charge(tx, ty, s.owner);
                             continue;
                         }
                         Tile::Soft => {
@@ -2454,6 +2530,85 @@ mod tests {
         assert_eq!(g.tiles[10][10], Tile::Socket);
         walk_for(&mut g, Dir::Right, 40);
         assert_eq!(g.tiles[10][10], Tile::Floor);
+    }
+
+    /// A bomb on (x, y) whose fuse runs out next step and that is sure to fizzle.
+    fn fizzling(g: &mut Game, x: usize, y: usize) {
+        g.fizzle = 100;
+        g.place_bomb(0, x, y);
+        g.bombs[0].fuse = 1;
+        g.step(&idle());
+    }
+
+    #[test]
+    fn a_fizzled_bomb_lies_live_and_frees_its_owner() {
+        let mut g = stand(1, 1);
+        fizzling(&mut g, 7, 6);
+        assert!(g.bombs[0].uxo.is_some(), "should have fizzled");
+        assert!(g.flames[6][7].is_none());
+        assert_eq!(g.owned(0), 0, "a UXO no longer counts against your bombs");
+    }
+
+    #[test]
+    fn a_uxo_goes_off_by_itself_in_time() {
+        let mut g = stand(1, 1);
+        fizzling(&mut g, 7, 6);
+        for _ in 0..(UXO_MIN + UXO_SPAN + 1) {
+            g.step(&idle());
+        }
+        assert!(g.bombs.is_empty(), "it should have gone off by now");
+    }
+
+    #[test]
+    fn a_blast_sets_off_a_uxo() {
+        let mut g = stand(1, 1);
+        fizzling(&mut g, 7, 6);
+        g.fizzle = 0;
+        g.players[0].bombs = 2;
+        g.players[0].fire = 3;
+        g.place_bomb(0, 5, 6);
+        g.bombs[1].fuse = 1;
+        g.step(&idle());
+        assert!(g.bombs.is_empty());
+        assert!(g.flames[6][9].is_some(), "the UXO's own blast");
+    }
+
+    #[test]
+    fn a_kicked_uxo_goes_off_where_it_stops() {
+        let mut g = stand(4, 6);
+        fizzling(&mut g, 6, 6);
+        g.players[0].kick = true;
+        g.players[0].vest = 9999;
+        // about 22 steps to reach it, then 45 or so to slide seven tiles
+        walk_for(&mut g, Dir::Right, 30);
+        assert!(g.bombs[0].uxo.is_some(), "still live while it slides");
+        walk_for(&mut g, Dir::Right, 60);
+        assert!(g.bombs.is_empty(), "should have gone off against the wall");
+        assert!(g.flames[6][13].is_some());
+    }
+
+    #[test]
+    fn the_duds_disease_makes_every_bomb_fizzle() {
+        let mut g = stand(1, 1);
+        g.players[0].disease = Some(Disease::Duds);
+        g.players[0].disease_left = 9999;
+        g.place_bomb(0, 7, 6);
+        g.bombs[0].fuse = 1;
+        g.step(&idle());
+        assert!(g.bombs[0].uxo.is_some());
+    }
+
+    #[test]
+    fn a_charge_goes_off_with_a_real_blast() {
+        let mut g = stand(1, 1);
+        g.tiles[6][7] = Tile::Dud;
+        g.players[0].fire = 2;
+        g.place_bomb(0, 5, 6);
+        g.bombs[0].fuse = 1;
+        g.step(&idle());
+        assert_eq!(g.tiles[6][7], Tile::Floor);
+        assert!(g.flames[6][7 + CHARGE_FIRE as usize].is_some(), "the charge's own blast reaches {CHARGE_FIRE}");
+        assert!(g.flames[6 - CHARGE_FIRE as usize][7].is_some());
     }
 
     #[test]

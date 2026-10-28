@@ -361,7 +361,7 @@ fn title_screen(t: &Title, input: &Input, seats: &[Ctl], area: Rect, buf: &mut B
     let x = area.x + (area.width as i32 - w).max(0) as u16 / 2;
     let y = area.y + area.height / 6;
     render::pixel_text_big(buf, x, y, "uXo", &[amber, x_col, amber], scale, area);
-    let tag = "a festival of fireworks, gone off in all the wrong places";
+    let tag = "Blast your way out to the real world!";
     Paragraph::new(Line::from(Span::styled(tag, Style::default().fg(Color::Rgb(230, 230, 236)).bg(Color::Rgb(10, 10, 14)))).centered())
         .render(Rect::new(area.x, y + (6 * scale / 2) as u16 + 1, area.width, 1), buf);
     // the menu
@@ -537,6 +537,7 @@ fn feel(ev: Event, g: &Game, seats: &[Ctl], input: &mut Input, shake: &mut u32, 
                 input.rumble(c, 0.0, 0.4, 60);
             }
         }
+        Event::Fizzled { x, y } => info!("a bomb fizzled at {x},{y}: UXO"),
         Event::SocketOpen => {
             info!("every part found: the sockets open");
             *toast = Some(("EVERY PART FOUND!".to_string(), HZ * 3));
@@ -1313,6 +1314,12 @@ fn snapshot(args: &[String], out: &str) -> io::Result<()> {
             g.players[i].out = false;
             g.players[i].alive = true;
             g.players[i].rider = None;
+        }
+        // two UXOs, one about to go
+        g.players[0].bombs = 3;
+        for (x, y, left) in [(12, 3, 400), (12, 9, 30)] {
+            g.place_bomb(0, x, y);
+            g.bombs.last_mut().unwrap().uxo = Some(left);
         }
         // player 1 leaning on the block at 6,8, about to push it right
         g.players[0].x = game::centre(5);

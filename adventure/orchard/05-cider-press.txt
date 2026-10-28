@@ -1,10 +1,10 @@
 name: Cider Press
-world: The Orchard
+world: The Screensaver
 theme: orchard
 goal: duds
 time: 180
 story: The cider press still turns, and its belts carry anything
-story: left on them. Six duds rode in with the apples.
+story: left on them. Six of purged's charges rode in with the apples.
 baddie: g grub
 baddie: b beetle
 baddie: h hedgehog

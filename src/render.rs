@@ -409,6 +409,9 @@ fn draw_item(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, item: Item) {
 
 /// Draw a bomb with its top-left at (x0, y0).
 fn draw_bomb(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, b: &Bomb, t: u64) {
+    if let Some(left) = b.uxo {
+        return draw_uxo(cv, x0, y0, a, k, left, t);
+    }
     // the body throbs red faster and faster as the fuse runs down
     let waiting = matches!(b.kind, BombKind::Remote) || (b.kind == BombKind::Mine && b.fuse > 20);
     let urgent = b.fuse < FUSE / 3;
@@ -435,6 +438,20 @@ fn draw_bomb(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, b: &Bomb, t: u64
         'w' => Some([210, 210, 230]),
         'f' => Some([150, 120, 85]),
         's' => Some(spark),
+        _ => None,
+    });
+}
+
+/// A UXO: a grey, cold bomb, a wisp of smoke from its dead fuse, wobbling just
+/// before it goes.
+fn draw_uxo(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, left: u32, t: u64) {
+    let wob = if left < crate::game::UXO_WOBBLE { if (t / 3) % 2 == 0 { k } else { -k } } else { 0 };
+    let smoke = if (t / 12) % 3 == 0 { None } else { Some(if (t / 12) % 3 == 1 { [150, 150, 158] } else { [105, 105, 112] }) };
+    cv.sprite(x0 + wob, y0, k, bomb(a), |c| match c {
+        'k' => Some([88, 88, 98]),
+        'w' => Some([170, 170, 180]),
+        'f' => Some([110, 100, 90]),
+        's' => smoke,
         _ => None,
     });
 }
@@ -1195,7 +1212,8 @@ fn draw_small(g: &Game, cam: (i32, i32), area: Rect, buf: &mut Buffer) {
     for b in g.bombs.iter().filter(|b| !b.armed) {
         let hot = b.fuse < FUSE / 3 && (t / 6) % 2 == 0;
         let (x, y) = (b.x.div_euclid(TILE), b.y.div_euclid(TILE));
-        put(x, y, "()", if hot { [255, 60, 40] } else { [20, 20, 28] }, floor_at(x, y));
+        let ink = if b.uxo.is_some() { [140, 140, 150] } else if hot { [255, 60, 40] } else { [20, 20, 28] };
+        put(x, y, "()", ink, floor_at(x, y));
     }
     for ty in 0..gh {
         for tx in 0..gw {

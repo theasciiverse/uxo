@@ -19,9 +19,11 @@ machine, built one world at a time. 1.0.0 is when all three acts are in.
   spaces
 - [x] Puzzle tiles: crates to push, keys and doors, switches and gates,
   parts and sockets
-- [ ] Names for the villain, the hero and the boss, checked against games
-  and marks
-- [ ] Act 1's opening: the Daemon pulls you in
+- [x] UXOs: bombs that fizzle and lie there live; the Duds disease; a
+  battle setting for how often
+- [x] purged's charges go off with a real blast
+- [x] Names: Dot the hero, purged the villain, checked against games
+- [x] Act 1's opening, the title line, and World 1's cards and ending
 - [ ] The hero's own art
 - [ ] World 1, the Screensaver: the Orchard rebuilt, stages that mix bomb
   puzzles and fast action, open rooms as well as pillar grids
@@ -31,7 +33,7 @@ machine, built one world at a time. 1.0.0 is when all three acts are in.
 
 - [ ] World 2, the Clock
 - [ ] World 3, the Buffer
-- [ ] The Daemon's fight at the end of act 1, and its ending
+- [ ] purged's fight at the end of act 1, and its ending
 
 ## 0.6.0: act 2, the Forgotten Game
 

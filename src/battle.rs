@@ -31,16 +31,18 @@ pub struct Options {
     pub sudden: bool,
     /// Percent of soft blocks hiding an item: 20, 35 or 50.
     pub items: u32,
+    /// Percent of bombs that fizzle into UXOs: 0, 6 or 20.
+    pub uxo: u32,
 }
 
 impl Default for Options {
     fn default() -> Options {
-        Options { stage: None, to_win: 3, revenge: Revenge::Comeback, sudden: true, items: 35 }
+        Options { stage: None, to_win: 3, revenge: Revenge::Comeback, sudden: true, items: 35, uxo: 6 }
     }
 }
 
 /// The setup screen's rows.
-pub const ROWS: usize = 5;
+pub const ROWS: usize = 6;
 
 impl Options {
     /// The label and the value text of setup row `r`.
@@ -57,6 +59,14 @@ impl Options {
                 },
             ),
             3 => ("Sudden death", if self.sudden { "after 2:00".into() } else { "off".into() }),
+            5 => (
+                "Bombs that fizzle (UXO)",
+                match self.uxo {
+                    0 => "none".into(),
+                    20 => "lots".into(),
+                    _ => "some".into(),
+                },
+            ),
             _ => (
                 "Items",
                 match self.items {
@@ -84,6 +94,11 @@ impl Options {
                 self.revenge = all[(i + by).rem_euclid(3) as usize];
             }
             3 => self.sudden = !self.sudden,
+            5 => {
+                let all = [0, 6, 20];
+                let i = all.iter().position(|&v| v == self.uxo).unwrap_or(1) as i32;
+                self.uxo = all[(i + by).rem_euclid(3) as usize];
+            }
             _ => {
                 let all = [20, 35, 50];
                 let i = all.iter().position(|&v| v == self.items).unwrap_or(1) as i32;
@@ -194,6 +209,7 @@ impl Match {
         g.comeback = o.revenge == Revenge::Comeback;
         g.hurry_at = if o.sudden { HURRY_AT } else { u32::MAX };
         g.item_chance = o.items;
+        g.fizzle = o.uxo;
         for i in 0..self.players {
             g.join(i);
         }

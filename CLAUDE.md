@@ -181,7 +181,33 @@ party bomb game.
 - **Layouts (David, 2026-10-27):** not every stage the classic square of
   pillars on a checker; some are open spaces with irregular shapes, rooms,
   corridors and wide floors, closer to a puzzle board than an arena.
-- **Open:** the hero; the villain; the world list in machine terms.
+- **Three acts, one story each (David, 2026-10-28: "we want all of them
+  ultimately"), built one world at a time, starting with act 1:**
+  1. **The Daemon:** a background program meant to tidy the disk decides
+     the tidiest machine is an empty one, plants its charges (the duds)
+     set to wipe everything, and pulls you in. Worlds: the Screensaver
+     (today's Orchard), the Clock, the Buffer.
+  2. **The Forgotten Game:** an old shareware bomb game, thirty years on
+     the disk unplayed, pulls players in to play forever. Worlds: Cold
+     Storage, the Recycle Bin, the Games Folder.
+  3. **The Virus:** Payload has ridden along all the time and races you to
+     the way out, onto the network. Worlds: the Power Supply, Scrollback,
+     Static, the Prompt.
+  Each act ends with its own ending. Names (villains, hero, bosses) still
+  to choose and check against games and marks.
+- **Hero (proposed):** the round body and single-pixel eyes, with a blinking
+  cursor underscore under its feet as its own detail.
+- **Surge bomb (David, 2026-10-28: "lets try it"), built:** the blast for
+  open spaces. Instead of the cross it floods outward a ring at a time
+  (every `SURGE_RING` steps, `surge_reach(fire)` tiles, shorter than the
+  cross), round corners; walls stop it, it breaks a soft block, pops a dud,
+  burns an item or reaches a bomb and goes no further that way. Drawn as one
+  crackling sheet of blue and white current, not fire. The cross stays the
+  rule; the surge is a bomb type (`surge` in stage `give:`/item names),
+  dropped rarely in battle too. `--snapshot out.ppm --surge --secs 0.2`
+  shows one. Name is a working name.
+- **Pushable blocks, keys and doors, switches, gates:** engine work to do
+  first in 0.4.0, before World 1 is rebuilt.
 - **Store copy waits for the story.** The catalog page written on
   2026-10-27 sells bombs and chain reactions with no story; David found it
   "nowhere how to present a bomb-arena game". The classics sold a villain

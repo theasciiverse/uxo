@@ -54,6 +54,8 @@ const FILL_EVERY: u32 = 30;
 pub const DROP: u32 = 10;
 /// Fire of the bombs revenge riders lob in.
 const RIDER_FIRE: u32 = 2;
+/// A surge spreads one tile further every this many steps.
+const SURGE_RING: u32 = 4;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Tile {
@@ -145,10 +147,11 @@ pub enum Item {
     Heart,
     Vest,
     Skull,
+    Surge,
 }
 
 /// How often each item turns up under a soft block, out of the total.
-const DROPS: [(Item, u32); 18] = [
+const DROPS: [(Item, u32); 19] = [
     (Item::BombUp, 14),
     (Item::FireUp, 14),
     (Item::SpeedUp, 10),
@@ -167,6 +170,7 @@ const DROPS: [(Item, u32); 18] = [
     (Item::Heart, 3),
     (Item::Vest, 2),
     (Item::Skull, 5),
+    (Item::Surge, 2),
 ];
 
 /// One special bomb type at a time (all your bombs are it); picking up another
@@ -182,6 +186,8 @@ pub enum BombKind {
     Rubber,
     /// Hides in the floor and goes off when someone steps on it.
     Mine,
+    /// The blast floods outward on every side, round corners, instead of a cross.
+    Surge,
 }
 
 /// The skull's curses. They pass on by touch and are cured by any other item.
@@ -319,6 +325,24 @@ pub struct Flame {
     pub links: u8,
     /// Whose bomb it was, for revenge comebacks.
     pub owner: usize,
+    /// Part of a surge (drawn as one spreading sheet).
+    pub surge: bool,
+}
+
+/// A surge blast on its way out: the tiles it reached last, spreading a ring at a
+/// time until it has gone `left` more tiles.
+#[derive(Clone, Debug)]
+pub struct Surge {
+    pub owner: usize,
+    left: u32,
+    wait: u32,
+    front: Vec<(usize, usize)>,
+    seen: Vec<(usize, usize)>,
+}
+
+/// How far a surge reaches: shorter than the cross, as it goes every way.
+pub fn surge_reach(fire: u32) -> u32 {
+    fire.div_ceil(2) + 1
 }
 
 #[derive(Clone, Debug)]
@@ -483,6 +507,7 @@ pub struct Game {
     pub items: Vec<Vec<Option<Item>>>,
     pub flames: Vec<Vec<Option<Flame>>>,
     pub bombs: Vec<Bomb>,
+    pub surges: Vec<Surge>,
     pub players: [Player; MAX_PLAYERS],
     pub steps: u64,
     pub events: Vec<Event>,
@@ -504,7 +529,7 @@ fn corners(w: usize, h: usize) -> [(usize, usize); MAX_PLAYERS] {
     [(1, 1), (w - 2, h - 2), (w - 2, 1), (1, h - 2)]
 }
 
-fn centre(t: usize) -> i32 {
+pub fn centre(t: usize) -> i32 {
     t as i32 * TILE + TILE / 2
 }
 
@@ -581,6 +606,7 @@ impl Game {
             items: vec![vec![None; w]; h],
             flames: vec![vec![None; w]; h],
             bombs: Vec::new(),
+            surges: Vec::new(),
             players: std::array::from_fn(|_| Player::new()),
             steps: 0,
             events: Vec::new(),
@@ -833,6 +859,7 @@ impl Game {
         }
         self.move_bombs();
         self.tick_bombs();
+        self.tick_surges();
         self.tick_board();
         self.step_baddies();
         self.hurt_and_pickup();
@@ -1381,7 +1408,13 @@ impl Game {
             let b = self.bombs.swap_remove(k);
             let (x, y) = b.tile();
             self.events.push(Event::Boom { x, y });
-            self.flame(x, y, UP | DOWN | LEFT | RIGHT, 0, b.owner);
+            if b.kind == BombKind::Surge {
+                self.flame(x, y, 0, 0, b.owner, true);
+                let reach = surge_reach(b.fire);
+                self.surges.push(Surge { owner: b.owner, left: reach, wait: 0, front: vec![(x, y)], seen: vec![(x, y)] });
+                continue;
+            }
+            self.flame(x, y, UP | DOWN | LEFT | RIGHT, 0, b.owner, false);
             let pierce = b.kind == BombKind::Pierce;
             for d in [Dir::Up, Dir::Down, Dir::Left, Dir::Right] {
                 let (dx, dy) = d.vec();
@@ -1412,7 +1445,7 @@ impl Game {
                         Tile::Floor => {}
                     }
                     let end = r == b.fire as i32;
-                    self.flame(tx, ty, d.back().bit(), if end { 0 } else { d.bit() }, b.owner);
+                    self.flame(tx, ty, d.back().bit(), if end { 0 } else { d.bit() }, b.owner, false);
                     if let Some(o) = self.bombs.iter().find(|o| o.grounded() && o.tile() == (tx, ty)) {
                         burst.push(o.id);
                         break;
@@ -1425,11 +1458,74 @@ impl Game {
         }
     }
 
-    fn flame(&mut self, x: usize, y: usize, a: u8, b: u8, owner: usize) {
-        let f = self.flames[y][x].get_or_insert(Flame { left: FLAME, links: 0, owner });
+    fn flame(&mut self, x: usize, y: usize, a: u8, b: u8, owner: usize, surge: bool) {
+        let f = self.flames[y][x].get_or_insert(Flame { left: FLAME, links: 0, owner, surge });
         f.left = FLAME;
         f.links |= a | b;
         f.owner = owner;
+        f.surge = surge;
+    }
+
+    /// Spread each surge one ring further. Walls stop it; it breaks a soft block, pops a
+    /// dud, burns an item or reaches a bomb (which then goes off) and goes no further
+    /// that way, but flows round everything else.
+    fn tick_surges(&mut self) {
+        let mut surges = std::mem::take(&mut self.surges);
+        for s in &mut surges {
+            if s.wait > 0 {
+                s.wait -= 1;
+                continue;
+            }
+            s.wait = SURGE_RING - 1;
+            let mut next = Vec::new();
+            for (x, y) in std::mem::take(&mut s.front) {
+                for d in [Dir::Up, Dir::Down, Dir::Left, Dir::Right] {
+                    let (dx, dy) = d.vec();
+                    let (tx, ty) = ((x as i32 + dx) as usize, (y as i32 + dy) as usize);
+                    if s.seen.contains(&(tx, ty)) {
+                        continue;
+                    }
+                    s.seen.push((tx, ty));
+                    match self.tiles[ty][tx] {
+                        Tile::Wall | Tile::Pressure(_) | Tile::Burning(_) => continue,
+                        Tile::Dud => {
+                            self.tiles[ty][tx] = Tile::Floor;
+                            self.events.push(Event::DudPopped { x: tx, y: ty, by: s.owner });
+                            self.fireworks(centre(tx), centre(ty), 28);
+                            continue;
+                        }
+                        Tile::Soft => {
+                            self.tiles[ty][tx] = Tile::Burning(BURN);
+                            self.players[s.owner].blocks += 1;
+                            continue;
+                        }
+                        Tile::Floor => {}
+                    }
+                    // one sheet: link to every neighbour this surge already lit
+                    let mut links = 0;
+                    for e in [Dir::Up, Dir::Down, Dir::Left, Dir::Right] {
+                        let (ex, ey) = e.vec();
+                        let (nx, ny) = ((tx as i32 + ex) as usize, (ty as i32 + ey) as usize);
+                        if let Some(f) = &mut self.flames[ny][nx] {
+                            if f.surge && s.seen.contains(&(nx, ny)) {
+                                f.links |= e.back().bit();
+                                links |= e.bit();
+                            }
+                        }
+                    }
+                    self.flame(tx, ty, links, 0, s.owner, true);
+                    let bomb = self.bombs.iter().any(|o| o.grounded() && o.tile() == (tx, ty));
+                    if bomb || self.items[ty][tx].take().is_some() {
+                        continue;
+                    }
+                    next.push((tx, ty));
+                }
+            }
+            s.front = next;
+            s.left -= 1;
+        }
+        surges.retain(|s| s.left > 0 && !s.front.is_empty());
+        self.surges = surges;
     }
 
     fn tick_board(&mut self) {
@@ -1533,6 +1629,7 @@ impl Game {
             Item::Pierce => p.kind = BombKind::Pierce,
             Item::Rubber => p.kind = BombKind::Rubber,
             Item::Mine => p.kind = BombKind::Mine,
+            Item::Surge => p.kind = BombKind::Surge,
             Item::BombPass => p.bomb_pass = true,
             Item::BlockPass => p.block_pass = true,
             Item::Heart => p.heart = true,
@@ -1931,6 +2028,87 @@ mod tests {
         assert!(g.flames[1][8].is_some());
     }
 
+    /// A walled room with nothing inside.
+    fn room(seed: u64) -> Game {
+        let mut g = open(seed);
+        for y in 1..H - 1 {
+            for x in 1..W - 1 {
+                g.tiles[y][x] = Tile::Floor;
+            }
+        }
+        g
+    }
+
+    fn surge_at(g: &mut Game, x: usize, y: usize) {
+        g.players[0].kind = BombKind::Surge;
+        g.place_bomb(0, x, y);
+        g.bombs[0].fuse = 1;
+    }
+
+    #[test]
+    fn surge_floods_a_diamond_in_the_open() {
+        let mut g = room(1);
+        g.players[0].fire = 4;
+        g.players[0].x = centre(1);
+        g.players[0].y = centre(1);
+        g.players[0].vest = 9999;
+        surge_at(&mut g, 7, 6);
+        for _ in 0..(SURGE_RING * 4) {
+            g.step(&idle());
+        }
+        let reach = surge_reach(4) as i32;
+        for y in 1..H - 1 {
+            for x in 1..W - 1 {
+                let d = (x as i32 - 7).abs() + (y as i32 - 6).abs();
+                assert_eq!(g.flames[y][x].is_some(), d <= reach, "tile {x},{y} at distance {d}");
+            }
+        }
+        assert!(g.surges.is_empty());
+    }
+
+    #[test]
+    fn surge_spreads_a_ring_at_a_time() {
+        let mut g = room(1);
+        g.players[0].fire = 8;
+        g.players[0].vest = 9999;
+        surge_at(&mut g, 7, 6);
+        g.step(&idle());
+        g.step(&idle());
+        assert!(g.flames[6][8].is_some());
+        assert!(g.flames[6][9].is_none(), "the second ring should still be on its way");
+    }
+
+    #[test]
+    fn surge_flows_round_a_wall_and_stops_at_a_soft_block() {
+        let mut g = room(1);
+        g.players[0].fire = 8;
+        g.players[0].vest = 9999;
+        g.tiles[6][8] = Tile::Wall;
+        g.tiles[5][7] = Tile::Soft;
+        surge_at(&mut g, 7, 6);
+        for _ in 0..(SURGE_RING * 6) {
+            g.step(&idle());
+        }
+        // behind the wall, reached the long way round
+        assert!(g.flames[6][9].is_some());
+        assert!(matches!(g.tiles[5][7], Tile::Burning(_)));
+    }
+
+    #[test]
+    fn surge_sets_off_a_bomb_it_reaches() {
+        let mut g = room(1);
+        g.players[0].fire = 4;
+        g.players[0].vest = 9999;
+        g.players[0].bombs = 2;
+        surge_at(&mut g, 7, 6);
+        g.place_bomb(0, 9, 7);
+        g.bombs[1].fuse = 999;
+        for _ in 0..(SURGE_RING * 4) {
+            g.step(&idle());
+        }
+        assert!(g.bombs.is_empty(), "the bomb two tiles off the diagonal should have gone off");
+    }
+
     #[test]
     fn kicked_bomb_slides_to_the_wall() {
         let mut g = open(1);
@@ -2018,7 +2196,7 @@ mod tests {
         let mut g = open(1);
         g.battle = true;
         g.players[0].heart = true;
-        g.flames[1][1] = Some(Flame { left: 5, links: 0, owner: 0 });
+        g.flames[1][1] = Some(Flame { left: 5, links: 0, owner: 0, surge: false });
         g.step(&idle());
         assert!(g.players[0].alive);
         assert!(!g.players[0].heart);
@@ -2029,7 +2207,7 @@ mod tests {
         let mut g = open(1);
         g.battle = true;
         g.join(1);
-        g.flames[1][1] = Some(Flame { left: 5, links: 0, owner: 1 });
+        g.flames[1][1] = Some(Flame { left: 5, links: 0, owner: 1, surge: false });
         g.step(&idle());
         assert!(g.players[0].out && g.players[0].rider.is_some());
         g.step(&bomb());
@@ -2046,7 +2224,7 @@ mod tests {
         g.players[0].alive = false;
         g.players[0].rider = Some(0);
         let (x, y) = g.players[1].tile();
-        g.flames[y][x] = Some(Flame { left: 5, links: 0, owner: 0 });
+        g.flames[y][x] = Some(Flame { left: 5, links: 0, owner: 0, surge: false });
         g.step(&idle());
         assert!(g.players[0].alive && !g.players[0].out, "rider should be back");
         assert!(g.players[1].out);

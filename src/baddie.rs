@@ -658,7 +658,7 @@ mod tests {
         let mut g = stage("goal: clear\n", OPEN);
         assert!(!g.exit_open);
         let (x, y) = g.baddies[0].tile();
-        g.flames[y][x] = Some(Flame { left: 5, links: 0, owner: 0 });
+        g.flames[y][x] = Some(Flame { left: 5, links: 0, owner: 0, surge: false });
         g.step(&idle());
         assert!(g.baddies.is_empty());
         assert!(g.exit_open, "beating every baddie opens the hatch");
@@ -673,7 +673,7 @@ mod tests {
     fn a_tamed_species_leaves_an_egg_you_can_ride() {
         let mut g = stage("goal: clear\n", &OPEN.replace('g', "f"));
         let (x, y) = g.baddies[0].tile();
-        g.flames[y][x] = Some(Flame { left: 5, links: 0, owner: 0 });
+        g.flames[y][x] = Some(Flame { left: 5, links: 0, owner: 0, surge: false });
         g.step(&idle());
         assert_eq!(g.eggs.len(), 1);
         // let the flame die down first

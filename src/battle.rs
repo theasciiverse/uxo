@@ -383,7 +383,7 @@ mod tests {
         m.options.revenge = Revenge::Off;
         start(&mut m);
         let (x, y) = m.game.players[1].tile();
-        m.game.flames[y][x] = Some(Flame { left: 5, links: 0, owner: 0 });
+        m.game.flames[y][x] = Some(Flame { left: 5, links: 0, owner: 0, surge: false });
         for _ in 0..(SETTLE + 2) {
             m.step(&idle());
         }

@@ -313,7 +313,7 @@ fn item_frame(item: Item) -> Rgb {
         Item::SpeedUp => [45, 170, 95],
         Item::SpeedDown => [130, 95, 60],
         Item::Kick | Item::Punch | Item::Glove | Item::LineBomb => [150, 80, 200],
-        Item::Remote | Item::Pierce | Item::Rubber | Item::Mine => [90, 90, 110],
+        Item::Remote | Item::Pierce | Item::Rubber | Item::Mine | Item::Surge => [90, 90, 110],
         Item::BombPass | Item::BlockPass => [40, 160, 170],
         Item::Heart => [250, 200, 215],
         Item::Vest => [230, 110, 160],
@@ -343,6 +343,7 @@ fn item_icon6(item: Item) -> [&'static str; 6] {
         Item::Heart => [".h..h.", "hhhhhh", "hwhhhh", ".hhhh.", "..hh..", "......"],
         Item::Vest => ["cc..cc", "cccccc", ".cccc.", ".cccc.", ".cccc.", "......"],
         Item::Skull => [".wwww.", "wkwwkw", "wwwwww", ".wkwk.", ".wwww.", "......"],
+        Item::Surge => ["..cc..", ".c..c.", "c.ww.c", "c.ww.c", ".c..c.", "..cc.."],
     }
 }
 
@@ -366,6 +367,7 @@ fn item_icon4(item: Item) -> [&'static str; 4] {
         Item::Heart => ["h..h", "hhhh", "hhhh", ".hh."],
         Item::Vest => ["c..c", "cccc", ".cc.", ".cc."],
         Item::Skull => ["wwww", "kwwk", "wwww", "w.w."],
+        Item::Surge => [".cc.", "cwwc", "cwwc", ".cc."],
     }
 }
 
@@ -416,6 +418,7 @@ fn draw_bomb(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, b: &Bomb, t: u64
         BombKind::Pierce => [30, 40, 90],
         BombKind::Rubber => [120, 40, 90],
         BombKind::Mine => [70, 70, 78],
+        BombKind::Surge => [20, 70, 110],
         _ => [24, 24, 34],
     };
     let body = if hot { [110, 22, 26] } else { base };
@@ -872,6 +875,9 @@ fn soft_block(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, burning: Option
 /// A flame tile: a hot core disc plus half-arms toward each linked neighbour,
 /// thinning as it burns out. Worked out per art pixel (`a` across), drawn `k` x `k`.
 fn flame(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, f: Flame, t: u64) {
+    if f.surge {
+        return surge(cv, x0, y0, a, k, f, t);
+    }
     let life = f.left as f32 / crate::game::FLAME as f32;
     let half = a as f32 / 2.0;
     let r = half * (0.35 + 0.65 * life.sqrt());
@@ -904,6 +910,37 @@ fn flame(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, f: Flame, t: u64) {
     }
 }
 
+/// A surge tile: one sheet of current with its neighbours, its free edges drawing in
+/// as it fades, crackling white over cyan and blue.
+fn surge(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, f: Flame, t: u64) {
+    let life = f.left as f32 / crate::game::FLAME as f32;
+    let half = a as f32 / 2.0;
+    let r = half * (0.3 + 0.7 * life.sqrt());
+    for y in 0..a {
+        for x in 0..a {
+            let (fx, fy) = (x as f32 + 0.5 - half, y as f32 + 0.5 - half);
+            // how far past the sheet's edge, on the sides with no neighbour
+            let reach = |linked: bool| if linked { half } else { r };
+            let ex = fx.abs() - reach(if fx < 0.0 { f.links & LEFT != 0 } else { f.links & RIGHT != 0 });
+            let ey = fy.abs() - reach(if fy < 0.0 { f.links & UP != 0 } else { f.links & DOWN != 0 });
+            let out = ex.max(0.0).hypot(ey.max(0.0));
+            let (px, py) = (x0 + x * k, y0 + y * k);
+            let h = hash(px, py, t / 2) % 100;
+            if out > 0.0 || (h as f32) < (1.0 - life) * 60.0 {
+                continue;
+            }
+            let c = if h > 88 {
+                [235, 250, 255]
+            } else if h > 45 {
+                [110, 215, 255]
+            } else {
+                [40, 110, 240]
+            };
+            cv.block(px, py, k, c);
+        }
+    }
+}
+
 /// Two-letter labels for the glyph size.
 fn item_label(item: Item) -> &'static str {
     match item {
@@ -925,6 +962,7 @@ fn item_label(item: Item) -> &'static str {
         Item::Heart => "<3",
         Item::Vest => "Ve",
         Item::Skull => "%%",
+        Item::Surge => "Su",
     }
 }
 
@@ -989,6 +1027,10 @@ fn draw_small(g: &Game, cam: (i32, i32), area: Rect, buf: &mut Buffer) {
     for ty in 0..gh {
         for tx in 0..gw {
             if let Some(f) = g.flames[ty][tx] {
+                if f.surge {
+                    put(tx as i32, ty as i32, "▒▒", [235, 250, 255], [40, 110, 240]);
+                    continue;
+                }
                 let text = if f.links & (LEFT | RIGHT) != 0 && f.links & (UP | DOWN) == 0 {
                     "══"
                 } else if f.links & (UP | DOWN) != 0 && f.links & (LEFT | RIGHT) == 0 {

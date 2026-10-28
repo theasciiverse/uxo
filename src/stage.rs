@@ -81,6 +81,7 @@ fn item_named(s: &str) -> Option<Item> {
         "line" => Item::LineBomb,
         "remote" => Item::Remote,
         "pierce" => Item::Pierce,
+        "surge" => Item::Surge,
         "fire" => Item::FireUp,
         "bomb" => Item::BombUp,
         "speed" => Item::SpeedUp,

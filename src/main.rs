@@ -538,6 +538,7 @@ fn kit(p: &game::Player) -> String {
         BombKind::Pierce => " pierce",
         BombKind::Rubber => " rubber",
         BombKind::Mine => " mine",
+        BombKind::Surge => " surge",
     };
     if p.heart {
         s += " <3";
@@ -561,6 +562,7 @@ fn badges(p: &game::Player) -> Vec<Item> {
         BombKind::Pierce => v.push(Item::Pierce),
         BombKind::Rubber => v.push(Item::Rubber),
         BombKind::Mine => v.push(Item::Mine),
+        BombKind::Surge => v.push(Item::Surge),
         BombKind::Normal => {}
     }
     for (has, item) in [(p.bomb_pass, Item::BombPass), (p.block_pass, Item::BlockPass), (p.heart, Item::Heart), (p.vest > 0, Item::Vest), (p.disease.is_some(), Item::Skull)] {
@@ -1221,6 +1223,32 @@ fn snapshot(args: &[String], out: &str) -> io::Result<()> {
         g.players[3].alive = false;
         g.players[3].rider = Some(256 * 45);
         g.tiles[11][2] = Tile::Pressure(4);
+    }
+    // --surge: an open room, a surge flooding round a wall and up to a soft block
+    if args.iter().any(|a| a == "--surge") {
+        let g = &mut m.game;
+        g.bombs.clear();
+        for y in 1..H - 1 {
+            for x in 1..W - 1 {
+                g.tiles[y][x] = Tile::Floor;
+                g.items[y][x] = None;
+            }
+        }
+        for (x, y) in [(9, 5), (9, 6), (9, 7), (5, 3)] {
+            g.tiles[y][x] = Tile::Wall;
+        }
+        g.tiles[9][7] = Tile::Soft;
+        for (i, (x, y)) in [(1, 1), (13, 1), (1, 11), (13, 11)].into_iter().enumerate() {
+            g.players[i].x = game::centre(x);
+            g.players[i].y = game::centre(y);
+            g.players[i].out = false;
+            g.players[i].alive = true;
+            g.players[i].rider = None;
+        }
+        g.players[0].kind = BombKind::Surge;
+        g.players[0].fire = 8;
+        g.place_bomb(0, 7, 6);
+        g.bombs[0].fuse = 1;
     }
     let idle = [Cmd::default(); MAX_PLAYERS];
     for _ in 0..(secs * HZ as f32) as usize {

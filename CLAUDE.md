@@ -7,7 +7,7 @@ that made those games feel like chaos you could still read. Same kind of
 mechanics, our own identity. Not a clone.
 
 Own git repo, private at github.com/theasciiverse/uxo (`main`).
-Version 0.5.0 (2026-10-29). What comes next, release by release, is in `ROADMAP.md`.
+Version 0.6.0 (2026-10-29). What comes next, release by release, is in `ROADMAP.md`.
 
 **Status:** Act 1 of Adventure playable, its three worlds (the Clock and the
 Buffer built 2026-10-29), battle mode complete (2026-10-04). A title screen (big
@@ -40,6 +40,7 @@ they sit next to WASD).
 cargo run --release                           # play; +/- switches size
 RUST_LOG=debug cargo run --release 2>uxo.log  # with the session log
 UXO_SEED=7 cargo run --release               # the same layouts every run (recordings, bug reports)
+UXO_NO_PADS=1 cargo run --release             # leave every gamepad out (recordings driven from the keyboard)
 cargo run --release -- --from 2-5             # Continue offers every stage up to 2-5 (playtesting)
 RUST_LOG=info cargo run --release 2>uxo.log; grep playtest uxo.log  # per stage: start, lives lost and to what, clear time
 cargo run --release -- --snapshot out.ppm --zoom l --size 100x42  # staged scene as an image (zoom s, m or l)

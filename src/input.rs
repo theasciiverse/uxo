@@ -148,8 +148,13 @@ fn scheme_dir(code: KeyCode) -> Option<(usize, usize)> {
     }
 }
 
+/// `UXO_NO_PADS=1` leaves every pad out (recordings driven from the keyboard);
+/// `UXO_ANY_PAD=1` lets in devices without an SDL mapping.
 #[cfg(feature = "gamepad")]
 fn usable_pad(p: &gilrs::Gamepad) -> bool {
+    if std::env::var("UXO_NO_PADS").is_ok_and(|v| v == "1") {
+        return false;
+    }
     p.mapping_source() == gilrs::MappingSource::SdlMappings || std::env::var("UXO_ANY_PAD").is_ok_and(|v| v == "1")
 }
 

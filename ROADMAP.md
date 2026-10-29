@@ -1,8 +1,8 @@
 # Roadmap
 
-uXo is at 0.5.0 (2026-10-29): battle mode complete, act 1's first
-world, the Screensaver, played through, and the world's rules settled
-(`WORLD.md`). The adventure is a story in three
+uXo is at 0.6.0 (2026-10-29): battle mode complete and act 1 whole,
+its three worlds (the Screensaver, the Clock and the Buffer) and purged's
+fight, with the world's rules settled (`WORLD.md`). The adventure is a story in three
 acts, inside the machine, built one world at a time. 1.0.0 is when all
 three acts are in.
 
@@ -44,7 +44,7 @@ three acts are in.
   title's blinking cursor
 - [x] A new preview recording with Dot and Caret
 
-## 0.6.0: the rest of act 1
+## 0.6.0: the rest of act 1, built
 
 - [x] World 2, the Clock: nine stages, five species and the Cuckoo, shutters
   on the clock's beat, the cards running fast as purged winds the clock on
@@ -52,6 +52,9 @@ three acts are in.
   written back after you clear them
 - [x] purged's fight at the end of act 1 (the Buffer's last stage), and its
   ending
+- [x] Continue starts at any stage reached; a playtest log
+- [x] Creatures catch you only on a real overlap
+- [x] A new preview recording in the Clock
 
 ## 0.7.0: act 2, the Forgotten Game
 

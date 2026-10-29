@@ -648,9 +648,10 @@ impl Game {
             if b.disguised || matches!(b.state, State::Hop { .. }) {
                 continue;
             }
-            // touching a player hurts them
+            // touching a player hurts them, once the two really overlap: sprites
+            // only brushing (a creature passing the end of your corridor) is forgiven
             let (mx, my) = b.middle(size);
-            let reach = TILE * (size + 1) / 2 - TILE / 4;
+            let reach = TILE * size / 2;
             for i in 0..MAX_PLAYERS {
                 let p = &self.players[i];
                 if p.joined && p.alive && (p.x - mx).abs() < reach && (p.y - my).abs() < reach {
@@ -788,6 +789,21 @@ mod tests {
         g.players[0].y = by;
         g.step(&idle());
         assert!(!g.players[0].alive);
+    }
+
+    /// Sprites brushing past each other, corner to corner or nose to nose, are
+    /// forgiven; it takes a real overlap to catch you.
+    #[test]
+    fn only_a_real_overlap_catches_you() {
+        for (dx, dy, caught) in [(TILE * 3 / 4, TILE * 3 / 4, false), (TILE * 5 / 8, 0, false), (TILE * 3 / 8, 0, true)] {
+            let mut g = stage("goal: clear\n", OPEN);
+            let (bx, by) = (g.baddies[0].x, g.baddies[0].y);
+            g.baddies[0].state = State::Pause(100);
+            g.players[0].invuln = 0;
+            (g.players[0].x, g.players[0].y) = (bx + dx, by + dy);
+            g.step(&idle());
+            assert_eq!(!g.players[0].alive, caught, "a creature {dx},{dy} away");
+        }
     }
 
     #[test]

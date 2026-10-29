@@ -147,10 +147,13 @@ impl Run {
     }
 
     pub fn card_lines(&self) -> Vec<String> {
-        match self.phase {
-            Phase::Ending(_) => self.stage.ending.clone(),
-            _ => self.stage.story.clone(),
-        }
+        let lines = match self.phase {
+            Phase::Ending(_) => &self.stage.ending,
+            _ => &self.stage.story,
+        };
+        // `{dot}` names the heroes: Dot alone, Dot and Caret together
+        let heroes = if self.players > 1 { "Dot and Caret" } else { "Dot" };
+        lines.iter().map(|l| l.replace("{dot}", heroes)).collect()
     }
 
     pub fn step(&mut self, cmds: &[Cmd; MAX_PLAYERS]) -> Vec<Event> {

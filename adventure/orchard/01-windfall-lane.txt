@@ -1,14 +1,17 @@
 name: Windfall Lane
 world: The Screensaver
+clock: 03:14
 theme: orchard
 goal: clear
 time: 150
-story: 3:14 in the morning. One key pressed, and the screen pulled you in.
-story: Inside the machine, a program called purged is cleaning house.
-story: Its charges are planted all through the system, every last one set
-story: to wipe the disk clean when the countdown ends. You with it, Dot!
-story: You came down in an old garden screensaver, and its creatures
-story: have gone strange. Clear the lane of grubs, and the hatch opens.
+story: 3:14 in the morning. One key pressed, and the machine pulled {dot} in.
+story: A cleaning program called purged runs every night at 3:14. Tonight
+story: it has decided the tidiest disk is an empty one: its charges are
+story: planted all through the system, set to wipe everything at four.
+story: {dot} included! But in here every bomb is a kill, and purged's
+story: creatures can't start one. {dot} came down in the garden screensaver,
+story: and purged has rewritten its creatures.
+story: Clear the lane of grubs, and the hatch opens.
 baddie: g grub
 baddie: b beetle
 baddie: h hedgehog

@@ -1,10 +1,11 @@
 name: The Old Grove
 world: The Screensaver
+clock: 03:39
 theme: orchard
 goal: duds
 time: 210
-story: The oldest grove in the screensaver, where purged hid
-story: the last eight of its charges: one behind gates, the hatch behind
+story: The Old Grove, the first scene the screensaver ever drew. purged hid
+story: the last eight of its charges here: one behind gates, the hatch behind
 story: a blue door. Everything that lives here is awake.
 key: a blue
 baddie: g grub

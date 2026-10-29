@@ -1,12 +1,13 @@
 name: Ram Pasture
 world: The Screensaver
+clock: 03:31
 theme: orchard
 goal: clear
 time: 180
-story: Rams graze the open pasture. Step into a ram's line
-story: and it charges until something stops it. Tame one and you can dash.
-story: Out here in the open, your bombs surge: the blast floods out
-story: every way at once, round corners. Mind where it spreads!
+story: Out where the picture runs out of hedges, rams graze. Step into
+story: a ram's line and it charges until something stops it. Tame one
+story: and you can dash. Out in the open your bombs surge: the blast floods
+story: out every way at once, round corners. Mind where it spreads!
 give: surge
 baddie: g grub
 baddie: b beetle

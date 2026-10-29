@@ -6,7 +6,7 @@
 //! move in pixels, not tiles, so movement stays smooth at every pixel size.
 
 use crate::baddie::{Species, State};
-use crate::game::{Bomb, BombKind, Dir, Disease, Flame, Game, Ground, Item, Motion, Pickup, Player, Theme, Tile, DOWN, DROP, FUSE, LEFT, RIGHT, SHOVE_STEPS, TILE, UP};
+use crate::game::{Bomb, BombKind, Dir, Disease, Flame, Game, Ground, Item, Motion, Pickup, Player, Theme, Tile, DOWN, DROP, FUSE, HOMING, LEFT, RIGHT, SHOVE_STEPS, TILE, UP};
 use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
 use ratatui::style::Color;
@@ -127,6 +127,10 @@ impl Canvas {
     }
 }
 
+/// How often the Screensaver repaints, and how long the line takes to run down it.
+const REDRAW_EVERY: u64 = 20 * 60;
+const REDRAW_SWEEP: u64 = 150;
+
 // Hand-drawn art at 4, 6 and 8 pixels per tile. Placeholder art: the hero and the
 // items are ours to design properly later (see CLAUDE.md "Power-ups").
 fn wall(a: i32) -> &'static [&'static str] {
@@ -240,7 +244,7 @@ fn egg_spot(sp: &Species) -> Rgb {
 /// Draw a species' art, scaled from its 8 (or 16) pixel rows to `a` art pixels per
 /// tile, `turns` quarter turns rolled, darker when curled, mirrored when facing left.
 #[allow(clippy::too_many_arguments)]
-fn draw_species(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, sp: &Species, art: &[String], turns: usize, dark: bool, flip: bool) {
+fn draw_species(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, sp: &Species, art: &[String], turns: usize, tint: fn(Rgb) -> Rgb, flip: bool) {
     let src = 8 * sp.size as usize;
     let dst = (a * sp.size) as usize;
     let rows: Vec<Vec<char>> = art.iter().map(|r| r.chars().collect()).collect();
@@ -259,7 +263,7 @@ fn draw_species(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, sp: &Species,
                 continue;
             }
             if let Some(&(_, col)) = sp.colors.iter().find(|(c, _)| *c == ch) {
-                cv.block(x0 + u as i32 * k, y0 + v as i32 * k, k, if dark { shade(col, 0.7) } else { col });
+                cv.block(x0 + u as i32 * k, y0 + v as i32 * k, k, tint(col));
             }
         }
     }
@@ -275,7 +279,12 @@ fn bomb(a: i32) -> &'static [&'static str] {
 
 /// Dot: a round body with a light on top, single-pixel eyes, and its own mark, a
 /// cursor underscore under its feet that blinks like a terminal's (`cursor` on).
-fn hero(a: i32, facing: Dir, step: bool, cursor: bool) -> Vec<&'static str> {
+/// Dot, or with `caret` player 2's hero Caret: the same family with a pointed head,
+/// the `^`, whose tip blinks where Dot's underscore does below.
+fn hero(a: i32, facing: Dir, step: bool, cursor: bool, caret: bool) -> Vec<&'static str> {
+    if caret {
+        return caret_art(a, facing, step, cursor);
+    }
     match a {
         8 => {
             // single-pixel eyes, like the 6 art: bigger ones read as googly
@@ -308,6 +317,43 @@ fn hero(a: i32, facing: Dir, step: bool, cursor: bool) -> Vec<&'static str> {
             // no room for both: the cursor stands in for the feet while it is lit
             let feet = if cursor { "uuuu" } else if step { "k..k" } else { ".kk." };
             vec![".hc.", eyes, "dccd", feet]
+        }
+    }
+}
+
+fn caret_art(a: i32, facing: Dir, step: bool, cursor: bool) -> Vec<&'static str> {
+    match a {
+        8 => {
+            let eyes = match facing {
+                Dir::Down => "cceccecc",
+                Dir::Up => "cccccccc",
+                Dir::Left => "cecceccc",
+                Dir::Right => "ccceccec",
+            };
+            let feet = if step { "kk....kk" } else { ".kk..kk." };
+            let tip = if cursor { "...uu..." } else { "...hc..." };
+            vec![tip, "..hhcc..", ".chhccc.", eyes, "cccccccc", ".dccccd.", "..dddd..", feet]
+        }
+        6 => {
+            let eyes = match facing {
+                Dir::Down => "ceccec",
+                Dir::Up => "cccccc",
+                Dir::Left => "eccecc",
+                Dir::Right => "ccecce",
+            };
+            let feet = if step { "k....k" } else { ".k..k." };
+            let tip = if cursor { "..uu.." } else { "..hc.." };
+            vec![tip, ".hccc.", eyes, "cccccc", ".dddd.", feet]
+        }
+        _ => {
+            let eyes = match facing {
+                Dir::Down => "ceec",
+                Dir::Up => "cccc",
+                Dir::Left => "eecc",
+                Dir::Right => "ccee",
+            };
+            let feet = if step { "k..k" } else { ".kk." };
+            vec![if cursor { ".uu." } else { ".hc." }, eyes, "dccd", feet]
         }
     }
 }
@@ -637,8 +683,19 @@ pub fn draw_arena(g: &Game, zoom: Zoom, cam: (i32, i32), shake: i16, area: Rect,
             State::Roll => (b.walk / 4) % 4,
             _ => 0,
         };
-        let dark = matches!(b.state, State::Curl(_) | State::Roll);
-        draw_species(&mut cv, x0, y0, a, k, sp, frame, turns as usize, dark, b.dir == Dir::Left);
+        let tint: fn(Rgb) -> Rgb = if matches!(b.state, State::Curl(_) | State::Roll) { |c| shade(c, 0.7) } else { |c| c };
+        draw_species(&mut cv, x0, y0, a, k, sp, frame, turns as usize, tint, b.dir == Dir::Left);
+    }
+
+    // beaten baddies going home: purged's copy flickers out, pale as the
+    // screensaver drew it, rising a little
+    for h in &g.homing {
+        if (h.left / 3) % 2 == 0 {
+            continue;
+        }
+        let sp = &g.species[h.species];
+        let lift = ((HOMING - h.left) as i32 / 4) * k;
+        draw_species(&mut cv, snap(h.x), snap(h.y) - lift, a, k, sp, &sp.art, 0, |c| mix(c, [255, 255, 255], 0.55), h.flip);
     }
 
     // players, back to front
@@ -676,7 +733,7 @@ pub fn draw_arena(g: &Game, zoom: Zoom, cam: (i32, i32), shake: i16, area: Rect,
             let frame = if !sp.art2.is_empty() && (p.walk / 6) % 2 == 1 { &sp.art2 } else { &sp.art };
             // the rider sits up on its back, the mount's head in front
             draw_hero(&mut cv, x0, y0 - lift - (a / 2) * k, a, k, i, p, t);
-            draw_species(&mut cv, x0, y0 - lift, a, k, sp, frame, 0, false, p.facing == Dir::Left);
+            draw_species(&mut cv, x0, y0 - lift, a, k, sp, frame, 0, |c| c, p.facing == Dir::Left);
         } else {
             draw_hero(&mut cv, x0, y0 - lift, a, k, i, p, t);
         }
@@ -719,6 +776,27 @@ pub fn draw_arena(g: &Game, zoom: Zoom, cam: (i32, i32), shake: i16, area: Rect,
         let c = if sp.life < 12 { shade(c, sp.life as f32 / 12.0) } else { c };
         let (x, y) = ((sp.x * s / TILE).div_euclid(k) * k, (sp.y * s / TILE).div_euclid(k) * k);
         cv.block(x, y, k, c);
+    }
+
+    // the Screensaver repaints itself now and then, a thin bright line running down
+    // the picture the way old screensavers redrew; it only lightens, never hides
+    if g.theme == Theme::Orchard {
+        let phase = t % REDRAW_EVERY;
+        if phase < REDRAW_SWEEP {
+            let y = ((phase as i32 * ah) / REDRAW_SWEEP as i32).div_euclid(k) * k;
+            for (dy, f) in [(0, 0.22), (-k, 0.1), (-2 * k, 0.04)] {
+                for yy in y + dy..y + dy + k {
+                    let row = yy - cv.oy;
+                    if row < 0 || row >= cv.h {
+                        continue;
+                    }
+                    for x in (-cv.ox).max(0)..(aw - cv.ox).min(cv.w) {
+                        let i = (row * cv.w + x) as usize;
+                        cv.px[i] = mix(cv.px[i], [235, 250, 235], f);
+                    }
+                }
+            }
+        }
     }
 
     // revenge riders on the border, each in a little cart
@@ -1018,7 +1096,7 @@ fn draw_hero(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, i: usize, p: &Pl
     // the cursor blinks at a terminal's pace, half a second on, half off
     let cursor = (t / 30) % 2 == 0;
     let (h, u) = (mix(c, [255, 255, 255], 0.45), mix(c, [255, 255, 255], 0.7));
-    cv.sprite(x0, y0, k, &hero(a, p.facing, step, cursor), |ch| match ch {
+    cv.sprite(x0, y0, k, &hero(a, p.facing, step, cursor, i == 1), |ch| match ch {
         'c' => Some(c),
         'h' => Some(h),
         'u' => Some(u),

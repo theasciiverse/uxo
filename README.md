@@ -2,22 +2,23 @@
 
 **BLAST YOUR WAY OUT TO THE REAL WORLD!**
 
-3:14 in the morning. One key pressed, and the machine pulled you in! A rogue
-program called **purged** is cleaning house, its charges planted all through
-the system, every one set to wipe the disk clean when the countdown ends. And
-you're still inside, Dot!
+3:14 in the morning. One key pressed, and the machine pulled Dot in! Every
+night at 3:14 a cleaning program called **purged** tidies the disk, and
+tonight it has decided the tidiest disk is an empty one: its charges are
+planted all through the system, set to wipe everything at four o'clock.
+Dot included!
 
-Drop a bomb, run, BOOM: the blast rips out in a cross, and one bomb sets off
-the next in a chain that tears the arena apart. Kick them, punch them, throw
-them, lay them in rows, set them off by remote. Push crates for cover, hold
-switches down to open the gates, hunt down keys and lost parts. Ride the beasts
-that hatch from the eggs the baddies leave. And watch the bombs that fizzle:
-they lie there live, waiting.
+In here every bomb is a kill. Drop one, run, BOOM: the blast rips out in a
+cross, and one bomb sets off the next in a chain that tears the arena apart.
+Kick them, punch them, throw them, lay them in rows, set them off by remote.
+Push crates for cover, hold switches down to open the gates, hunt down keys
+and lost parts. Ride the beasts that hatch from the eggs the baddies leave.
+And watch the kills that hang: they lie there live, waiting.
 
-Nine stages of Adventure through the Screensaver, alone or with a friend, all
-the way to the Bramblehog. Battle takes up to four players through six arenas,
-with revenge riders, sudden death and the dreaded skull. A love letter to the
-90s bomb-arena games.
+Nine stages of Adventure through the Screensaver, Dot alone or Dot and Caret
+together, all the way to the Bramblehog. Battle takes up to four players
+through six arenas, with revenge riders, sudden death and the dreaded skull.
+A love letter to the 90s bomb-arena games.
 
 If you see me running, try to keep up!
 

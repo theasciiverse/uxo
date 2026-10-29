@@ -1,7 +1,8 @@
 # Roadmap
 
-uXo is at 0.4.0 (2026-10-28): battle mode complete, and act 1's first
-world, the Screensaver, played through. The adventure is a story in three
+uXo is at 0.5.0 (2026-10-29): battle mode complete, act 1's first
+world, the Screensaver, played through, and the world's rules settled
+(`WORLD.md`). The adventure is a story in three
 acts, inside the machine, built one world at a time. 1.0.0 is when all
 three acts are in.
 
@@ -32,19 +33,30 @@ three acts are in.
 - [x] World 1 played through and tuned
 - [x] The store page and README with the story
 
-## 0.5.0: the rest of act 1
+## 0.5.0: built
+
+- [x] The world's rules (`WORLD.md`): bombs are kills, a UXO is a hung
+  process, purged's run from 3:14 to the wipe at 4:00, nothing dies
+- [x] Caret, the second hero in co-op, with a pointed head
+- [x] The Screensaver's cards rewritten, each with the machine's clock;
+  the ending at 3:47
+- [x] Beaten creatures flicker home; the Screensaver's redraw line; the
+  title's blinking cursor
+- [x] A new preview recording with Dot and Caret
+
+## 0.6.0: the rest of act 1
 
 - [ ] World 2, the Clock
 - [ ] World 3, the Buffer
 - [ ] purged's fight at the end of act 1, and its ending
 
-## 0.6.0: act 2, the Forgotten Game
+## 0.7.0: act 2, the Forgotten Game
 
 - [ ] Cold Storage, the Recycle Bin, the Games Folder
 - [ ] The branching map
 - [ ] Act 2's ending
 
-## 0.7.0: act 3, the Virus
+## 0.8.0: act 3, the Virus
 
 - [ ] The Power Supply, Scrollback, Static
 

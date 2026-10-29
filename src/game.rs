@@ -136,6 +136,20 @@ pub struct Egg {
     pub species: usize,
 }
 
+/// A beaten baddie on its way home: the kill ends purged's copy and its program
+/// takes the original back (looks only).
+#[derive(Clone, Copy, Debug)]
+pub struct Homing {
+    pub x: i32,
+    pub y: i32,
+    pub species: usize,
+    pub flip: bool,
+    pub left: u32,
+}
+
+/// Steps a beaten baddie flickers before it is gone.
+pub const HOMING: u32 = 36;
+
 /// A firework spark (looks only).
 #[derive(Clone, Copy, Debug)]
 pub struct Spark {
@@ -572,6 +586,7 @@ pub struct Game {
     pub baddies: Vec<crate::baddie::Baddie>,
     pub eggs: Vec<Egg>,
     pub sparks: Vec<Spark>,
+    pub homing: Vec<Homing>,
     pub items: Vec<Vec<Option<Item>>>,
     pub pickups: Vec<Vec<Option<Pickup>>>,
     pub shoves: Vec<Shove>,
@@ -675,6 +690,7 @@ impl Game {
             baddies: Vec::new(),
             eggs: Vec::new(),
             sparks: Vec::new(),
+            homing: Vec::new(),
             items: vec![vec![None; w]; h],
             pickups: vec![vec![None; w]; h],
             shoves: Vec::new(),
@@ -1039,6 +1055,10 @@ impl Game {
             s.life -= 1;
         }
         self.sparks.retain(|s| s.life > 0);
+        for h in &mut self.homing {
+            h.left -= 1;
+        }
+        self.homing.retain(|h| h.left > 0);
     }
 
     fn tick_player(&mut self, i: usize) {

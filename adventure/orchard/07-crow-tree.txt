@@ -1,11 +1,12 @@
 name: Crow Tree
 world: The Screensaver
+clock: 03:35
 theme: orchard
 goal: exit
 time: 180
-story: Crows nest in the great tree, and they fly right over the
-story: hedges. purged has sealed the hatch: find the four lost parts
-story: round the tree, and the sockets open. The crows will be watching.
+story: Crows nest in the great tree, and they fly right over the hedges.
+story: purged has sealed the hatch: find the four lost parts round the tree,
+story: and the sockets open. The crows will be watching.
 baddie: g grub
 baddie: b beetle
 baddie: h hedgehog

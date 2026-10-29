@@ -1,5 +1,5 @@
 name: Bramblehog
-about: the Orchard's old guardian; curls up and rolls at you, and calls up grubs
+about: the Screensaver's first sprite, guarding the way out; curls up and rolls at you, and calls up grubs
 hp: 8
 speed: 0.5
 move: chase

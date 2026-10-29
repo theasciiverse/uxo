@@ -1,12 +1,13 @@
 name: Frog Pond
 world: The Screensaver
+clock: 03:24
 theme: orchard
 goal: clear
 time: 180
-story: Frogs from the pond hop clean over the hedges.
-story: Beat one and it leaves an egg behind. Walk over it,
-story: and ride what hatches: the ride button (Y, E or .) hops.
-story: A mount takes a hit for you, too.
+story: The pond frogs were drawn to hop on a loop, clean over the hedges.
+story: A kill sends a frog home to its loop, and it may leave an egg behind:
+story: a copy of itself, on your side. Walk over it, and ride what hatches:
+story: the ride button (Y, E or .) hops. A mount takes a hit for you, too.
 baddie: g grub
 baddie: b beetle
 baddie: h hedgehog

@@ -48,7 +48,11 @@ fn main() -> io::Result<()> {
     run()
 }
 
+/// A fresh seed, or `UXO_SEED` for the same layouts every time (recordings, bug reports).
 fn seed() -> u64 {
+    if let Some(s) = std::env::var("UXO_SEED").ok().and_then(|v| v.parse().ok()) {
+        return s;
+    }
     std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(1, |d| d.as_nanos() as u64)
 }
 
@@ -373,8 +377,12 @@ fn title_screen(t: &Title, input: &Input, seats: &[Ctl], area: Rect, buf: &mut B
     let x = area.x + (area.width as i32 - w).max(0) as u16 / 2;
     let y = area.y + area.height / 6;
     render::pixel_text_big(buf, x, y, "uXo", &[amber, x_col, amber], scale, area);
+    // the line ends in a cursor, blinking at a terminal's pace: how Dot came in
     let tag = "Blast your way out to the real world!";
-    Paragraph::new(Line::from(Span::styled(tag, Style::default().fg(Color::Rgb(230, 230, 236)).bg(Color::Rgb(10, 10, 14)))).centered())
+    let blink = if (t.game.steps / 30) % 2 == 0 { "_" } else { " " };
+    let ink = Style::default().fg(Color::Rgb(230, 230, 236)).bg(Color::Rgb(10, 10, 14));
+    let tag = Line::from(vec![Span::raw(" "), Span::styled(tag, ink), Span::styled(blink, ink.fg(Color::Rgb(255, 176, 0)))]);
+    Paragraph::new(tag.centered())
         .render(Rect::new(area.x, y + (6 * scale / 2) as u16 + 1, area.width, 1), buf);
     // the menu
     let mut my = y + (6 * scale / 2) as u16 + 4;
@@ -1078,11 +1086,11 @@ fn adv_banner(r: &Run, area: Rect, buf: &mut Buffer) {
     match r.phase {
         A::Card(n) => {
             let mut lines = vec![
-                Line::from(Span::styled(r.stage.world.to_uppercase(), dim)).centered(),
+                Line::from(Span::styled(format!("{}  {}", r.stage.world.to_uppercase(), r.stage.clock), dim)).centered(),
                 Line::from(Span::styled(format!("{}  {}", r.code(), r.stage.name.to_uppercase()), gold)).centered(),
                 Line::raw(""),
             ];
-            lines.extend(typed(&r.stage.story, n));
+            lines.extend(typed(&r.card_lines(), n));
             lines.push(Line::raw(""));
             let goal = match r.game.goal {
                 game::Goal::Clear => "Goal: beat every baddie, then reach the hatch.",
@@ -1100,7 +1108,7 @@ fn adv_banner(r: &Run, area: Rect, buf: &mut Buffer) {
             let mut lines = vec![Line::from(Span::styled("STAGE CLEAR!", gold)).centered(), Line::raw("")];
             lines.push(Line::from(vec![Span::styled(format!("{:<20}", "baddies beaten"), dim), Span::styled(format!("{:>8}", t.baddies), white)]));
             if t.duds > 0 {
-                lines.push(Line::from(vec![Span::styled(format!("{:<20}", "duds set off"), dim), Span::styled(format!("{:>8}", t.duds), white)]));
+                lines.push(Line::from(vec![Span::styled(format!("{:<20}", "charges set off"), dim), Span::styled(format!("{:>8}", t.duds), white)]));
             }
             lines.push(Line::from(vec![Span::styled(format!("{:<20}", "time bonus"), dim), Span::styled(format!("{:>8}", t.time_bonus), white)]));
             lines.push(Line::raw(""));
@@ -1127,12 +1135,12 @@ fn adv_banner(r: &Run, area: Rect, buf: &mut Buffer) {
         }
         A::Ending(n) => {
             let mut lines = vec![Line::from(Span::styled(format!("{} CLEARED", r.stage.world.to_uppercase()), gold)).centered(), Line::raw("")];
-            lines.extend(typed(&r.stage.ending, n));
+            lines.extend(typed(&r.card_lines(), n));
             lines.push(Line::raw(""));
             lines.push(Line::from(Span::styled("bomb to go on", dim)).centered());
             panel(lines, area, buf);
         }
-        A::Done => banner(&["TO BE CONTINUED", "the Clockworks are next", "bomb for the title"], area, buf),
+        A::Done => banner(&["TO BE CONTINUED", "the Clock is next", "bomb for the title"], area, buf),
         A::Play => {}
     }
 }

@@ -597,7 +597,9 @@ impl Game {
                 if b.hp == 0 {
                     b.alive = false;
                     let (species, (mx, my)) = (b.species, b.middle(size));
+                    let home = crate::game::Homing { x: b.x, y: b.y, species, flip: b.dir == Dir::Left, left: crate::game::HOMING };
                     self.events.push(Event::BaddieDown { species, by: owner, x: mx, y: my });
+                    self.homing.push(home);
                     if self.species[species].egg.is_some() {
                         self.eggs.push(crate::game::Egg { x: centre(tx), y: centre(ty), species });
                     }
@@ -667,6 +669,19 @@ mod tests {
         g.players[0].y = 5 * TILE + TILE / 2;
         g.step(&idle());
         assert!(g.cleared);
+    }
+
+    #[test]
+    fn a_beaten_baddie_flickers_home_and_is_gone() {
+        let mut g = stage("goal: clear\n", OPEN);
+        let (x, y) = g.baddies[0].tile();
+        g.flames[y][x] = Some(Flame { left: 5, links: 0, owner: 0, surge: false });
+        g.step(&idle());
+        assert_eq!(g.homing.len(), 1, "the kill sends it home");
+        for _ in 0..crate::game::HOMING {
+            g.step(&idle());
+        }
+        assert!(g.homing.is_empty());
     }
 
     #[test]

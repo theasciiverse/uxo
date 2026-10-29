@@ -1,12 +1,13 @@
 name: Hedge Maze
 world: The Screensaver
+clock: 03:21
 theme: orchard
 goal: duds
 time: 180
 story: Some of these hedges have eyes. purged planted five charges
 story: in the maze, and locked the hatch behind a red door.
-story: The key is in here somewhere. Set off every charge, and find it.
-story: A charge goes off with a real blast: don't stand beside it!
+story: The key is in here somewhere. A charge set off now only wipes
+story: the tiles round it, not the disk. Set off every one, and stand clear!
 key: a red
 baddie: g grub
 baddie: b beetle

@@ -1,12 +1,13 @@
 name: Cider Press
 world: The Screensaver
+clock: 03:28
 theme: orchard
 goal: duds
 time: 180
-story: The cider press still turns, and its belts carry anything
-story: left on them. Seven of purged's charges rode in with the apples,
-story: and one sits locked in the press room. Its gates open while
-story: something holds the switch down. A crate will do!
+story: The press turns because the screensaver never stops drawing it,
+story: and its belts carry anything left on them. Seven of purged's charges
+story: rode in with the apples, and one sits locked in the press room.
+story: Its gates open while something holds the switch down. A crate will do!
 baddie: g grub
 baddie: b beetle
 baddie: h hedgehog

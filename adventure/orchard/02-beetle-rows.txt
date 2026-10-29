@@ -1,11 +1,14 @@
 name: Beetle Rows
 world: The Screensaver
+clock: 03:17
 theme: orchard
 goal: clear
 time: 150
-story: Ladybeetles march up and down the rows, and never turn
-story: until something stops them. A crate will: lean on one to push it.
+story: The screensaver drew its ladybeetles to walk the rows, forever.
+story: purged's beetles still never turn until something stops them.
+story: A crate will: lean on one to push it.
 story: Blasts stop at crates too, so a crate makes good cover!
+story: And mind the grey bombs: now and then a kill hangs, and lies there live.
 baddie: g grub
 baddie: b beetle
 baddie: h hedgehog

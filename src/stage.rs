@@ -19,7 +19,8 @@
 //! - `_` a switch, `|` a gate (open while every switch is held down)
 //! - `$` a part, `S` a socket (open once every part is picked up)
 //!
-//! Adventure stages also have `world:`, `story:` lines (the card before the stage),
+//! Adventure stages also have `world:`, `clock:` (the machine's time, shown on the card),
+//! `story:` lines (the card before the stage; `{dot}` names the heroes),
 //! `goal:` clear | duds | boss | exit (the hatch open from the start), `time:` seconds, `theme:` brick | orchard, and
 //! `ending:` lines (after a world's last stage).
 
@@ -59,6 +60,8 @@ pub struct Stage {
     pub give: Vec<Item>,
     pub items: u32,
     pub world: String,
+    /// The machine's clock on the card, `03:14`.
+    pub clock: String,
     pub story: Vec<String>,
     pub ending: Vec<String>,
     pub goal: Goal,
@@ -111,6 +114,7 @@ pub fn parse(text: &str) -> Result<Stage, String> {
         give: Vec::new(),
         items: 35,
         world: String::new(),
+        clock: String::new(),
         story: Vec::new(),
         ending: Vec::new(),
         goal: Goal::None,
@@ -136,6 +140,7 @@ pub fn parse(text: &str) -> Result<Stage, String> {
             }
             "items" => st.items = v.parse().map_err(|_| format!("bad items {v:?}"))?,
             "world" => st.world = v.to_string(),
+            "clock" => st.clock = v.to_string(),
             "story" => st.story.push(v.to_string()),
             "ending" => st.ending.push(v.to_string()),
             "time" => st.time = v.parse().map_err(|_| format!("bad time {v:?}"))?,

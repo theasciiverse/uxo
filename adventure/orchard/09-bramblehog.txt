@@ -1,16 +1,19 @@
 name: The Bramblehog
 world: The Screensaver
+clock: 03:44
 theme: orchard
 goal: boss
 time: 240
-story: purged has woken the screensaver's oldest creature
-story: to guard the way out. It curls into a ball of brambles,
-story: rolls at whatever moves, and the grubs come when it calls.
+story: The Bramblehog was the screensaver's first sprite, drawn before all
+story: the others, and purged has rewritten it to guard the way out.
+story: It curls into a ball of brambles, rolls at whatever moves,
+story: and the grubs come when it calls.
 story: A crate stops it rolling: get one between you and it!
-ending: The Bramblehog uncurls, blinks, and wanders off to sleep
-ending: under the oldest tree. The screensaver goes quiet, and a door
-ending: opens behind it. Deep in the machine, purged has noticed:
-ending: its charges are going off, one by one. Next: the Clock!
+ending: The Bramblehog uncurls, blinks, and goes back to its old loop,
+ending: asleep under the oldest tree. The screensaver goes quiet, and
+ending: a door opens behind it. Deep in the machine, purged has noticed:
+ending: its charges are going off, one by one. The clock says 3:47.
+ending: Thirteen minutes to four. Next: the Clock!
 ending: To be continued.
 baddie: g grub
 baddie: b beetle

@@ -7,7 +7,7 @@ that made those games feel like chaos you could still read. Same kind of
 mechanics, our own identity. Not a clone.
 
 Own git repo, private at github.com/theasciiverse/uxo (`main`).
-Version 0.4.0 (2026-10-28). What comes next, release by release, is in `ROADMAP.md`.
+Version 0.5.0 (2026-10-29). What comes next, release by release, is in `ROADMAP.md`.
 
 **Status:** World 1 of Adventure playable, battle mode complete (2026-10-04).
 A title screen (big pixel logo over fireworks) leads to **Adventure** (alone or two
@@ -38,6 +38,7 @@ they sit next to WASD).
 ```bash
 cargo run --release                           # play; +/- switches size
 RUST_LOG=debug cargo run --release 2>uxo.log  # with the session log
+UXO_SEED=7 cargo run --release               # the same layouts every run (recordings, bug reports)
 cargo run --release -- --snapshot out.ppm --zoom l --size 100x42  # staged scene as an image (zoom s, m or l)
 cargo test --release                          # movement, assist, chains, determinism
 ```
@@ -260,6 +261,13 @@ party bomb game.
   a life, the way out of a crate pushed into a corner. A test
   (`every_hatch_can_be_reached`) checks each hatch can be reached with doors
   opening only once their key is reachable, sockets once every part is.
+- **The world's rules are in `WORLD.md`** (settled with David 2026-10-29):
+  bombs are kills, a UXO is a hung process, purged runs nightly at 3:14 and
+  wipes the disk at 4:00 (stage cards carry the machine's clock, `clock:`),
+  nothing dies (a kill sends a creature home to its loop), eggs are friendly
+  copies. Co-op's second hero is **Caret** (player 2): a pointed head, the
+  `^`, whose tip blinks where Dot's underscore does. Check new worlds, cards
+  and creatures against `WORLD.md`.
 - **Store copy waits for the story.** The catalog page written on
   2026-10-27 sells bombs and chain reactions with no story; David found it
   "nowhere how to present a bomb-arena game". The classics sold a villain

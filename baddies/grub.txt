@@ -1,5 +1,5 @@
 name: Grub
-about: a fat orchard grub; wanders about, slowly
+about: a fat garden grub from the screensaver; wanders about, slowly
 hp: 1
 speed: 0.5
 move: wander

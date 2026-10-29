@@ -50,7 +50,8 @@ the bomb underfoot, else sets off your oldest remote bomb. Walk into a crate
 and lean on it a moment to push it. Start or P pauses (in the Adventure, bomb
 then starts the stage over, for a life),
 `+` and `-` zoom (`0` automatic), Esc or Select goes back to the title. Every
-gamepad is its own player.
+gamepad is its own player. On the title, left and right on Continue pick
+any stage you have reached.
 
 Session log for bug reports: `RUST_LOG=debug uxo 2>uxo.log`
 

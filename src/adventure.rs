@@ -5,6 +5,7 @@
 
 use crate::game::{Cmd, Event, Game, HZ, MAX_PLAYERS};
 use crate::stage::{self, Stage};
+use log::info;
 
 pub const STAGES: [&str; 27] = [
     include_str!("../adventure/orchard/01-windfall-lane.txt"),
@@ -38,6 +39,16 @@ pub const STAGES: [&str; 27] = [
 
 /// Stages in each world, in order: act 1's Screensaver, Clock and Buffer.
 pub const WORLDS: [usize; 3] = [9, 9, 9];
+
+/// The stage index of a code like "2-3", for `--from`.
+pub fn index_of(code: &str) -> Option<usize> {
+    let (w, n) = code.split_once('-')?;
+    let (w, n): (usize, usize) = (w.trim().parse().ok()?, n.trim().parse().ok()?);
+    if w == 0 || n == 0 || w > WORLDS.len() || n > WORLDS[w - 1] {
+        return None;
+    }
+    Some(WORLDS[..w - 1].iter().sum::<usize>() + n - 1)
+}
 
 /// "2-3": world and stage number of stage `index`.
 pub fn code_of(index: usize) -> String {
@@ -165,6 +176,17 @@ impl Run {
         self.left = self.stage.time * HZ;
         self.tally = Tally::default();
         self.phase = Phase::Card(0.0);
+        info!("playtest {} {}: start, lives {}", self.code(), self.stage.name, self.lives_text());
+    }
+
+    /// Lives left per player, for the playtest lines: "3" or "3/2".
+    fn lives_text(&self) -> String {
+        self.lives[..self.players].iter().map(u32::to_string).collect::<Vec<_>>().join("/")
+    }
+
+    /// Seconds played on this stage so far.
+    fn played(&self) -> u32 {
+        (self.stage.time * HZ).saturating_sub(self.left) / HZ
     }
 
     /// A second player joins in at once, with fresh lives.
@@ -217,6 +239,7 @@ impl Run {
                 self.game.step(cmds);
                 self.left = self.left.saturating_sub(1);
                 if self.left == 0 {
+                    info!("playtest {} {}: time up", self.code(), self.stage.name);
                     for i in 0..self.players {
                         if self.game.players[i].joined && !self.game.players[i].out {
                             self.lose_life(i);
@@ -269,6 +292,7 @@ impl Run {
         if self.phase != Phase::Play {
             return false;
         }
+        info!("playtest {} {}: started over after {}s", self.code(), self.stage.name, self.played());
         for i in 0..self.players {
             if self.game.players[i].joined && !self.game.players[i].out {
                 self.lose_life(i);
@@ -295,6 +319,23 @@ impl Run {
         }
     }
 
+    /// What caught a player who wasn't in a blast: the creature nearest them, or a
+    /// block crumbling round them.
+    fn toucher(&self, player: usize) -> String {
+        let p = &self.game.players[player];
+        let near = self
+            .game
+            .baddies
+            .iter()
+            .filter(|b| b.alive)
+            .map(|b| ((b.x - p.x).abs() + (b.y - p.y).abs(), b.species))
+            .min();
+        match near {
+            Some((d, sp)) if d < 3 * crate::game::TILE => self.game.species[sp].name.clone(),
+            _ => "a crumbling block".to_string(),
+        }
+    }
+
     fn score_event(&mut self, ev: Event) {
         match ev {
             Event::BaddieDown { species, by, x, y } => {
@@ -316,9 +357,16 @@ impl Run {
                 }
                 self.tally.duds += 1;
             }
-            Event::Death { player, .. } if self.phase == Phase::Play => {
+            Event::Death { player, by } if self.phase == Phase::Play => {
+                let what = match by {
+                    Some(k) if k == player => "own blast".to_string(),
+                    Some(k) => format!("P{}'s blast", k + 1),
+                    None => self.toucher(player),
+                };
+                info!("playtest {} {}: P{} lost a life after {}s ({what})", self.code(), self.stage.name, player + 1, self.played());
                 self.lose_life(player);
                 if self.all_out() {
+                    info!("playtest {} {}: game over", self.code(), self.stage.name);
                     self.phase = Phase::GameOver;
                 }
             }
@@ -337,6 +385,15 @@ impl Run {
                     self.game.fireworks(cx - 400, cy - 150, 30);
                     self.game.fireworks(cx + 400, cy - 150, 30);
                 }
+                info!(
+                    "playtest {} {}: cleared in {}s of {}s, lives {}, score {}",
+                    self.code(),
+                    self.stage.name,
+                    self.played(),
+                    self.stage.time,
+                    self.lives_text(),
+                    self.score[..self.players].iter().map(u32::to_string).collect::<Vec<_>>().join("/")
+                );
                 crate::progress::reached(self.index + 1);
                 self.phase = Phase::Clear { t: CLEAR_HOLD };
             }
@@ -360,6 +417,24 @@ mod tests {
                 r.step(&[Cmd::default(); MAX_PLAYERS]);
             }
         }
+    }
+
+    /// A life lost to a creature is put down to that creature in the playtest log.
+    #[test]
+    fn a_life_lost_to_a_creature_names_it() {
+        let mut r = Run::new(1, 1, 0);
+        r.phase = Phase::Play;
+        r.game.players[0].invuln = 0;
+        let (x, y, sp) = (r.game.baddies[0].x, r.game.baddies[0].y, r.game.baddies[0].species);
+        for _ in 0..HZ {
+            if r.lives[0] < LIVES {
+                break;
+            }
+            (r.game.players[0].x, r.game.players[0].y) = (r.game.baddies[0].x, r.game.baddies[0].y);
+            r.step(&[Cmd::default(); MAX_PLAYERS]);
+        }
+        assert_eq!(r.lives[0], LIVES - 1, "touching the creature at {x},{y} costs a life");
+        assert_eq!(r.toucher(0), r.game.species[sp].name);
     }
 
     #[test]
@@ -389,6 +464,12 @@ mod tests {
         assert_eq!(code_of(9), "2-1");
         assert_eq!(code_of(17), "2-9");
         assert_eq!(code_of(26), "3-9");
+        for i in 0..STAGES.len() {
+            assert_eq!(index_of(&code_of(i)), Some(i));
+        }
+        assert_eq!(index_of("4-1"), None);
+        assert_eq!(index_of("1-10"), None);
+        assert_eq!(index_of("0-1"), None);
     }
 
     #[test]

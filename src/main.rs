@@ -42,6 +42,17 @@ const DIM: Color = Color::Rgb(120, 120, 130);
 fn main() -> io::Result<()> {
     env_logger::Builder::from_default_env().format_timestamp_millis().init();
     let args: Vec<String> = std::env::args().collect();
+    if let Some(code) = args.iter().position(|a| a == "--from").and_then(|i| args.get(i + 1)) {
+        match adventure::index_of(code) {
+            Some(i) => {
+                let _ = FROM.set(i);
+            }
+            None => {
+                eprintln!("--from takes a stage code like 2-5");
+                std::process::exit(2);
+            }
+        }
+    }
     if let Some(i) = args.iter().position(|a| a == "--snapshot") {
         return snapshot(&args, args.get(i + 1).map_or("snapshot.ppm", String::as_str));
     }
@@ -81,23 +92,41 @@ impl Mode {
     }
 }
 
+/// `--from 2-5`: Continue can start at any stage up to this one, for playtesting.
+static FROM: std::sync::OnceLock<usize> = std::sync::OnceLock::new();
+
+/// The furthest stage Continue offers: progress saved, or `--from`.
+fn unlocked() -> usize {
+    progress::furthest().max(FROM.get().copied().unwrap_or(0)).min(adventure::STAGES.len() - 1)
+}
+
 /// The title screen: the logo over a quiet arena with fireworks going up, and a menu.
 struct Title {
     game: Game,
     cursor: usize,
+    /// The stage Continue starts at; left and right choose any stage reached.
+    pick: usize,
 }
 
 impl Title {
     fn new(seed: u64) -> Title {
         let mut st = stage::load(0);
         st.items = 0;
-        Title { game: Game::from_stage(&st, seed), cursor: 0 }
+        Title { game: Game::from_stage(&st, seed), cursor: 0, pick: unlocked() }
     }
     fn items(&self) -> Vec<(String, TitleChoice)> {
         let mut v = vec![("ADVENTURE".to_string(), TitleChoice::Adventure(0))];
-        let far = progress::furthest().min(adventure::STAGES.len() - 1);
+        let far = unlocked();
         if far > 0 {
-            v.push((format!("CONTINUE {}", adventure::code_of(far)), TitleChoice::Adventure(far)));
+            let pick = self.pick.min(far);
+            // chosen, it shows the arrows that pick the stage in place of the cursor's
+            let label = if self.cursor == 1 {
+                let (l, r) = (if pick > 0 { "<" } else { " " }, if pick < far { ">" } else { " " });
+                format!("CONTINUE {l} {} {r}", adventure::code_of(pick))
+            } else {
+                format!("CONTINUE {}", adventure::code_of(pick))
+            };
+            v.push((label, TitleChoice::Adventure(pick)));
         }
         v.push(("BATTLE".to_string(), TitleChoice::Battle));
         v
@@ -357,6 +386,9 @@ fn title_step(t: &mut Title, cmds: &[Cmd; MAX_PLAYERS], seated: usize) -> Option
         match c.tap {
             Some(game::Dir::Up) => t.cursor = (t.cursor + n - 1) % n,
             Some(game::Dir::Down) => t.cursor = (t.cursor + 1) % n,
+            // on Continue, left and right choose the stage
+            Some(game::Dir::Left) if t.cursor == 1 && n == 3 => t.pick = t.pick.min(unlocked()).saturating_sub(1),
+            Some(game::Dir::Right) if t.cursor == 1 && n == 3 => t.pick = (t.pick + 1).min(unlocked()),
             _ => {}
         }
     }
@@ -388,7 +420,7 @@ fn title_screen(t: &Title, input: &Input, seats: &[Ctl], area: Rect, buf: &mut B
     let mut my = y + (6 * scale / 2) as u16 + 4;
     for (n, (label, _)) in t.items().iter().enumerate() {
         let on = n == t.cursor;
-        let text = if on { format!("> {label} <") } else { label.clone() };
+        let text = if on && !label.starts_with("CONTINUE") { format!("> {label} <") } else { label.clone() };
         let w = render::pixel_width(&text);
         let col = if on { [255, 220, 90] } else { [200, 200, 210] };
         render::pixel_text_big(buf, area.x + area.width.saturating_sub(w) / 2, my, &text, &[col], 1, area);
@@ -403,7 +435,7 @@ fn title_screen(t: &Title, input: &Input, seats: &[Ctl], area: Rect, buf: &mut B
     let hint = if seats.is_empty() {
         "press any button on a gamepad, or Space or Enter, to join".to_string()
     } else {
-        "up/down to choose, bomb to start; more players can join any time".to_string()
+        "up/down to choose, left/right picks the stage, bomb to start; more players can join any time".to_string()
     };
     who.push(Span::styled(hint, Style::default().fg(DIM).bg(Color::Rgb(10, 10, 14))));
     Paragraph::new(Line::from(who).centered()).render(Rect::new(area.x, my + 1, area.width, 1), buf);

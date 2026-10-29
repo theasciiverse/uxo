@@ -14,7 +14,7 @@ Buffer built 2026-10-29), battle mode complete (2026-10-04). A title screen (big
 pixel logo over fireworks) leads to **Adventure** (alone or two together: the
 Screensaver's, the Clock's and the Buffer's nine stages each, story cards,
 sixteen baddie species and three bosses, purged's charges, tamed mounts, lives,
-score, a clock, saved progress for Continue) or **Battle**.
+score, a clock, saved progress for Continue, which can start at any stage reached: left and right pick it) or **Battle**.
 
 Battle: One player practises; a second
 joining opens the battle setup (stage or all in turn, wins to take the match,
@@ -40,6 +40,8 @@ they sit next to WASD).
 cargo run --release                           # play; +/- switches size
 RUST_LOG=debug cargo run --release 2>uxo.log  # with the session log
 UXO_SEED=7 cargo run --release               # the same layouts every run (recordings, bug reports)
+cargo run --release -- --from 2-5             # Continue offers every stage up to 2-5 (playtesting)
+RUST_LOG=info cargo run --release 2>uxo.log; grep playtest uxo.log  # per stage: start, lives lost and to what, clear time
 cargo run --release -- --snapshot out.ppm --zoom l --size 100x42  # staged scene as an image (zoom s, m or l)
 cargo test --release                          # movement, assist, chains, determinism
 ```

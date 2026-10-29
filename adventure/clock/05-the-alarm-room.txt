@@ -1,0 +1,31 @@
+name: The Alarm Room
+world: The Clock
+clock: 03:54
+theme: clock
+goal: clear
+time: 180
+story: Every alarm in the machine is set for four, and these have woken
+story: early. An alarm that sees anyone lined up with it rings and charges
+story: down the line until something stops it. Keep a crate in the way, or
+story: be somewhere else. A beaten alarm leaves a copy to ride: it charges
+story: for {dot} instead.
+baddie: t tick
+baddie: b bob
+baddie: s spring
+baddie: g cog
+baddie: l alarm
+baddie: x cuckoo
+grid:
+#####################
+#1.2.....?.?......l.#
+#..B..#.?...?.#..B..#
+#.....#.??.??.#.....#
+#?##.##.......##.##?#
+#.....?..l...?......#
+#.B.?.....B.....?.B.#
+#......?.....l?.....#
+#?##.##.......##.##?#
+#.....#.??.??.#.....#
+#..B..#.?.l.?.#..B..#
+#.l.......?.......E.#
+#####################

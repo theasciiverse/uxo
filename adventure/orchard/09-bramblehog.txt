@@ -14,7 +14,6 @@ ending: asleep under the oldest tree. The screensaver goes quiet, and
 ending: a door opens behind it. Deep in the machine, purged has noticed:
 ending: its charges are going off, one by one. The clock says 3:47.
 ending: Thirteen minutes to four. Next: the Clock!
-ending: To be continued.
 baddie: g grub
 baddie: b beetle
 baddie: h hedgehog

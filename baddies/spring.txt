@@ -1,0 +1,28 @@
+name: Spring
+about: a coiled spring that hops two tiles over anything; tamed, it carries you over walls
+hp: 1
+speed: 0.6
+move: wander
+every: 120
+ability: hop
+points: 300
+egg: hop
+colors: s=205,210,225 d=115,120,140 k=20,20,28 w=255,255,255
+art:
+..ssss..
+.swkswk.
+.ssssss.
+..dddd..
+.ssssss.
+..dddd..
+.ssssss.
+..dddd..
+art2:
+........
+..ssss..
+.swkswk.
+.ssssss.
+.dddddd.
+.ssssss.
+.dddddd.
+ssssssss

@@ -1,0 +1,37 @@
+name: The Cuckoo
+world: The Clock
+clock: 03:59
+theme: clock
+goal: boss
+time: 240
+story: One minute to four. purged has wound the Cuckoo, the bird that
+story: calls the hours, to strike four early. When it calls, the job is
+story: done and the wipe begins. It flies over anything, hops, and winds
+story: up ticks to help it. Stop it before it strikes!
+baddie: t tick
+baddie: b bob
+baddie: s spring
+baddie: g cog
+baddie: l alarm
+baddie: x cuckoo
+ending: The Cuckoo goes quiet, ruffles its feathers and settles back in
+ending: its little door, waiting for the hour. With nothing left to wind
+ending: it, purged's grip on the clock slips, and the hands spring back to
+ending: the true time: 3:52. Eight minutes to four.
+ending: purged has stopped winding. Deeper in the machine it is filling the
+ending: Buffer with charges instead, where everything waits to be written.
+ending: Next: the Buffer!
+grid:
+###################
+#1.2.....??......?#
+#.....#.....#.....#
+#.?..B.......B..?.#
+#.......x.........#
+#..?.............?#
+#..#..%.....&..#..#
+#.?...........?...#
+#....B...?...B....#
+#.?..#.........#.?#
+#......%...&......#
+#?.......?.......?#
+###################

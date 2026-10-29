@@ -1,0 +1,28 @@
+name: Cog
+about: sits among the spare cogs looking like one, until you come close; then it rolls after you
+hp: 2
+speed: 0.7
+move: wander
+sees: 5
+on_sight: chase
+mimic: yes
+points: 400
+colors: g=190,145,60 l=240,205,115 d=110,80,35 k=20,20,28 w=255,255,255
+art:
+.l.gg.l.
+lllgggdd
+.lwkgwk.
+glggggdg
+glgddgdg
+.lgggdd.
+lggggddd
+.d.dd.d.
+art2:
+l.gg.l..
+lllgggdd
+.lwkgwk.
+glggggdg
+glgddgdg
+.lgggdd.
+lggggddd
+d.dd.d..

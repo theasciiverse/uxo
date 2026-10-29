@@ -1,0 +1,30 @@
+name: The Pendulum
+world: The Clock
+clock: 03:57
+theme: clock
+goal: exit
+time: 200
+story: The pendulum hall: long lanes where the bobs swing, and shutters
+story: between them on the beat. The hatch is behind sockets, and the four
+story: parts that open them are scattered down the lanes. Time the
+story: crossings, and don't stand in a bob's way.
+baddie: t tick
+baddie: b bob
+baddie: s spring
+baddie: g cog
+baddie: l alarm
+baddie: x cuckoo
+grid:
+#########################
+#1.2....................#
+#.#####%#####&#####%###.#
+#$.........b..........?.#
+#?###&#####%#####&#####?#
+#.....b.........?......$#
+#.#####%#####&#####%###.#
+#.........b....$........#
+#?###&#####%#####&#####?#
+#$....b..........b......#
+#.#####%#####&###########
+#..........b.......S..E.#
+#########################

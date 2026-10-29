@@ -97,7 +97,7 @@ impl Title {
         let mut v = vec![("ADVENTURE".to_string(), TitleChoice::Adventure(0))];
         let far = progress::furthest().min(adventure::STAGES.len() - 1);
         if far > 0 {
-            v.push((format!("CONTINUE 1-{}", far + 1), TitleChoice::Adventure(far)));
+            v.push((format!("CONTINUE {}", adventure::code_of(far)), TitleChoice::Adventure(far)));
         }
         v.push(("BATTLE".to_string(), TitleChoice::Battle));
         v
@@ -1140,7 +1140,7 @@ fn adv_banner(r: &Run, area: Rect, buf: &mut Buffer) {
             lines.push(Line::from(Span::styled("bomb to go on", dim)).centered());
             panel(lines, area, buf);
         }
-        A::Done => banner(&["TO BE CONTINUED", "the Clock is next", "bomb for the title"], area, buf),
+        A::Done => banner(&["TO BE CONTINUED", "the Buffer is next", "bomb for the title"], area, buf),
         A::Play => {}
     }
 }

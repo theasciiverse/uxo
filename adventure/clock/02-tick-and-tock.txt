@@ -1,0 +1,33 @@
+name: Tick and Tock
+world: The Clock
+clock: 03:50
+theme: clock
+goal: exit
+time: 160
+story: The clock has gained two minutes since {dot} came in.
+story: Shutters close off the halls here, and they move on the clock's
+story: beat, two seconds at a time: the gold ones open on the tick, the
+story: silver ones on the tock. They flicker just before they move, and
+story: none will close on anyone standing in it. The bobs swing straight
+story: across and back, faster than anything in the garden. The hatch is
+story: open; find the way through.
+baddie: t tick
+baddie: b bob
+baddie: s spring
+baddie: g cog
+baddie: l alarm
+baddie: x cuckoo
+grid:
+#####################
+#1.2....#.....#.....#
+#.##.##.#.#?#.#.##?.#
+#.....b.%.....&...b.#
+#.##.##.#.#?#.#.##?.#
+#..?....#..b..#..?..#
+###&#####%###%###&###
+#.....#.......#.....#
+#.###.#.##?##.#.###.#
+#..b..&...b...%.....#
+#.###.#.##?##.#.###.#
+#..?..#.......#....E#
+#####################

@@ -3,7 +3,7 @@
 //! reaction, plus properties and its own pixel art.
 //!
 //! Format: `name:`, `about:`, `hp:`, `speed:` (times a player's base walk), `move:`
-//! wander | straight | chase, `sees:` tiles, `on_sight:` chase | charge, `every:` steps
+//! wander | straight | chase | wall (keeps a wall on its right), `sees:` tiles, `on_sight:` chase | charge, `every:` steps
 //! between uses of `ability:` hop | roll, `summon:` another species (bosses), `mimic: yes`
 //! (looks like a hedge until you come close), `flies: yes` (over soft blocks), `size:` 1
 //! or 2 tiles, `points:`, `egg:` hop | dash (it can be tamed and ridden), `colors:` a list
@@ -17,6 +17,8 @@ pub enum Move {
     Wander,
     Straight,
     Chase,
+    /// The right-hand rule: always the rightmost way open, so it follows walls round.
+    Wall,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -66,7 +68,7 @@ pub struct Species {
 
 const BASE: i32 = 12;
 
-pub const FILES: [(&str, &str); 7] = [
+pub const FILES: [(&str, &str); 13] = [
     ("grub", include_str!("../baddies/grub.txt")),
     ("beetle", include_str!("../baddies/beetle.txt")),
     ("hedgehog", include_str!("../baddies/hedgehog.txt")),
@@ -74,6 +76,13 @@ pub const FILES: [(&str, &str); 7] = [
     ("ram", include_str!("../baddies/ram.txt")),
     ("crow", include_str!("../baddies/crow.txt")),
     ("bramblehog", include_str!("../baddies/bramblehog.txt")),
+    // World 2, the Clock
+    ("tick", include_str!("../baddies/tick.txt")),
+    ("bob", include_str!("../baddies/bob.txt")),
+    ("spring", include_str!("../baddies/spring.txt")),
+    ("cog", include_str!("../baddies/cog.txt")),
+    ("alarm", include_str!("../baddies/alarm.txt")),
+    ("cuckoo", include_str!("../baddies/cuckoo.txt")),
 ];
 
 pub fn roster() -> Vec<Species> {
@@ -123,6 +132,7 @@ pub fn parse(id: &str, text: &str) -> Result<Species, String> {
                     "wander" => Move::Wander,
                     "straight" => Move::Straight,
                     "chase" => Move::Chase,
+                    "wall" => Move::Wall,
                     _ => return Err(bad()),
                 }
             }
@@ -257,6 +267,16 @@ fn centre(t: usize) -> i32 {
 }
 
 const DIRS: [Dir; 4] = [Dir::Up, Dir::Down, Dir::Left, Dir::Right];
+
+/// A quarter turn to the right (clockwise, seen from above).
+fn right_of(d: Dir) -> Dir {
+    match d {
+        Dir::Up => Dir::Right,
+        Dir::Right => Dir::Down,
+        Dir::Down => Dir::Left,
+        Dir::Left => Dir::Up,
+    }
+}
 
 fn back(d: Dir) -> Dir {
     match d {
@@ -411,6 +431,10 @@ impl Game {
             // abilities on a timer
             if sp.every > 0 && b.timer == 0 && !fast {
                 self.baddies[k].timer = sp.every + self.rand_u(sp.every / 2 + 1);
+                // calling up help comes first: the ability below may start a move and return
+                if let Some(id) = &sp.summon {
+                    self.summon(id, tx, ty);
+                }
                 match sp.ability {
                     Ability::Hop => {
                         let d = self.baddies[k].dir;
@@ -427,9 +451,6 @@ impl Game {
                         return;
                     }
                     Ability::None => {}
-                }
-                if let Some(id) = &sp.summon {
-                    self.summon(id, tx, ty);
                 }
             }
             let b = &self.baddies[k];
@@ -538,6 +559,15 @@ impl Game {
             return cur;
         }
         match sp.moves {
+            Move::Wall => {
+                // a wall on the right, or one just passed (round its corner, then)
+                let right = right_of(cur);
+                let ((rx, ry), (bx, by)) = (right.vec(), back(cur).vec());
+                let walled = !free(self, right) || !self.baddie_free(sp, x + rx + bx, y + ry + by);
+                // with no wall to follow, straight on until one turns it left
+                let order = if walled { [right, cur, back(right), back(cur)] } else { [cur, back(right), right, back(cur)] };
+                order.into_iter().find(|&d| free(self, d)).unwrap_or(cur)
+            }
             Move::Straight if free(self, cur) => cur,
             Move::Wander if free(self, cur) && self.rand_u(100) < 70 => cur,
             _ => {
@@ -682,6 +712,40 @@ mod tests {
             g.step(&idle());
         }
         assert!(g.homing.is_empty());
+    }
+
+    #[test]
+    fn a_tick_follows_the_walls_round() {
+        let grid = "###########\n#1.2......#\n#.........#\n#....t....#\n#.........#\n#........E#\n###########";
+        let mut g = stage("goal: clear\nbaddie: t tick\n", grid);
+        let mut seen = std::collections::HashSet::new();
+        for n in 0..2400 {
+            g.step(&idle());
+            let b = &g.baddies[0];
+            let (x, y) = b.tile();
+            if n > 600 && b.x == centre(x) && b.y == centre(y) {
+                // once it has found a wall it keeps one beside it (or round the corner
+                // of one, the hatch included: baddies can't step on it)
+                let by_wall = (-1..=1).flat_map(|dy| (-1..=1).map(move |dx| (dx, dy))).any(|(dx, dy)| {
+                    let (nx, ny) = ((x as i32 + dx) as usize, (y as i32 + dy) as usize);
+                    g.tiles[ny][nx] == Tile::Wall || g.exit == Some((nx, ny))
+                });
+                assert!(by_wall, "the tick left the wall at {x},{y}");
+                seen.insert((x, y));
+            }
+        }
+        assert!(seen.len() >= 16, "it goes round, not back and forth ({} tiles)", seen.len());
+    }
+
+    #[test]
+    fn the_bramblehog_calls_up_grubs() {
+        let grid = "###########\n#1.2......#\n#.........#\n#....x....#\n#.........#\n#.........#\n#........E#\n###########";
+        let mut g = stage("goal: clear\nbaddie: x bramblehog\n", grid);
+        g.baddies[0].timer = 0;
+        for _ in 0..60 {
+            g.step(&idle());
+        }
+        assert!(g.baddies.iter().any(|b| g.species[b.species].id == "grub"));
     }
 
     #[test]

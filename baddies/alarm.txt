@@ -1,0 +1,28 @@
+name: Alarm
+about: an alarm clock set for four and awake too early; when it sees you lined up it rings and charges
+hp: 2
+speed: 0.6
+move: wander
+sees: 6
+on_sight: charge
+points: 500
+egg: dash
+colors: r=215,50,50 d=140,25,30 w=245,245,240 k=20,20,28 y=235,200,90
+art:
+.yy..yy.
+yrr..rry
+.rrrrrr.
+rwwwwwwr
+rwkwwkwr
+rwwkkwwr
+.rrrrrr.
+.d....d.
+art2:
+yy....yy
+yrr..rry
+.rrrrrr.
+rwwwwwwr
+rwkwwkwr
+rwwkkwwr
+.rrrrrr.
+d......d

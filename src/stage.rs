@@ -18,10 +18,11 @@
 //!   the same letter in capitals its door
 //! - `_` a switch, `|` a gate (open while every switch is held down)
 //! - `$` a part, `S` a socket (open once every part is picked up)
+//! - `%` a shutter that opens on the clock's tick, `&` one that opens on the tock
 //!
 //! Adventure stages also have `world:`, `clock:` (the machine's time, shown on the card),
 //! `story:` lines (the card before the stage; `{dot}` names the heroes),
-//! `goal:` clear | duds | boss | exit (the hatch open from the start), `time:` seconds, `theme:` brick | orchard, and
+//! `goal:` clear | duds | boss | exit (the hatch open from the start), `time:` seconds, `theme:` brick | orchard | clock, and
 //! `ending:` lines (after a world's last stage).
 
 use crate::game::{Dir, Goal, Item, Theme};
@@ -49,6 +50,8 @@ pub enum Cell {
     Gate,
     Part,
     Socket,
+    /// Opens on the tick (false) or the tock (true).
+    Shutter(bool),
 }
 
 const COLOURS: [&str; 4] = ["red", "blue", "green", "yellow"];
@@ -157,6 +160,7 @@ pub fn parse(text: &str) -> Result<Stage, String> {
                 st.theme = match v {
                     "brick" => Theme::Brick,
                     "orchard" => Theme::Orchard,
+                    "clock" => Theme::Clock,
                     _ => return Err(format!("bad theme {v:?}")),
                 }
             }
@@ -221,6 +225,8 @@ pub fn parse(text: &str) -> Result<Stage, String> {
                 '|' => Cell::Gate,
                 '$' => Cell::Part,
                 'S' => Cell::Socket,
+                '%' => Cell::Shutter(false),
+                '&' => Cell::Shutter(true),
                 _ => match (legend.iter().find(|(k, _)| *k == c), keys.iter().find(|(k, _)| *k == c.to_ascii_lowercase())) {
                     (_, Some(&(k, n))) if k == c => Cell::Key(n),
                     (_, Some(&(_, n))) => Cell::Door(n),

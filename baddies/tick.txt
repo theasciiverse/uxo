@@ -1,0 +1,25 @@
+name: Tick
+about: a wind-up mite from the clock's works; it follows the walls, always keeping one on its right
+hp: 1
+speed: 0.8
+move: wall
+points: 200
+colors: y=215,125,70 d=140,72,40 s=195,195,210 k=20,20,28 w=255,255,255
+art:
+..s..s..
+...ss...
+.yyyyyy.
+ywkyywky
+yyyyyyyy
+dyyyyyyd
+.dddddd.
+.d.d.d.d
+art2:
+..s..s..
+...ss...
+.yyyyyy.
+ywkyywky
+yyyyyyyy
+dyyyyyyd
+.dddddd.
+d.d.d.d.

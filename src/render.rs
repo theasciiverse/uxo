@@ -69,6 +69,15 @@ const FLOOR_A: Rgb = [58, 138, 62];
 const FLOOR_B: Rgb = [50, 124, 55];
 const FLOOR_SHADOW: Rgb = [36, 92, 42];
 
+/// A theme's floor: its two checker shades and the shadow a block casts on it.
+fn floors(theme: Theme) -> (Rgb, Rgb, Rgb) {
+    match theme {
+        // the Clock's face: dark blue enamel
+        Theme::Clock => ([44, 52, 78], [39, 46, 70], [26, 31, 50]),
+        _ => (FLOOR_A, FLOOR_B, FLOOR_SHADOW),
+    }
+}
+
 fn shade(c: Rgb, f: f32) -> Rgb {
     c.map(|v| (v as f32 * f).min(255.0) as u8)
 }
@@ -181,6 +190,15 @@ fn canopy(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, tx: usize, ty: usiz
             };
             cv.block(x, y, k, c);
         }
+    }
+}
+
+/// A Clock cog: a brass gear on a dark plate, its hub in the middle.
+fn cog(a: i32) -> &'static [&'static str] {
+    match a {
+        8 => &["dlgddlgd", "llllgggd", "dlgrrggd", "glrddrgg", "glrddrgd", "dlgrrggd", "lgggggdd", "ddgddgdd"],
+        6 => &["dlgdgd", "lllggd", "lgrrgd", "grddrg", "dggggd", "dgddgd"],
+        _ => &["lgld", "grrd", "lrgd", "dgdd"],
     }
 }
 
@@ -533,11 +551,14 @@ pub fn draw_arena(g: &Game, zoom: Zoom, cam: (i32, i32), shake: i16, area: Rect,
     let tx1 = (((ox + vw) / s + 2).max(0) as usize).min(g.w);
     let ty1 = (((oy + vh) / s + 2).max(0) as usize).min(g.h);
     let (gw, gh) = (g.w, g.h);
+    let (floor_a, floor_b, floor_shadow) = floors(g.theme);
+    // under something in the air
+    let under = shade(floor_shadow, 0.8);
 
     for ty in ty0..ty1 {
         for tx in tx0..tx1 {
             let (x0, y0) = (tx as i32 * s, ty as i32 * s);
-            let floor = if (tx + ty) % 2 == 0 { FLOOR_A } else { FLOOR_B };
+            let floor = if (tx + ty) % 2 == 0 { floor_a } else { floor_b };
             cv.block(x0, y0, s, floor);
             match g.tiles[ty][tx] {
                 Tile::Wall if g.ground[ty][tx] == Ground::Water => water(&mut cv, x0, y0, a, k, t),
@@ -569,7 +590,10 @@ pub fn draw_arena(g: &Game, zoom: Zoom, cam: (i32, i32), shake: i16, area: Rect,
                     }
                 }
                 Tile::Door(c) => door(&mut cv, x0, y0, a, k, KEY_COLOURS[c as usize]),
-                Tile::Gate => gate(&mut cv, x0, y0, a, k),
+                Tile::Gate => match g.ground[ty][tx] {
+                    Ground::Shutter(tock) => shutter(&mut cv, x0, y0, a, k, tock, t),
+                    _ => gate(&mut cv, x0, y0, a, k),
+                },
                 Tile::Socket => socket(&mut cv, x0, y0, a, k, t),
                 Tile::Soft => soft_block(&mut cv, x0, y0, a, k, None, t, g.theme),
                 Tile::Burning(left) => soft_block(&mut cv, x0, y0, a, k, Some(left), t, g.theme),
@@ -593,6 +617,15 @@ pub fn draw_arena(g: &Game, zoom: Zoom, cam: (i32, i32), shake: i16, area: Rect,
                             cv.block(x0 + fx * k, y0 + fy * k, k, petal);
                         }
                     }
+                    if g.theme == Theme::Clock && g.ground[ty][tx] == Ground::Plain {
+                        // the minute marks round the Clock's face
+                        let h = hash(tx as i32, ty as i32, 23);
+                        if h % 3 == 0 {
+                            let (fx, fy) = ((h / 3 % (a as u32 - 2)) as i32 + 1, (h / 17 % (a as u32 - 2)) as i32 + 1);
+                            let mark = if h % 2 == 0 { [92, 102, 140] } else { [150, 130, 80] };
+                            cv.block(x0 + fx * k, y0 + fy * k, k, mark);
+                        }
+                    }
                     if g.exit == Some((tx, ty)) {
                         exit_hatch(&mut cv, x0, y0, a, k, g.exit_open, t);
                     }
@@ -601,7 +634,7 @@ pub fn draw_arena(g: &Game, zoom: Zoom, cam: (i32, i32), shake: i16, area: Rect,
                     if ty > 0 && g.tiles[ty - 1][tx] != Tile::Floor {
                         for x in 0..s {
                             for y in 0..k {
-                                cv.set(x0 + x, y0 + y, FLOOR_SHADOW);
+                                cv.set(x0 + x, y0 + y, floor_shadow);
                             }
                         }
                     }
@@ -671,7 +704,7 @@ pub fn draw_arena(g: &Game, zoom: Zoom, cam: (i32, i32), shake: i16, area: Rect,
         }
         if let State::Hop { t: ht, dur, .. } = b.state {
             let arc = (std::f32::consts::PI * ht as f32 / dur as f32).sin();
-            cv.block(x0 + (a / 2 - 1) * k, y0 + (a - 1) * k, 2 * k, [30, 70, 35]);
+            cv.block(x0 + (a / 2 - 1) * k, y0 + (a - 1) * k, 2 * k, under);
             y0 -= ((arc * s as f32 * 0.8) as i32).div_euclid(k) * k;
         }
         // flashing after a hit
@@ -720,7 +753,7 @@ pub fn draw_arena(g: &Game, zoom: Zoom, cam: (i32, i32), shake: i16, area: Rect,
         if let Some((_, _, ht, dur)) = p.hop {
             let arc = (std::f32::consts::PI * ht as f32 / dur as f32).sin();
             lift = ((arc * s as f32 * 0.8) as i32).div_euclid(k) * k;
-            cv.block(x0 + (a / 2 - 1) * k, y0 + (a - 1) * k, 2 * k, [30, 70, 35]);
+            cv.block(x0 + (a / 2 - 1) * k, y0 + (a - 1) * k, 2 * k, under);
         }
         // eggs carried for later trail behind
         for (n, &sp) in p.spare.iter().enumerate() {
@@ -753,7 +786,7 @@ pub fn draw_arena(g: &Game, zoom: Zoom, cam: (i32, i32), shake: i16, area: Rect,
                 let arc = (std::f32::consts::PI * ft as f32 / dur as f32).sin();
                 let lift = ((arc * s as f32 * 0.9) as i32).div_euclid(k) * k;
                 // a shadow on the ground under it
-                cv.block(x0 + (a / 2 - 1) * k, y0 + (a - 1) * k, 2 * k, [30, 70, 35]);
+                cv.block(x0 + (a / 2 - 1) * k, y0 + (a - 1) * k, 2 * k, under);
                 y0 -= lift;
             }
             Motion::Carried { .. } => y0 -= (a * 2 / 3) * k,
@@ -888,6 +921,30 @@ fn gate(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32) {
     }
 }
 
+/// A shutter's two colours: gold opens on the tick, silver on the tock.
+fn shutter_colours(tock: bool) -> (Rgb, Rgb) {
+    if tock { ([210, 215, 230], [110, 116, 138]) } else { ([240, 200, 80], [150, 108, 35]) }
+}
+
+/// Close to the beat: a shutter flickers just before it moves.
+fn about_to_turn(t: u64) -> bool {
+    let tick = crate::game::TICK as u64;
+    tick - t % tick <= 30 && (t / 4) % 2 == 0
+}
+
+/// A shut shutter: slats between two posts, in its beat's colour.
+fn shutter(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, tock: bool, t: u64) {
+    let (light, dark) = shutter_colours(tock);
+    let light = if about_to_turn(t) { mix(light, [255, 255, 255], 0.6) } else { light };
+    for v in 0..a {
+        for u in 0..a {
+            let post = u == 0 || u == a - 1;
+            let c = if post { dark } else if v % 2 == 0 { light } else { shade(light, 0.75) };
+            cv.block(x0 + u * k, y0 + v * k, k, c);
+        }
+    }
+}
+
 /// A socket waiting for its parts: a dark plate, a gold outline that pulses.
 fn socket(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, t: u64) {
     let glow = if (t / 20) % 2 == 0 { [235, 195, 70] } else { [170, 135, 40] };
@@ -976,6 +1033,15 @@ fn ground(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, gr: Ground, t: u64)
                     };
                     px(cv, u, v, c);
                 }
+            }
+        }
+        Ground::Shutter(tock) => {
+            // the open shutter's posts, either side
+            let (light, dark) = shutter_colours(tock);
+            let c = if about_to_turn(t) { light } else { dark };
+            for v in 0..a {
+                px(cv, 0, v, c);
+                px(cv, a - 1, v, c);
             }
         }
         Ground::Gate => {
@@ -1114,6 +1180,7 @@ fn soft_block(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, burning: Option
     let rows = match theme {
         Theme::Brick => soft(a),
         Theme::Orchard => hedge(a),
+        Theme::Clock => cog(a),
     };
     for (dy, row) in rows.iter().enumerate() {
         for (dx, ch) in row.chars().enumerate() {
@@ -1126,6 +1193,10 @@ fn soft_block(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, burning: Option
                 (Theme::Orchard, 'g') => [75, 150, 60],
                 (Theme::Orchard, 'd') => [40, 100, 45],
                 (Theme::Orchard, 'r') => [215, 45, 45],
+                (Theme::Clock, 'l') => [196, 160, 96],
+                (Theme::Clock, 'g') => [146, 110, 58],
+                (Theme::Clock, 'd') => [54, 48, 50],
+                (Theme::Clock, 'r') => [92, 66, 36],
                 _ => continue,
             };
             if burning.is_some() {
@@ -1255,7 +1326,8 @@ fn draw_small(g: &Game, cam: (i32, i32), area: Rect, buf: &mut Buffer) {
             cell.set_bg(Color::Rgb(bg[0], bg[1], bg[2]));
         }
     };
-    let floor_at = |x: i32, y: i32| if (x + y) % 2 == 0 { FLOOR_A } else { FLOOR_B };
+    let (floor_a, floor_b, _) = floors(g.theme);
+    let floor_at = |x: i32, y: i32| if (x + y) % 2 == 0 { floor_a } else { floor_b };
     for ty in 0..gh {
         for tx in 0..gw {
             let (x, y) = (tx as i32, ty as i32);
@@ -1266,11 +1338,15 @@ fn draw_small(g: &Game, cam: (i32, i32), area: Rect, buf: &mut Buffer) {
                 Tile::Wall => put(x, y, "██", [150, 150, 168], floor),
                 Tile::Pressure(_) => put(x, y, "▓▓", [235, 190, 60], [90, 62, 18]),
                 Tile::Dud => put(x, y, "!!", [250, 205, 60], [150, 30, 35]),
+                Tile::Soft if g.theme == Theme::Clock => put(x, y, "▒▒", [196, 160, 96], [92, 66, 36]),
                 Tile::Soft => put(x, y, "▒▒", [205, 130, 66], [108, 58, 32]),
                 Tile::Burning(_) => put(x, y, "▒▒", [255, 200, 60], [200, 70, 25]),
                 Tile::Block => put(x, y, "[]", [235, 190, 110], [150, 102, 48]),
                 Tile::Door(c) => put(x, y, "##", KEY_COLOURS[c as usize], [30, 30, 38]),
-                Tile::Gate => put(x, y, "||", [120, 200, 230], floor),
+                Tile::Gate => match g.ground[ty][tx] {
+                    Ground::Shutter(tock) => put(x, y, "==", shutter_colours(tock).0, shutter_colours(tock).1),
+                    _ => put(x, y, "||", [120, 200, 230], floor),
+                },
                 Tile::Socket => put(x, y, "[]", [235, 195, 70], [28, 28, 36]),
                 Tile::Floor => match (g.items[ty][tx], g.ground[ty][tx]) {
                     (Some(item), _) => put(x, y, item_label(item), [255, 255, 255], item_frame(item)),
@@ -1281,6 +1357,7 @@ fn draw_small(g: &Game, cam: (i32, i32), area: Rect, buf: &mut Buffer) {
                     (None, Ground::Sunk) => put(x, y, "  ", floor, [140, 108, 62]),
                     (None, Ground::Switch) => put(x, y, "__", [240, 130, 120], [205, 75, 70]),
                     (None, Ground::Gate) => put(x, y, "::", [70, 110, 130], floor),
+                    (None, Ground::Shutter(tock)) => put(x, y, "::", shutter_colours(tock).1, floor),
                     (None, Ground::Belt(d) | Ground::Arrow(d)) => {
                         let ch = match d {
                             Dir::Right => ">>",

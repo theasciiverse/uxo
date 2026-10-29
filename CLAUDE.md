@@ -9,11 +9,12 @@ mechanics, our own identity. Not a clone.
 Own git repo, private at github.com/theasciiverse/uxo (`main`).
 Version 0.5.0 (2026-10-29). What comes next, release by release, is in `ROADMAP.md`.
 
-**Status:** World 1 of Adventure playable, battle mode complete (2026-10-04).
-A title screen (big pixel logo over fireworks) leads to **Adventure** (alone or two
-together: the Orchard's nine stages, story cards, six baddie species and the
-Bramblehog boss, duds, tamed mounts, lives, score, a clock, saved progress for
-Continue) or **Battle**.
+**Status:** Worlds 1 and 2 of Adventure playable (the Clock built 2026-10-29),
+battle mode complete (2026-10-04). A title screen (big pixel logo over fireworks)
+leads to **Adventure** (alone or two together: the Screensaver's and the Clock's
+nine stages each, story cards, eleven baddie species and two bosses, purged's
+charges, tamed mounts, lives, score, a clock, saved progress for Continue) or
+**Battle**.
 
 Battle: One player practises; a second
 joining opens the battle setup (stage or all in turn, wins to take the match,
@@ -268,6 +269,25 @@ party bomb game.
   copies. Co-op's second hero is **Caret** (player 2): a pointed head, the
   `^`, whose tip blinks where Dot's underscore does. Check new worlds, cards
   and creatures against `WORLD.md`.
+- **World 2, the Clock (built 2026-10-29):** `adventure/clock/*.txt`, theme
+  `clock` (a dark blue clock-face floor with minute marks, brass cogs for soft
+  blocks). purged winds the clock on toward four, so the cards run fast (03:48
+  to 03:59); beating the Cuckoo springs the hands back to the true time, 3:52.
+  Its gimmick is the beat: shutters (`%` gold, open on the tick; `&` silver,
+  open on the tock) swap every `TICK` (2 s), flicker for the last half second
+  and never shut on anyone. Species: Tick (`move: wall`, the right-hand rule:
+  straight until a wall, then keeps it on its right), Bob (fast and straight),
+  Spring (hops; egg hop), Cog (hides among the cogs; 2 HP), Alarm (charges on
+  sight; egg dash), and the Cuckoo, the boss (flies, charges, hops, winds up
+  ticks). Stages: 1 The Second Hand, ticks. 2 Tick and Tock, the shutters, the
+  hatch open. 3 Gear Train, two belt loops turning opposite ways, springs.
+  4 The Escapement, charges, one in a gated vault (crate on the switch). 5 The
+  Alarm Room, open floor with crates for cover. 6 The Cog Drawer, cogs among
+  the cogs, a yellow key and door. 7 The Pendulum, bob lanes crossed by
+  shutters, four parts for the sockets. 8 The Clock Tower, everything. 9 The
+  Cuckoo. Worlds run on in one adventure (`WORLDS` in `src/adventure.rs`;
+  stage codes 2-1 to 2-9); a world's ending leads into the next with power-ups
+  carried.
 - **Store copy waits for the story.** The catalog page written on
   2026-10-27 sells bombs and chain reactions with no story; David found it
   "nowhere how to present a bomb-arena game". The classics sold a villain

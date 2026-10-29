@@ -6,7 +6,7 @@
 use crate::game::{Cmd, Event, Game, HZ, MAX_PLAYERS};
 use crate::stage::{self, Stage};
 
-pub const STAGES: [&str; 9] = [
+pub const STAGES: [&str; 18] = [
     include_str!("../adventure/orchard/01-windfall-lane.txt"),
     include_str!("../adventure/orchard/02-beetle-rows.txt"),
     include_str!("../adventure/orchard/03-hedge-maze.txt"),
@@ -16,7 +16,31 @@ pub const STAGES: [&str; 9] = [
     include_str!("../adventure/orchard/07-crow-tree.txt"),
     include_str!("../adventure/orchard/08-the-old-grove.txt"),
     include_str!("../adventure/orchard/09-bramblehog.txt"),
+    include_str!("../adventure/clock/01-the-second-hand.txt"),
+    include_str!("../adventure/clock/02-tick-and-tock.txt"),
+    include_str!("../adventure/clock/03-gear-train.txt"),
+    include_str!("../adventure/clock/04-the-escapement.txt"),
+    include_str!("../adventure/clock/05-the-alarm-room.txt"),
+    include_str!("../adventure/clock/06-the-cog-drawer.txt"),
+    include_str!("../adventure/clock/07-the-pendulum.txt"),
+    include_str!("../adventure/clock/08-the-clock-tower.txt"),
+    include_str!("../adventure/clock/09-the-cuckoo.txt"),
 ];
+
+/// Stages in each world, in order: the Screensaver, the Clock.
+pub const WORLDS: [usize; 2] = [9, 9];
+
+/// "2-3": world and stage number of stage `index`.
+pub fn code_of(index: usize) -> String {
+    let mut first = 0;
+    for (w, &n) in WORLDS.iter().enumerate() {
+        if index < first + n {
+            return format!("{}-{}", w + 1, index - first + 1);
+        }
+        first += n;
+    }
+    format!("?-{}", index + 1)
+}
 
 pub fn load(i: usize) -> Stage {
     stage::parse(STAGES[i]).unwrap_or_else(|e| panic!("adventure stage {}: {e}", i + 1))
@@ -92,7 +116,7 @@ impl Run {
 
     /// "1-3": world and stage number.
     pub fn code(&self) -> String {
-        format!("1-{}", self.index + 1)
+        code_of(self.index)
     }
 
     /// Set up the current stage. `carry` keeps each player's power-ups and mount.
@@ -169,6 +193,10 @@ impl Run {
                     if !done {
                         // the first press finishes the typing
                         self.phase = if ending { Phase::Ending(total as f32) } else { Phase::Card(total as f32) };
+                    } else if ending && self.index + 1 < STAGES.len() {
+                        // on into the next world, keeping what was carried
+                        self.index += 1;
+                        self.begin(true);
                     } else if ending {
                         self.phase = Phase::Done;
                     } else {
@@ -311,6 +339,59 @@ impl Run {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Every stage runs a minute untouched (baddies hopping, summoning, charging,
+    /// shutters on the beat) without a panic.
+    #[test]
+    fn every_stage_runs_a_minute() {
+        for i in 0..STAGES.len() {
+            let mut r = Run::new(3, 2, i);
+            r.phase = Phase::Play;
+            for _ in 0..60 * HZ {
+                r.step(&[Cmd::default(); MAX_PLAYERS]);
+            }
+        }
+    }
+
+    #[test]
+    fn a_boss_stage_waits_for_its_boss() {
+        for i in 0..STAGES.len() {
+            let mut r = Run::new(1, 1, i);
+            if r.stage.goal != crate::game::Goal::Boss {
+                continue;
+            }
+            r.phase = Phase::Play;
+            r.step(&[Cmd::default(); MAX_PLAYERS]);
+            assert_eq!(r.phase, Phase::Play, "{} is cleared before its boss is beaten", r.stage.name);
+        }
+    }
+
+    #[test]
+    fn worlds_add_up_and_each_ends_with_an_ending() {
+        assert_eq!(WORLDS.iter().sum::<usize>(), STAGES.len());
+        let mut last = 0;
+        for n in WORLDS {
+            last += n;
+            for i in last - n..last {
+                assert_eq!(!load(i).ending.is_empty(), i == last - 1, "{}: only a world's last stage has an ending", code_of(i));
+            }
+        }
+        assert_eq!(code_of(0), "1-1");
+        assert_eq!(code_of(9), "2-1");
+        assert_eq!(code_of(17), "2-9");
+    }
+
+    #[test]
+    fn a_world_ending_goes_on_into_the_next_world() {
+        let mut r = Run::new(1, 1, WORLDS[0] - 1);
+        r.game.players[0].bombs = 4;
+        r.phase = Phase::Ending(999.0);
+        let press = std::array::from_fn(|i| Cmd { bomb: i == 0, ..Cmd::default() });
+        r.step(&press);
+        assert_eq!(r.index, WORLDS[0]);
+        assert_eq!(r.phase, Phase::Card(0.0));
+        assert_eq!(r.game.players[0].bombs, 4, "power-ups carry on into the new world");
+    }
 
     #[test]
     fn every_adventure_stage_parses_and_is_connected() {

@@ -77,7 +77,8 @@ against them.
 |---|---|---|
 | 03:14 | The Screensaver | starts its run; you fall in |
 | 03:47 | the Screensaver cleared | notices its charges going off, one by one |
-| (World 2) | the Clock | tries to wind the system clock on to 4:00 so the job ends sooner: the reason the Clock is the second world |
+| 03:48 to 03:59 | the Clock | winds the system clock on toward 4:00 so the job ends sooner; the cards run fast |
+| 03:52 | the Clock cleared | the Cuckoo stopped, the hands spring back to the true time |
 | (World 3) | the Buffer | ... |
 | 04:00 | purged's fight | the act's ending |
 
@@ -110,6 +111,16 @@ names in co-op), the ending, and the visual touches below.
 - The title line "Blast your way out to the real world!" ends in a blinking
   amber cursor.
 - Caret's art (`caret_art` in `src/render.rs`): player 2, in battle too.
+
+## The Clock
+
+The program that keeps the machine's time. Everything in it moves on the
+beat: shutters open on the tick or the tock, ticks walk the walls, bobs
+swing, springs hop. purged's trick here is time itself: it winds the clock
+on, so the cards gain a minute or two a stage (03:48 at the Second Hand,
+03:59 at the Cuckoo), and its boss is the Cuckoo, wound to strike four
+early. Beating it ends the winding: the hands spring back to the true time,
+3:52, and purged turns to the Buffer. Cards in `adventure/clock/*.txt`.
 
 ## Decisions
 

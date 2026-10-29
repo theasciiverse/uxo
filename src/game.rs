@@ -67,6 +67,8 @@ const CHARGE_FIRE: u32 = 3;
 const PUSH_DELAY: u32 = 10;
 /// Steps a pushed block takes to move one tile.
 pub const SHOVE_STEPS: u32 = 12;
+/// Steps in one beat of the Clock: shutters open on the tick, the others on the tock.
+pub const TICK: u32 = 2 * HZ;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Tile {
@@ -126,6 +128,7 @@ pub enum Goal {
 pub enum Theme {
     Brick,
     Orchard,
+    Clock,
 }
 
 /// An egg a tamed baddie left behind: walk over it to ride.
@@ -183,6 +186,9 @@ pub enum Ground {
     Switch,
     /// Where a gate stands, shut (`Tile::Gate`) or open (floor).
     Gate,
+    /// A shutter on the clock's beat, shut (`Tile::Gate`) or open (floor): it opens on
+    /// the tick (false) or the tock (true).
+    Shutter(bool),
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -783,6 +789,13 @@ impl Game {
                         g.tiles[y][x] = Tile::Gate;
                         g.ground[y][x] = Ground::Gate;
                     }
+                    Cell::Shutter(tock) => {
+                        // the tick's shutters start open, the tock's shut
+                        g.ground[y][x] = Ground::Shutter(tock);
+                        if tock {
+                            g.tiles[y][x] = Tile::Gate;
+                        }
+                    }
                     Cell::Part => g.pickups[y][x] = Some(Pickup::Part),
                     Cell::Socket => g.tiles[y][x] = Tile::Socket,
                 }
@@ -1012,10 +1025,8 @@ impl Game {
             Goal::Clear => self.baddies.iter().all(|b| !b.alive),
             Goal::Duds => !self.tiles.iter().flatten().any(|&t| t == Tile::Dud),
             Goal::Exit => true,
-            Goal::Boss => {
-                let boss = self.species.iter().position(|s| s.size > 1);
-                !self.baddies.iter().any(|b| b.alive && Some(b.species) == boss)
-            }
+            // every boss is big: none of them left standing
+            Goal::Boss => !self.baddies.iter().any(|b| b.alive && self.species[b.species].size > 1),
         };
         if met && self.goal == Goal::Boss {
             self.cleared = true;
@@ -1433,6 +1444,18 @@ impl Game {
                 self.events.push(Event::Gates { open });
             }
         }
+        // shutters follow the beat, and won't shut on anyone standing in them either
+        let tock = self.tock();
+        for y in 0..self.h {
+            for x in 0..self.w {
+                let Ground::Shutter(on) = self.ground[y][x] else { continue };
+                if on == tock && self.tiles[y][x] == Tile::Gate {
+                    self.tiles[y][x] = Tile::Floor;
+                } else if on != tock && self.tiles[y][x] == Tile::Floor && !self.occupied(x, y) && self.flames[y][x].is_none() {
+                    self.tiles[y][x] = Tile::Gate;
+                }
+            }
+        }
         if self.tiles.iter().flatten().any(|&t| t == Tile::Socket) && !self.pickups.iter().flatten().any(|&p| p == Some(Pickup::Part)) {
             for t in self.tiles.iter_mut().flatten() {
                 if *t == Tile::Socket {
@@ -1441,6 +1464,11 @@ impl Game {
             }
             self.events.push(Event::SocketOpen);
         }
+    }
+
+    /// The Clock's beat: false on the tick, true on the tock.
+    pub fn tock(&self) -> bool {
+        (self.steps / TICK as u64) % 2 == 1
     }
 
     /// Move player `i` up to `amount` units toward `d`, with lane alignment and corner
@@ -2547,6 +2575,29 @@ mod tests {
         assert_eq!(g.tiles[10][10], Tile::Floor);
         walk_for(&mut g, Dir::Left, 40);
         assert_eq!(g.tiles[10][10], Tile::Gate, "stepping off shuts it again");
+    }
+
+    #[test]
+    fn shutters_move_on_the_beat_but_not_onto_anyone() {
+        let mut g = stand(3, 6);
+        for (x, tock) in [(9, false), (10, true)] {
+            g.ground[10][x] = Ground::Shutter(tock);
+        }
+        g.step(&idle());
+        assert_eq!((g.tiles[10][9], g.tiles[10][10]), (Tile::Floor, Tile::Gate), "the tick: gold open, silver shut");
+        while !g.tock() {
+            g.step(&idle());
+        }
+        g.step(&idle());
+        assert_eq!((g.tiles[10][9], g.tiles[10][10]), (Tile::Gate, Tile::Floor), "the tock: the other way round");
+        // someone standing in the open one keeps it open through the tick
+        g.players[0].x = 10 * TILE + TILE / 2;
+        g.players[0].y = 10 * TILE + TILE / 2;
+        while g.tock() {
+            g.step(&idle());
+        }
+        g.step(&idle());
+        assert_eq!(g.tiles[10][10], Tile::Floor);
     }
 
     #[test]

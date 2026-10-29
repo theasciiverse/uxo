@@ -1,0 +1,25 @@
+name: Bob
+about: a pendulum bob; it swings straight across and back, faster than anything in the Screensaver
+hp: 1
+speed: 1.3
+move: straight
+points: 300
+colors: y=240,205,100 l=255,240,180 d=160,115,40 s=170,170,185 k=20,20,28 w=255,255,255
+art:
+...ss...
+...ss...
+..yyyy..
+.lyyyyy.
+ywkyywky
+yyyyyyyy
+.dyyyyd.
+..dddd..
+art2:
+....ss..
+...ss...
+..yyyy..
+.lyyyyy.
+ywkyywky
+yyyyyyyy
+.dyyyyd.
+..dddd..

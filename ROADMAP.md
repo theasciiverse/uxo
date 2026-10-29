@@ -46,7 +46,8 @@ three acts are in.
 
 ## 0.6.0: the rest of act 1
 
-- [ ] World 2, the Clock
+- [x] World 2, the Clock: nine stages, five species and the Cuckoo, shutters
+  on the clock's beat, the cards running fast as purged winds the clock on
 - [ ] World 3, the Buffer
 - [ ] purged's fight at the end of act 1, and its ending
 

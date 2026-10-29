@@ -15,8 +15,9 @@ Push crates for cover, hold switches down to open the gates, hunt down keys
 and lost parts. Ride the beasts that hatch from the eggs the baddies leave.
 And watch the kills that hang: they lie there live, waiting.
 
-Nine stages of Adventure through the Screensaver, Dot alone or Dot and Caret
-together, all the way to the Bramblehog. Battle takes up to four players
+Eighteen stages of Adventure, Dot alone or Dot and Caret together: through
+the Screensaver to the Bramblehog, then into the Clock, where purged is winding
+the time on toward four and the Cuckoo waits to strike the hour. Battle takes up to four players
 through six arenas, with revenge riders, sudden death and the dreaded skull.
 A love letter to the 90s bomb-arena games.
 

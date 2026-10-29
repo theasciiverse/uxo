@@ -79,8 +79,9 @@ against them.
 | 03:47 | the Screensaver cleared | notices its charges going off, one by one |
 | 03:48 to 03:59 | the Clock | winds the system clock on toward 4:00 so the job ends sooner; the cards run fast |
 | 03:52 | the Clock cleared | the Cuckoo stopped, the hands spring back to the true time |
-| (World 3) | the Buffer | ... |
-| 04:00 | purged's fight | the act's ending |
+| 03:53 to 03:58 | the Buffer | packs its last charges into the Buffer |
+| 03:59 | purged's fight | comes itself, and is stopped |
+| 04:00 | act 1's ending | four o'clock passes and nothing happens |
 
 ## The Screensaver, made a screensaver
 
@@ -121,6 +122,17 @@ on, so the cards gain a minute or two a stage (03:48 at the Second Hand,
 03:59 at the Cuckoo), and its boss is the Cuckoo, wound to strike four
 early. Beating it ends the winding: the hands spring back to the true time,
 3:52, and purged turns to the Buffer. Cards in `adventure/clock/*.txt`.
+
+## The Buffer
+
+Where everything the machine is about to write waits in line. Its data
+blocks are written back a few seconds after they are cleared, unless
+something stands in their place. Its creatures are the Buffer's own (bytes,
+packets, pointers, caches, overflow), rewritten by purged. At the end
+purged comes itself: a daemon can't fight (rule 5), but it can delete, so
+whatever it touches is gone. Drawn as a pink eraser. Beating it is a kill
+like any other (rule 8): purged stops, and runs again tomorrow at 3:14 as
+it was written, tidying and never wiping. Cards in `adventure/buffer/*.txt`.
 
 ## Decisions
 

@@ -6,7 +6,7 @@
 use crate::game::{Cmd, Event, Game, HZ, MAX_PLAYERS};
 use crate::stage::{self, Stage};
 
-pub const STAGES: [&str; 18] = [
+pub const STAGES: [&str; 27] = [
     include_str!("../adventure/orchard/01-windfall-lane.txt"),
     include_str!("../adventure/orchard/02-beetle-rows.txt"),
     include_str!("../adventure/orchard/03-hedge-maze.txt"),
@@ -25,10 +25,19 @@ pub const STAGES: [&str; 18] = [
     include_str!("../adventure/clock/07-the-pendulum.txt"),
     include_str!("../adventure/clock/08-the-clock-tower.txt"),
     include_str!("../adventure/clock/09-the-cuckoo.txt"),
+    include_str!("../adventure/buffer/01-write-queue.txt"),
+    include_str!("../adventure/buffer/02-packet-lanes.txt"),
+    include_str!("../adventure/buffer/03-null-pointer.txt"),
+    include_str!("../adventure/buffer/04-overflow.txt"),
+    include_str!("../adventure/buffer/05-cache-lines.txt"),
+    include_str!("../adventure/buffer/06-the-flush.txt"),
+    include_str!("../adventure/buffer/07-ring-buffer.txt"),
+    include_str!("../adventure/buffer/08-the-last-charges.txt"),
+    include_str!("../adventure/buffer/09-purged.txt"),
 ];
 
-/// Stages in each world, in order: the Screensaver, the Clock.
-pub const WORLDS: [usize; 2] = [9, 9];
+/// Stages in each world, in order: act 1's Screensaver, Clock and Buffer.
+pub const WORLDS: [usize; 3] = [9, 9, 9];
 
 /// "2-3": world and stage number of stage `index`.
 pub fn code_of(index: usize) -> String {
@@ -379,6 +388,7 @@ mod tests {
         assert_eq!(code_of(0), "1-1");
         assert_eq!(code_of(9), "2-1");
         assert_eq!(code_of(17), "2-9");
+        assert_eq!(code_of(26), "3-9");
     }
 
     #[test]

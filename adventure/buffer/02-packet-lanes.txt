@@ -1,0 +1,28 @@
+name: Packet Lanes
+world: The Buffer
+clock: 03:54
+theme: buffer
+goal: exit
+time: 160
+story: Packets come through here sealed and addressed, straight down their
+story: lanes and fast, turning only at walls. The lanes are walled off by
+story: data blocks that keep coming back. Blast a way through, cross when
+story: the lane is clear, and find the hatch.
+baddie: y byte
+baddie: p packet
+baddie: n pointer
+baddie: c cache
+baddie: f overflow
+baddie: x purged
+grid:
+#######################
+#1.2..................#
+#.#:#:#:#:#:#:#:#:#:#.#
+#.....p...........p...#
+#:#:#:#:#:#:#:#:#:#:#:#
+#...p.........p.......#
+#:#:#:#:#:#:#:#:#:#:#:#
+#.........p.........p.#
+#:#:#:#:#:#:#:#:#:#:#.#
+#.....p.............E.#
+#######################

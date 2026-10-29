@@ -1,0 +1,31 @@
+name: Overflow
+world: The Buffer
+clock: 03:55
+theme: buffer
+goal: duds
+time: 200
+story: Here the Buffer is too full, and what spills over flows straight
+story: across the data blocks, slowly, after anyone it can find. purged has
+story: packed its charges in between. Set off every one.
+baddie: y byte
+baddie: p packet
+baddie: n pointer
+baddie: c cache
+baddie: f overflow
+baddie: x purged
+grid:
+#####################
+#1.2::::::::::::::..#
+#.#:#:#:#:#:#:#:#:#.#
+#.::*::::f::::::*::.#
+#:#:#:#:#:#:#:#:#:#:#
+#::::::::*::::::::::#
+#?#?#?#?#?#?#?#?#?#?#
+#*?????f?????f?????*#
+#?#?#?#?#?#?#?#?#?#?#
+#::::::::::*::::::::#
+#:#:#:#:#:#:#:#:#:#:#
+#.::*:::::f:::::*::.#
+#.#:#:#:#:#:#:#:#:#.#
+#..:::::::::::::::.E#
+#####################

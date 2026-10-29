@@ -1,0 +1,28 @@
+name: Cache
+about: keeps a copy of a data block and passes for one, until you come close; then it chases you
+hp: 2
+speed: 0.7
+move: wander
+sees: 5
+on_sight: chase
+mimic: yes
+points: 400
+colors: g=95,200,150 l=190,250,215 d=40,110,85 r=70,92,102 k=20,20,28 w=255,255,255
+art:
+rrrrrrr.
+rlglllgr
+rwkgwkgr
+rrrrrrrr
+rllglglr
+rgdddglr
+rrrrrrrr
+.r.rr.r.
+art2:
+rrrrrrr.
+rlglllgr
+rwkgwkgr
+rrrrrrrr
+rllglglr
+rgdddglr
+rrrrrrrr
+r.r..r.r

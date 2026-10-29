@@ -1,0 +1,25 @@
+name: Packet
+about: a packet sealed and addressed; it goes straight on, fast, and only turns at walls
+hp: 1
+speed: 1.1
+move: straight
+points: 200
+colors: w=235,235,225 g=180,180,170 r=200,60,50 k=20,20,28
+art:
+........
+wwwwwwww
+wgwwwwgw
+wwgwwgww
+wwwrrwww
+wkwwwwkw
+wwwwwwww
+gggggggg
+art2:
+........
+wwwwwwww
+wgwwwwgw
+wwgwwgww
+wwwrrwww
+wwkwwkww
+wwwwwwww
+gggggggg

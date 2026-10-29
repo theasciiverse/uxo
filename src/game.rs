@@ -69,6 +69,8 @@ const PUSH_DELAY: u32 = 10;
 pub const SHOVE_STEPS: u32 = 12;
 /// Steps in one beat of the Clock: shutters open on the tick, the others on the tock.
 pub const TICK: u32 = 2 * HZ;
+/// Steps an empty Buffer cell waits before its data block is written back.
+pub const REWRITE: u32 = 8 * HZ;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Tile {
@@ -129,6 +131,7 @@ pub enum Theme {
     Brick,
     Orchard,
     Clock,
+    Buffer,
 }
 
 /// An egg a tamed baddie left behind: walk over it to ride.
@@ -189,6 +192,9 @@ pub enum Ground {
     /// A shutter on the clock's beat, shut (`Tile::Gate`) or open (floor): it opens on
     /// the tick (false) or the tock (true).
     Shutter(bool),
+    /// The Buffer's cells: a data block cleared from here is written back after
+    /// `REWRITE` steps with nothing on it.
+    Rewrite,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -596,6 +602,8 @@ pub struct Game {
     pub items: Vec<Vec<Option<Item>>>,
     pub pickups: Vec<Vec<Option<Pickup>>>,
     pub shoves: Vec<Shove>,
+    /// Steps each Buffer cell has stood empty, toward `REWRITE`.
+    pub rewrite: Vec<Vec<u32>>,
     pub flames: Vec<Vec<Option<Flame>>>,
     pub bombs: Vec<Bomb>,
     pub surges: Vec<Surge>,
@@ -700,6 +708,7 @@ impl Game {
             items: vec![vec![None; w]; h],
             pickups: vec![vec![None; w]; h],
             shoves: Vec::new(),
+            rewrite: vec![vec![0; w]; h],
             flames: vec![vec![None; w]; h],
             bombs: Vec::new(),
             surges: Vec::new(),
@@ -795,6 +804,10 @@ impl Game {
                         if tock {
                             g.tiles[y][x] = Tile::Gate;
                         }
+                    }
+                    Cell::Rewrite => {
+                        g.ground[y][x] = Ground::Rewrite;
+                        g.tiles[y][x] = Tile::Soft;
                     }
                     Cell::Part => g.pickups[y][x] = Some(Pickup::Part),
                     Cell::Socket => g.tiles[y][x] = Tile::Socket,
@@ -1453,6 +1466,28 @@ impl Game {
                     self.tiles[y][x] = Tile::Floor;
                 } else if on != tock && self.tiles[y][x] == Tile::Floor && !self.occupied(x, y) && self.flames[y][x].is_none() {
                     self.tiles[y][x] = Tile::Gate;
+                }
+            }
+        }
+        // the Buffer writes its cleared blocks back, onto nothing and no one
+        for y in 0..self.h {
+            for x in 0..self.w {
+                if self.ground[y][x] != Ground::Rewrite {
+                    continue;
+                }
+                let empty = self.tiles[y][x] == Tile::Floor
+                    && !self.occupied(x, y)
+                    && self.flames[y][x].is_none()
+                    && self.items[y][x].is_none()
+                    && self.pickups[y][x].is_none()
+                    && !self.eggs.iter().any(|e| (e.x.div_euclid(TILE), e.y.div_euclid(TILE)) == (x as i32, y as i32));
+                if !empty {
+                    self.rewrite[y][x] = 0;
+                } else if self.rewrite[y][x] + 1 >= REWRITE {
+                    self.rewrite[y][x] = 0;
+                    self.tiles[y][x] = Tile::Soft;
+                } else {
+                    self.rewrite[y][x] += 1;
                 }
             }
         }
@@ -2598,6 +2633,18 @@ mod tests {
         }
         g.step(&idle());
         assert_eq!(g.tiles[10][10], Tile::Floor);
+    }
+
+    #[test]
+    fn the_buffer_writes_a_cleared_block_back_but_not_onto_anyone() {
+        let mut g = stand(3, 6);
+        g.ground[6][9] = Ground::Rewrite;
+        g.ground[6][3] = Ground::Rewrite;
+        for _ in 0..REWRITE + 1 {
+            g.step(&idle());
+        }
+        assert_eq!(g.tiles[6][9], Tile::Soft, "written back once it has waited");
+        assert_eq!(g.tiles[6][3], Tile::Floor, "not onto the player standing there");
     }
 
     #[test]

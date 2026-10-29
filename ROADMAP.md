@@ -48,8 +48,10 @@ three acts are in.
 
 - [x] World 2, the Clock: nine stages, five species and the Cuckoo, shutters
   on the clock's beat, the cards running fast as purged winds the clock on
-- [ ] World 3, the Buffer
-- [ ] purged's fight at the end of act 1, and its ending
+- [x] World 3, the Buffer: nine stages, five species, data blocks that are
+  written back after you clear them
+- [x] purged's fight at the end of act 1 (the Buffer's last stage), and its
+  ending
 
 ## 0.7.0: act 2, the Forgotten Game
 

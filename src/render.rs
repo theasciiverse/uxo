@@ -6,7 +6,7 @@
 //! move in pixels, not tiles, so movement stays smooth at every pixel size.
 
 use crate::baddie::{Species, State};
-use crate::game::{Bomb, BombKind, Dir, Disease, Flame, Game, Ground, Item, Motion, Pickup, Player, Theme, Tile, DOWN, DROP, FUSE, HOMING, LEFT, RIGHT, SHOVE_STEPS, TILE, UP};
+use crate::game::{Bomb, BombKind, Dir, Disease, Flame, Game, Ground, Item, Motion, Pickup, Player, Theme, Tile, DOWN, DROP, FUSE, HOMING, HZ, LEFT, RIGHT, SHOVE_STEPS, TILE, UP};
 use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
 use ratatui::style::Color;
@@ -74,6 +74,8 @@ fn floors(theme: Theme) -> (Rgb, Rgb, Rgb) {
     match theme {
         // the Clock's face: dark blue enamel
         Theme::Clock => ([44, 52, 78], [39, 46, 70], [26, 31, 50]),
+        // the Buffer: rows of empty memory cells
+        Theme::Buffer => ([31, 37, 44], [27, 32, 39], [17, 20, 26]),
         _ => (FLOOR_A, FLOOR_B, FLOOR_SHADOW),
     }
 }
@@ -199,6 +201,35 @@ fn cog(a: i32) -> &'static [&'static str] {
         8 => &["dlgddlgd", "llllgggd", "dlgrrggd", "glrddrgg", "glrddrgd", "dlgrrggd", "lgggggdd", "ddgddgdd"],
         6 => &["dlgdgd", "lllggd", "lgrrgd", "grddrg", "dggggd", "dgddgd"],
         _ => &["lgld", "grrd", "lrgd", "dgdd"],
+    }
+}
+
+/// A Buffer data block: rows of bits, some set, in a frame.
+fn data(a: i32) -> &'static [&'static str] {
+    match a {
+        8 => &["rrrrrrrd", "rlgggggd", "rgggglgd", "rglggggd", "rggglggd", "rgggggld", "rlgggggd", "dddddddd"],
+        6 => &["rrrrrd", "rlgggd", "rgglgd", "rgggld", "rlgggd", "dddddd"],
+        _ => &["rrrd", "rlgd", "rgld", "dddd"],
+    }
+}
+
+/// An empty Buffer cell: its corners marked, and the block coming back row by row
+/// in the last second before it is written.
+fn buffer_cell(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, waited: u32) {
+    let mark = [62, 84, 92];
+    for (u, v) in [(0, 0), (a - 1, 0), (0, a - 1), (a - 1, a - 1)] {
+        cv.block(x0 + u * k, y0 + v * k, k, mark);
+    }
+    let soon = crate::game::REWRITE.saturating_sub(HZ);
+    if waited > soon {
+        let rows = ((waited - soon) * a as u32 / HZ) as i32;
+        for v in 0..rows.min(a) {
+            for u in 0..a {
+                if (u + v) % 2 == 0 {
+                    cv.block(x0 + u * k, y0 + v * k, k, [70, 150, 120]);
+                }
+            }
+        }
     }
 }
 
@@ -630,6 +661,9 @@ pub fn draw_arena(g: &Game, zoom: Zoom, cam: (i32, i32), shake: i16, area: Rect,
                         exit_hatch(&mut cv, x0, y0, a, k, g.exit_open, t);
                     }
                     ground(&mut cv, x0, y0, a, k, g.ground[ty][tx], t);
+                    if g.ground[ty][tx] == Ground::Rewrite {
+                        buffer_cell(&mut cv, x0, y0, a, k, g.rewrite[ty][tx]);
+                    }
                     // the block above casts a shadow onto the top of this floor tile
                     if ty > 0 && g.tiles[ty - 1][tx] != Tile::Floor {
                         for x in 0..s {
@@ -1010,7 +1044,8 @@ fn ground(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, gr: Ground, t: u64)
     };
     let px = |cv: &mut Canvas, u: i32, v: i32, c: Rgb| cv.block(x0 + u * k, y0 + v * k, k, c);
     match gr {
-        Ground::Plain | Ground::Water | Ground::Tree => {}
+        // drawn by `buffer_cell`, which knows how long it has waited
+        Ground::Plain | Ground::Water | Ground::Tree | Ground::Rewrite => {}
         Ground::Sunk => {
             // a block's top, flush with the water round it
             for v in 0..a {
@@ -1181,6 +1216,7 @@ fn soft_block(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, burning: Option
         Theme::Brick => soft(a),
         Theme::Orchard => hedge(a),
         Theme::Clock => cog(a),
+        Theme::Buffer => data(a),
     };
     for (dy, row) in rows.iter().enumerate() {
         for (dx, ch) in row.chars().enumerate() {
@@ -1197,6 +1233,10 @@ fn soft_block(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, burning: Option
                 (Theme::Clock, 'g') => [146, 110, 58],
                 (Theme::Clock, 'd') => [54, 48, 50],
                 (Theme::Clock, 'r') => [92, 66, 36],
+                (Theme::Buffer, 'l') => [120, 225, 170],
+                (Theme::Buffer, 'g') => [45, 120, 95],
+                (Theme::Buffer, 'r') => [70, 92, 102],
+                (Theme::Buffer, 'd') => [32, 42, 50],
                 _ => continue,
             };
             if burning.is_some() {
@@ -1338,6 +1378,7 @@ fn draw_small(g: &Game, cam: (i32, i32), area: Rect, buf: &mut Buffer) {
                 Tile::Wall => put(x, y, "██", [150, 150, 168], floor),
                 Tile::Pressure(_) => put(x, y, "▓▓", [235, 190, 60], [90, 62, 18]),
                 Tile::Dud => put(x, y, "!!", [250, 205, 60], [150, 30, 35]),
+                Tile::Soft if g.theme == Theme::Buffer => put(x, y, "▒▒", [120, 225, 170], [45, 120, 95]),
                 Tile::Soft if g.theme == Theme::Clock => put(x, y, "▒▒", [196, 160, 96], [92, 66, 36]),
                 Tile::Soft => put(x, y, "▒▒", [205, 130, 66], [108, 58, 32]),
                 Tile::Burning(_) => put(x, y, "▒▒", [255, 200, 60], [200, 70, 25]),
@@ -1370,6 +1411,7 @@ fn draw_small(g: &Game, cam: (i32, i32), area: Rect, buf: &mut Buffer) {
                     }
                     (None, Ground::Warp) => put(x, y, "()", [120, 230, 255], [60, 30, 110]),
                     (None, Ground::Ice) => put(x, y, "  ", [255, 255, 255], [175, 218, 240]),
+                    (None, Ground::Rewrite) => put(x, y, "··", [62, 84, 92], floor),
                     (None, Ground::Plain | Ground::Water | Ground::Tree) => put(x, y, "  ", floor, floor),
                 },
             }

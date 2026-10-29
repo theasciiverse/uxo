@@ -1,0 +1,35 @@
+name: The Last Charges
+world: The Buffer
+clock: 03:58
+theme: buffer
+goal: duds
+time: 240
+key: k blue
+story: Two minutes to four, the true time. These are purged's last charges,
+story: the ones that would wipe the disk, packed into the end of the Buffer
+story: with everything it has left. One sits in a vault behind a gate. Set
+story: them all off, and purged has nothing left to wipe with.
+baddie: y byte
+baddie: p packet
+baddie: n pointer
+baddie: c cache
+baddie: f overflow
+baddie: x purged
+grid:
+#########################
+#1.2::::::::y:::::::::.*#
+#.#:#:#:#:#:#:#:#:#:#:#.#
+#.::*::::#.....#::::*::.#
+#:#:#:#:##..n..##:#:#:#:#
+#::::c:::#.B._.#:::c::::#
+#:#:#:#:##.....##:#:#:#:#
+#::*:::::#..|..#:::::*::#
+#:#:#:#:####*####:#:#:#:#
+#::::f::::::::::::f:::::#
+#:#:#:#:#:#:#:#:#:#:#:#:#
+#.:*::::p::::::::p:::*:.#
+#:#:#:#:#:#:#:#:#:#:###K#
+#::::n:::::k::::::::#...#
+#:#:#:#:#:#:#:#:#:#:#.#.#
+#*::::::::::*:::::::#..E#
+#########################

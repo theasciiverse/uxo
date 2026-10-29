@@ -1,0 +1,31 @@
+name: Write Queue
+world: The Buffer
+clock: 03:53
+theme: buffer
+goal: clear
+time: 150
+story: 3:52, and the clock is true again. The hatch drops {dot} deeper, into the
+story: Buffer, where everything the machine is about to write waits in line.
+story: purged has filled it with charges and bytes of its own. Blow a data
+story: block away and the Buffer writes it back a few seconds later, unless
+story: something is standing in its place. Clear out the bytes.
+baddie: y byte
+baddie: p packet
+baddie: n pointer
+baddie: c cache
+baddie: f overflow
+baddie: x purged
+grid:
+#####################
+#1.2::::::::::::::..#
+#.#:#:#:#:#:#:#:#:#.#
+#.???????.y.???????.#
+#:#?#?#?#?#?#?#?#?#:#
+#:::::.y.:::::.y.::.#
+#?#:#:#:#:#:#:#:#:#?#
+#???????????????????#
+#:#?#?#?#?#?#?#?#?#:#
+#::.y.::::::::::.y.:#
+#?#:#:#:#:#:#:#:#:#.#
+#??????????????????E#
+#####################

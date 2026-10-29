@@ -1,0 +1,29 @@
+name: Null Pointer
+world: The Buffer
+clock: 03:55
+theme: buffer
+goal: clear
+time: 180
+story: The pointers point at whatever purged wants deleted. One that sees
+story: anyone in line with it follows them until it loses sight. Break the
+story: line with a block, or with a bomb.
+baddie: y byte
+baddie: p packet
+baddie: n pointer
+baddie: c cache
+baddie: f overflow
+baddie: x purged
+grid:
+#####################
+#1.2??????.??????..n#
+#.#?#?#?#.#.#?#?#?#.#
+#.:::::::...:::::::.#
+#?#:#?#:#.#.#:#?#:#?#
+#??:..n.:...:.n..:??#
+#?#:#?#:#.#.#:#?#:#?#
+#.:::::::...:::::::.#
+#.#?#?#?#.#.#?#?#?#.#
+#.?????n?.....n????.#
+#?#?#?#?#?#?#?#?#?#.#
+#??????????.??????.E#
+#####################

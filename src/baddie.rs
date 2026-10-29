@@ -68,7 +68,7 @@ pub struct Species {
 
 const BASE: i32 = 12;
 
-pub const FILES: [(&str, &str); 13] = [
+pub const FILES: [(&str, &str); 19] = [
     ("grub", include_str!("../baddies/grub.txt")),
     ("beetle", include_str!("../baddies/beetle.txt")),
     ("hedgehog", include_str!("../baddies/hedgehog.txt")),
@@ -83,6 +83,13 @@ pub const FILES: [(&str, &str); 13] = [
     ("cog", include_str!("../baddies/cog.txt")),
     ("alarm", include_str!("../baddies/alarm.txt")),
     ("cuckoo", include_str!("../baddies/cuckoo.txt")),
+    // World 3, the Buffer, and purged itself
+    ("byte", include_str!("../baddies/byte.txt")),
+    ("packet", include_str!("../baddies/packet.txt")),
+    ("pointer", include_str!("../baddies/pointer.txt")),
+    ("cache", include_str!("../baddies/cache.txt")),
+    ("overflow", include_str!("../baddies/overflow.txt")),
+    ("purged", include_str!("../baddies/purged.txt")),
 ];
 
 pub fn roster() -> Vec<Species> {

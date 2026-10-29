@@ -1,0 +1,30 @@
+name: Cache Lines
+world: The Buffer
+clock: 03:56
+theme: buffer
+goal: exit
+time: 200
+story: Caches keep copies of the data blocks, and pass for one until
+story: anyone comes close. The hatch is in a locked store at the end of
+story: the lines, and the yellow key is at the far end of the first.
+key: k yellow
+baddie: y byte
+baddie: p packet
+baddie: n pointer
+baddie: c cache
+baddie: f overflow
+baddie: x purged
+grid:
+#######################
+#1.2:::::::::::::::::k#
+#.#:#:#:#:#:#:#:#:#:#.#
+#.:::c:::::#::::c:::::#
+#:#:#:#:#:#:#:#:#:#:#:#
+#::::::c::::::::::c:::#
+#:#:#:#:#:#:#:#:#:#####
+#:::c::::::::::::::#..#
+#:#:#:#:#:#:#:#:#:##..#
+#::::::::c:::::::::K..#
+#:#:#:#:#:#:#:#:#:##..#
+#::::c:::::::::::::#E.#
+#######################

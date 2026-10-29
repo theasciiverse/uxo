@@ -9,12 +9,12 @@ mechanics, our own identity. Not a clone.
 Own git repo, private at github.com/theasciiverse/uxo (`main`).
 Version 0.5.0 (2026-10-29). What comes next, release by release, is in `ROADMAP.md`.
 
-**Status:** Worlds 1 and 2 of Adventure playable (the Clock built 2026-10-29),
-battle mode complete (2026-10-04). A title screen (big pixel logo over fireworks)
-leads to **Adventure** (alone or two together: the Screensaver's and the Clock's
-nine stages each, story cards, eleven baddie species and two bosses, purged's
-charges, tamed mounts, lives, score, a clock, saved progress for Continue) or
-**Battle**.
+**Status:** Act 1 of Adventure playable, its three worlds (the Clock and the
+Buffer built 2026-10-29), battle mode complete (2026-10-04). A title screen (big
+pixel logo over fireworks) leads to **Adventure** (alone or two together: the
+Screensaver's, the Clock's and the Buffer's nine stages each, story cards,
+sixteen baddie species and three bosses, purged's charges, tamed mounts, lives,
+score, a clock, saved progress for Continue) or **Battle**.
 
 Battle: One player practises; a second
 joining opens the battle setup (stage or all in turn, wins to take the match,
@@ -288,6 +288,22 @@ party bomb game.
   Cuckoo. Worlds run on in one adventure (`WORLDS` in `src/adventure.rs`;
   stage codes 2-1 to 2-9); a world's ending leads into the next with power-ups
   carried.
+- **World 3, the Buffer, and purged's fight (built 2026-10-29):**
+  `adventure/buffer/*.txt`, theme `buffer` (a dark memory-cell floor, data
+  blocks of bits for soft blocks). The true time again, 03:53 to 03:59. Its
+  gimmick: Buffer cells (`:`), soft blocks that are written back `REWRITE`
+  (8 s) after being cleared, onto nothing and no one (a player, baddie, bomb,
+  item, pickup or egg keeps the cell empty); the block shows filling in for
+  its last second. Species: Byte (wanders), Packet (fast and straight),
+  Pointer (follows you once it sees you), Cache (hides as a data block;
+  2 HP), Overflow (flies over blocks after you), and **purged** itself as the
+  last boss: a pink eraser (it can't fight, but it deletes what it touches;
+  hops, calls up pointers). Stages: 1 Write Queue, bytes. 2 Packet Lanes,
+  the hatch open. 3 Null Pointer. 4 Overflow, charges. 5 Cache Lines, a
+  yellow key and door. 6 The Flush, `give: surge`. 7 Ring Buffer, a belt
+  round the core, four parts for its sockets. 8 The Last Charges, everything.
+  9 purged. Act 1's ending: purged stops and will run again tomorrow as it
+  was written; four o'clock passes; the hatch leads down to act 2.
 - **Store copy waits for the story.** The catalog page written on
   2026-10-27 sells bombs and chain reactions with no story; David found it
   "nowhere how to present a bomb-arena game". The classics sold a villain

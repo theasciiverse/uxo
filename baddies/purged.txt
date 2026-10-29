@@ -1,0 +1,45 @@
+name: purged
+about: the cleaning daemon itself; it can't fight, but whatever it touches is deleted; it hops away and calls up pointers
+hp: 12
+speed: 0.6
+move: wander
+size: 2
+every: 220
+ability: hop
+summon: pointer
+points: 10000
+colors: p=235,130,150 l=250,190,200 d=170,80,100 b=70,110,200 c=120,160,240 k=20,20,28 w=255,255,255 r=200,40,60
+art:
+................
+................
+..llllllllllll..
+.lppppppppppppd.
+.lppwwppppwwppd.
+.lppkwppppkwppd.
+.lpprrppppprrpd.
+.lppppppppppppd.
+.lppppkkkkppppd.
+.bccccccccccccb.
+.bccccccccccccb.
+.bbbbbbbbbbbbbb.
+.lppppppppppppd.
+.lppppppppppppd.
+.ddddddddddddd..
+................
+art2:
+................
+..llllllllllll..
+.lppppppppppppd.
+.lppwwppppwwppd.
+.lppkwppppkwppd.
+.lpprrppppprrpd.
+.lppppppppppppd.
+.lppppkkkkppppd.
+.bccccccccccccb.
+.bccccccccccccb.
+.bbbbbbbbbbbbbb.
+.lppppppppppppd.
+.lppppppppppppd.
+.dddddddddddddd.
+..d..........d..
+................

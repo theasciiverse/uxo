@@ -1,0 +1,26 @@
+name: Overflow
+about: what spills when the Buffer is too full; it flows over the data blocks after you
+hp: 1
+speed: 0.5
+move: chase
+flies: yes
+points: 400
+colors: b=110,160,255 l=200,225,255 d=60,90,190 k=20,20,28 w=255,255,255
+art:
+...ll...
+..lbbl..
+.lbbbbl.
+.bwkbwk.
+bbbbbbbb
+bbbdbbbb
+.bdbbdb.
+..d..d..
+art2:
+...ll...
+..lbbl..
+.lbbbbl.
+.bwkbwk.
+bbbbbbbb
+bbbbdbbb
+.dbbdbb.
+.d..d...

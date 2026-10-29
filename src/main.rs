@@ -1140,7 +1140,7 @@ fn adv_banner(r: &Run, area: Rect, buf: &mut Buffer) {
             lines.push(Line::from(Span::styled("bomb to go on", dim)).centered());
             panel(lines, area, buf);
         }
-        A::Done => banner(&["TO BE CONTINUED", "the Buffer is next", "bomb for the title"], area, buf),
+        A::Done => banner(&["TO BE CONTINUED", "act 2, the Forgotten Game, is next", "bomb for the title"], area, buf),
         A::Play => {}
     }
 }

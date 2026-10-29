@@ -1,0 +1,38 @@
+name: purged
+world: The Buffer
+clock: 03:59
+theme: buffer
+goal: boss
+time: 240
+story: One minute to four. With its charges gone, purged comes itself. A
+story: daemon can't fight, but it can delete, and whatever it touches is
+story: gone. It hops away and sends pointers after {dot}. Every bomb in
+story: here is a kill, and this one is for purged.
+ending: The last kill goes through, and purged stops. Nothing dies in
+ending: here: it will run again tomorrow night at 3:14, the way it was
+ending: written, tidying the disk and never wiping it. The clock turns
+ending: four. Nothing happens. The machine hums on in the dark room.
+ending: But the hatch doesn't lead out. It leads down, into the oldest
+ending: corner of the disk, where a shareware game nobody has played in
+ending: thirty years has been waiting for players.
+ending: Act 1 is over. Next: the Forgotten Game!
+baddie: y byte
+baddie: p packet
+baddie: n pointer
+baddie: c cache
+baddie: f overflow
+baddie: x purged
+grid:
+#####################
+#1.2.....::.......:.#
+#.....:...#...:.....#
+#.::..........:..::.#
+#....#.........#....#
+#.:......x.......:..#
+#..:.............:..#
+#....#..B.....B.#...#
+#.::.....:.:.....::.#
+#....#.........#....#
+#.:......:.:......:.#
+#...................#
+#####################

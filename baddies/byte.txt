@@ -1,0 +1,25 @@
+name: Byte
+about: a stray byte waiting in line to be written; it wanders, and that's all
+hp: 1
+speed: 0.6
+move: wander
+points: 100
+colors: g=95,200,150 d=40,110,85 l=190,250,215 k=20,20,28 w=255,255,255
+art:
+........
+.gggggg.
+.glgllg.
+.gwkgwk.
+.gggggg.
+.gdgdgd.
+.gggggg.
+..d..d..
+art2:
+........
+.gggggg.
+.glgllg.
+.gwkgwk.
+.gggggg.
+.gdgdgd.
+.gggggg.
+.d....d.

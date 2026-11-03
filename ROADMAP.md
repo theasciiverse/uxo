@@ -44,6 +44,12 @@ three acts are in.
   title's blinking cursor
 - [x] A new preview recording with Dot and Caret
 
+## 0.6.1: built
+
+- [x] Gamepads work on Windows: gilrs reads them through XInput, since its
+  default (Windows Gaming Input) only reports to a program with a focused
+  window of its own, which a terminal game never has
+
 ## 0.6.0: the rest of act 1, built
 
 - [x] World 2, the Clock: nine stages, five species and the Cuckoo, shutters

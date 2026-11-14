@@ -1,0 +1,27 @@
+name: Signal Lost
+world: Static
+clock: 05:40
+theme: static
+goal: exit
+time: 210
+story: No signal: half the screen is gone to snow, and the gates in front
+story: of the hatch open only while the switch is held down. A crate will
+story: hold it, if {dot} can get one there through the flicker.
+baddie: n snow
+baddie: z noise
+baddie: g glitch
+baddie: y typo
+baddie: q burst
+baddie: x payload
+grid:
+#####################
+#1.2..?..?..?..?..?.#
+#.#.#.#.#.#.#.#.#.#.#
+#..!..B..?..!..?....#
+#.#.#.#.#.#.#.#.#.#.#
+#.?..!..?.._..?.!.?.#
+#.#.#.#.#.#.#.#.###|#
+#..?..g..?..!..?#..|#
+#.#.#.#.#.#.#.#.#.###
+#.?..!..y..?..!..|E.#
+#####################

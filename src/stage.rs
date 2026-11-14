@@ -21,11 +21,15 @@
 //! - `%` a shutter that opens on the clock's tick, `&` one that opens on the tock
 //! - `:` a Buffer cell: a soft block, written back a while after it is blown up
 //! - `=` a packed archive: solid; a blast unpacks it into soft blocks round it
+//! - `-` a live wire: a pulse of current runs along it now and then, and hurts
+//! - `!` a flickering tile: solid and open in turn, each on its own beat
 //!
 //! Adventure stages also have `world:`, `clock:` (the machine's time, shown on the card),
 //! `story:` lines (the card before the stage; `{dot}` names the heroes),
 //! `goal:` clear | duds | boss | exit (the hatch open from the start), `time:` seconds, `theme:` brick | orchard | clock | buffer |
-//! cold | bin | games, `ending:` lines (after a world's last stage), and on a world
+//! cold | bin | games | power | scroll | static, `scroll:` seconds per row
+//! (Scrollback: the top row goes, then the next, never closer than three rows above
+//! the hatch), `ending:` lines (after a world's last stage), and on a world
 //! with a branching map `map: col row` (the stage's place on it) and `next: 2 3` (the
 //! stages, numbered within the world, that clearing it opens).
 
@@ -60,6 +64,10 @@ pub enum Cell {
     Rewrite,
     /// A packed archive: solid, unpacked into soft blocks by a blast.
     Packed,
+    /// A live wire: current runs along it in pulses.
+    Wire,
+    /// A tile that flickers between solid and open.
+    Flicker,
 }
 
 const COLOURS: [&str; 4] = ["red", "blue", "green", "yellow"];
@@ -83,6 +91,8 @@ pub struct Stage {
     pub map: Option<(u8, u8)>,
     /// Stages of this world (1-based) that clearing this one opens on the map.
     pub next: Vec<usize>,
+    /// Seconds per row scrolled away (0: still).
+    pub scroll: u32,
     pub w: usize,
     pub h: usize,
     pub cells: Vec<Vec<Cell>>,
@@ -137,6 +147,7 @@ pub fn parse(text: &str) -> Result<Stage, String> {
         theme: Theme::Brick,
         map: None,
         next: Vec::new(),
+        scroll: 0,
         w: 0,
         h: 0,
         cells: Vec::new(),
@@ -179,6 +190,9 @@ pub fn parse(text: &str) -> Result<Stage, String> {
                     "cold" => Theme::Cold,
                     "bin" => Theme::Bin,
                     "games" => Theme::Games,
+                    "power" => Theme::Power,
+                    "scroll" => Theme::Scroll,
+                    "static" => Theme::Static,
                     _ => return Err(format!("bad theme {v:?}")),
                 }
             }
@@ -204,6 +218,7 @@ pub fn parse(text: &str) -> Result<Stage, String> {
                 }
                 st.map = Some((n[0], n[1]));
             }
+            "scroll" => st.scroll = v.parse().map_err(|_| format!("bad scroll {v:?}"))?,
             "next" => {
                 for w in v.split_whitespace() {
                     st.next.push(w.parse().map_err(|_| format!("bad next {w:?}"))?);
@@ -259,6 +274,8 @@ pub fn parse(text: &str) -> Result<Stage, String> {
                 '&' => Cell::Shutter(true),
                 ':' => Cell::Rewrite,
                 '=' => Cell::Packed,
+                '-' => Cell::Wire,
+                '!' => Cell::Flicker,
                 _ => match (legend.iter().find(|(k, _)| *k == c), keys.iter().find(|(k, _)| *k == c.to_ascii_lowercase())) {
                     (_, Some(&(k, n))) if k == c => Cell::Key(n),
                     (_, Some(&(_, n))) => Cell::Door(n),

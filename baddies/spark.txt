@@ -1,0 +1,25 @@
+name: Spark
+about: a spark loose in the Power Supply, darting about at random
+hp: 1
+speed: 0.7
+move: wander
+points: 150
+colors: y=255,240,120 w=255,255,255 o=250,160,40 k=20,20,28
+art:
+...y....
+..yoy..y
+.yowwoy.
+yowkwkoy
+.yowwoy.
+y.yoy...
+...y.y..
+....y...
+art2:
+....y...
+y..yoy..
+.yowwoy.
+yowkwkoy
+.yowwoy.
+...yoy.y
+..y.y...
+...y....

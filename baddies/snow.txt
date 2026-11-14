@@ -1,0 +1,25 @@
+name: Snow
+about: a drift of the screen's snow, wandering where it likes
+hp: 1
+speed: 0.6
+move: wander
+points: 150
+colors: w=235,235,240 g=150,150,160 k=20,20,28
+art:
+.wgwgw..
+wgwwgwg.
+gwkwgkw.
+wgwgwgw.
+gwgwwgw.
+.wgwgw..
+.g...g..
+g.....g.
+art2:
+.gwgwg..
+gwggwgw.
+wgkgwkg.
+gwgwgwg.
+wgwggwg.
+.gwgwg..
+..g.g...
+.g...g..

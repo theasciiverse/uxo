@@ -1,0 +1,45 @@
+name: the Big Fan
+about: the power supply's great fan, infected by Payload and spun up past its limit; it rolls at you and calls up sparks
+hp: 11
+speed: 0.5
+move: wander
+size: 2
+every: 240
+ability: roll
+summon: spark
+points: 9000
+colors: g=150,155,165 d=60,64,74 l=210,215,225 w=255,255,255 k=20,20,28 v=90,220,90 r=220,60,60
+art:
+................
+..dddddddddddd..
+.dllllllllllllg.
+.dl..gggggg..lg.
+.dl.g..gg..g.lg.
+.dlggg.gg.ggglg.
+.dlg.wwggww.glg.
+.dlgg.kggk.gglg.
+.dlgggvvvvggglg.
+.dlg.gg..gg.glg.
+.dlggg.gg.ggglg.
+.dl.g..gg..g.lg.
+.dl..gggggg..lg.
+.dllllllllllllg.
+..dddddddddddd..
+...dd......dd...
+art2:
+................
+..dddddddddddd..
+.dllllllllllllg.
+.dl.g.gggg.g.lg.
+.dl..g.gg.g..lg.
+.dlg..ggggg.glg.
+.dlggwwggwwgglg.
+.dlg.gkggkg.glg.
+.dlgggvvvvggglg.
+.dlg.ggggg..glg.
+.dl..g.gg.g..lg.
+.dl.g.gggg.g.lg.
+.dl..gggggg..lg.
+.dllllllllllllg.
+..dddddddddddd..
+..dd........dd..

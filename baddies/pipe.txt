@@ -1,0 +1,28 @@
+name: Pipe
+about: passes everything it gets straight on; when it sees you lined up it sends itself at you
+hp: 2
+speed: 0.6
+move: wander
+sees: 6
+on_sight: charge
+points: 500
+egg: dash
+colors: g=110,230,140 l=200,255,210 k=10,20,14 d=40,120,70
+art:
+...gg...
+...ll...
+..gggg..
+.glkglkg
+.gggggg.
+.gggggg.
+..d..d..
+.dd..dd.
+art2:
+...gg...
+...ll...
+..gggg..
+.glkglkg
+.gggggg.
+.gggggg.
+.d....d.
+dd....dd

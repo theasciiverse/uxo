@@ -1,0 +1,28 @@
+name: Burst
+about: a burst of interference; when it sees you lined up it flashes across at you
+hp: 2
+speed: 0.6
+move: wander
+sees: 6
+on_sight: charge
+points: 500
+egg: dash
+colors: w=245,245,250 m=210,90,230 k=20,20,28 y=240,230,80
+art:
+m..y..m.
+.mwwwm..
+ywkwkwy.
+.wwwww..
+ymwwwmy.
+.m.y.m..
+m..y..m.
+........
+art2:
+.m.y.m..
+m.wwwm.m
+ywkwkwy.
+mwwwwwm.
+ymwwwmy.
+m..y..m.
+.m.y.m..
+........

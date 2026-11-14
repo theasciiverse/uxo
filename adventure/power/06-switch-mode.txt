@@ -1,0 +1,30 @@
+name: Switch Mode
+world: The Power Supply
+clock: 05:09
+theme: power
+goal: exit
+time: 210
+story: The switching stage turns the power on and off thousands of times a
+story: second. Here the gates in front of the hatch are open only while
+story: the switch is held down, and there is a crate for the job, across a
+story: live wire.
+baddie: s spark
+baddie: f fan
+baddie: c cap
+baddie: a arc
+baddie: j jolt
+baddie: x bigfan
+grid:
+#####################
+#1.2..+.....+...+...#
+#.#.#.#.#.#.#.#.#.#.#
+#..+..B..+..s..+..+.#
+#.#.#.#.#.#.#.#.#.#.#
+#.......-------.....#
+#.#.#.#.#.#.#.#.#.#.#
+#..+..+..._..+..+...#
+#.#.#.#.#.#.#.#.###|#
+#..+...+..j..+..#..|#
+#.#.#.#.#.#.#.#.#|#E#
+#..+..+..+....+..|..#
+#####################

@@ -1,0 +1,27 @@
+name: Typo
+about: a blinking cursor gone wrong, typing blocks onto the screen behind it
+hp: 1
+speed: 0.6
+move: straight
+every: 70
+ability: type
+points: 300
+colors: w=235,235,240 a=255,176,80 k=20,20,28
+art:
+wwwwww..
+wkwwkw..
+wwwwww..
+wwwwww..
+wwwwww..
+wwwwww..
+........
+aaaaaa..
+art2:
+wwwwww..
+wkwwkw..
+wwwwww..
+wwwwww..
+wwwwww..
+wwwwww..
+........
+........

@@ -7,7 +7,7 @@ use crate::game::{Cmd, Event, Game, HZ, MAX_PLAYERS};
 use crate::stage::{self, Stage};
 use log::info;
 
-pub const STAGES: [&str; 54] = [
+pub const STAGES: [&str; 81] = [
     include_str!("../adventure/orchard/01-windfall-lane.txt"),
     include_str!("../adventure/orchard/02-beetle-rows.txt"),
     include_str!("../adventure/orchard/03-hedge-maze.txt"),
@@ -63,11 +63,40 @@ pub const STAGES: [&str; 54] = [
     include_str!("../adventure/games/07-hard-mode.txt"),
     include_str!("../adventure/games/08-the-last-level.txt"),
     include_str!("../adventure/games/09-demo.txt"),
+    // act 3, the Virus
+    include_str!("../adventure/power/01-live-wires.txt"),
+    include_str!("../adventure/power/02-the-rectifier.txt"),
+    include_str!("../adventure/power/03-fan-duct.txt"),
+    include_str!("../adventure/power/04-capacitor-bank.txt"),
+    include_str!("../adventure/power/05-the-arc-gap.txt"),
+    include_str!("../adventure/power/06-switch-mode.txt"),
+    include_str!("../adventure/power/07-the-heat-sink.txt"),
+    include_str!("../adventure/power/08-overload.txt"),
+    include_str!("../adventure/power/09-the-big-fan.txt"),
+    include_str!("../adventure/scroll/01-last-login.txt"),
+    include_str!("../adventure/scroll/02-tail-end.txt"),
+    include_str!("../adventure/scroll/03-the-history.txt"),
+    include_str!("../adventure/scroll/04-grep.txt"),
+    include_str!("../adventure/scroll/05-cat-on-the-keys.txt"),
+    include_str!("../adventure/scroll/06-pipes.txt"),
+    include_str!("../adventure/scroll/07-page-down.txt"),
+    include_str!("../adventure/scroll/08-buffer-full.txt"),
+    include_str!("../adventure/scroll/09-the-pager.txt"),
+    include_str!("../adventure/static/01-snow.txt"),
+    include_str!("../adventure/static/02-glitches.txt"),
+    include_str!("../adventure/static/03-the-typo.txt"),
+    include_str!("../adventure/static/04-interference.txt"),
+    include_str!("../adventure/static/05-test-pattern.txt"),
+    include_str!("../adventure/static/06-dead-pixels.txt"),
+    include_str!("../adventure/static/07-signal-lost.txt"),
+    include_str!("../adventure/static/08-white-noise.txt"),
+    include_str!("../adventure/static/09-payload.txt"),
 ];
 
 /// Stages in each world, in order: act 1's Screensaver, Clock and Buffer, act 2's
-/// Cold Storage, Recycle Bin and Games Folder.
-pub const WORLDS: [usize; 6] = [9, 9, 9, 9, 9, 9];
+/// Cold Storage, Recycle Bin and Games Folder, act 3's Power Supply, Scrollback and
+/// Static.
+pub const WORLDS: [usize; 9] = [9, 9, 9, 9, 9, 9, 9, 9, 9];
 
 /// The first stage index of the world stage `index` is in, and its stage count.
 pub fn world_of(index: usize) -> (usize, usize) {
@@ -455,6 +484,13 @@ impl Run {
             .filter(|b| b.alive)
             .map(|b| ((b.x - p.x).abs() + (b.y - p.y).abs(), b.species))
             .min();
+        let (tx, ty) = p.tile();
+        if self.game.ground[ty][tx] == crate::game::Ground::Wire {
+            return "a live wire".to_string();
+        }
+        if self.game.ground[ty][tx] == crate::game::Ground::Scrolled {
+            return "the scroll".to_string();
+        }
         match near {
             Some((d, sp)) if d < 3 * crate::game::TILE => self.game.species[sp].name.clone(),
             _ => "a crumbling block".to_string(),
@@ -600,7 +636,7 @@ mod tests {
         for i in 0..STAGES.len() {
             assert_eq!(index_of(&code_of(i)), Some(i));
         }
-        assert_eq!(index_of("7-1"), None);
+        assert_eq!(index_of("10-1"), None);
         assert_eq!(index_of("1-10"), None);
         assert_eq!(index_of("0-1"), None);
     }

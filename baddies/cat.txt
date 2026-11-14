@@ -1,0 +1,28 @@
+name: Cat
+about: a cat that walked across the keyboard once and stayed in the scrollback; it pounces two tiles over anything
+hp: 1
+speed: 0.5
+move: wander
+every: 140
+ability: hop
+points: 300
+egg: hop
+colors: g=150,255,170 d=40,120,70 k=10,20,14 p=230,140,170
+art:
+g.....g.
+gg...gg.
+ggggggg.
+gkgggkg.
+ggpgpggd
+.ggggg.d
+.g.g.g.d
+........
+art2:
+g.....g.
+gg...gg.
+ggggggg.
+gkgggkg.
+ggpgpgg.
+.ggggg..
+g.g.g.gd
+.......d

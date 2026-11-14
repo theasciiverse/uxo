@@ -1,0 +1,28 @@
+name: Cap
+about: a capacitor that passes for a coil until you come close, then chases you, charged
+hp: 2
+speed: 0.7
+move: wander
+sees: 5
+on_sight: chase
+mimic: yes
+points: 400
+colors: b=60,110,200 l=150,190,240 s=200,205,215 k=20,20,28 w=255,255,255
+art:
+.ssssss.
+blllllbb
+bwkbwkbb
+bbbbbbbb
+bbllbbbb
+bbbbbbbb
+.s....s.
+.s....s.
+art2:
+.ssssss.
+blllllbb
+bwkbwkbb
+bbbbbbbb
+bbbbllbb
+bbbbbbbb
+..s..s..
+..s..s..

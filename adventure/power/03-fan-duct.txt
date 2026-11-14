@@ -1,0 +1,29 @@
+name: Fan Duct
+world: The Power Supply
+clock: 05:04
+theme: power
+goal: clear
+time: 170
+story: The ducts where the fans blow the heat out. Little fans go straight
+story: down them and turn only at the walls, faster than {dot} can run.
+story: Wait at a corner, and let them come to the bombs.
+baddie: s spark
+baddie: f fan
+baddie: c cap
+baddie: a arc
+baddie: j jolt
+baddie: x bigfan
+grid:
+#####################
+#1.2???#?????#????..#
+#.###?.#.###.#.###?.#
+#.....?.f..?...?..f.#
+#?###.#.###.#.###.#?#
+#??...#?..?.#..?..f.#
+###.#####.#####.#####
+#??...#..?..#.....??#
+#?###.#.###.#.###.#?#
+#.f.?...?f?...?..f..#
+#.###?#.###.#.###?#.#
+#..??.#.?..?#.?...#E#
+#####################

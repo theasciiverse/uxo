@@ -206,6 +206,66 @@ Diskette (hides as a floppy disk; 2 HP), Turbo (charges; egg dash), and
 **Demo** (walks the walls, right-hand rule, laying fire-3 bombs). Warps
 (`o`) join the Warp Zone's four rooms. Cards in `adventure/games/`.
 
+## Act 3: the Virus
+
+**Built 2026-11-14 up to the Prompt** (the Prompt, the last fight and the
+way out are 1.0).
+
+- **Payload** was in the Forgotten Game all along: a virus asleep on its
+  disk for thirty years (shareware went round on floppies, and so did
+  viruses), woken when the game was played at last. Its name on the high
+  score table is act 2's last line.
+- **The stake is the clock again.** At six the machine's modem dials out
+  for the mail, and Payload means to go out with it, onto the line and into
+  every machine at the other end. Act 3 is 05:01 to 06:00 on the cards.
+- **A race, so no map:** act 3's worlds run straight on, stage after stage.
+- **Payload's way:** the Power Supply (running it up to force a restart,
+  with the virus first in line when the machine wakes), Scrollback (hiding
+  in everything ever printed), Static (the screen itself, full of its
+  noise), then the Prompt, where it types the command that dials out.
+- **Its creatures are infected parts of the machine**, not rewritten copies:
+  rule 8 holds, a kill sends them home clean. Payload itself is drawn as a
+  green virus with spikes; a virus never leaves only one copy, so beating
+  it in Static leaves one more at the Prompt.
+
+| Machine time | Where | What happens |
+|---|---|---|
+| 05:01 to 05:13 | the Power Supply | Payload runs the power up; the Big Fan |
+| 05:15 to 05:28 | Scrollback | it hides in the scrollback; the Pager |
+| 05:30 to 05:43 | Static | the screen full of noise; Payload's first fight |
+| 05:45 to 06:00 | the Prompt (1.0) | its last copy types the command to dial out |
+
+### The Power Supply
+
+A green circuit board, coils of copper for blocks. **Live wires** (`-`): a
+pulse of current runs along each wire every `WIRE_PERIOD` (4 s), moving a
+tile every `WIRE_SPREAD` steps, live on a tile for `WIRE_LIVE` steps and
+showing itself `WIRE_WARN` steps before; it hurts players, not creatures.
+Species: Spark, Fan (straight, fast), Cap (hides as a coil; 2 HP), Arc
+(flies, follows on sight), Jolt (charges; egg dash), and **the Big Fan**
+(rolls, calls up sparks). Cards in `adventure/power/`.
+
+### Scrollback
+
+A terminal's black, lines of green text for blocks. Its stages are tall,
+and **they scroll** (`scroll:` seconds per row): after a few seconds' grace
+the top row goes, and the next, its last two seconds marked red; whatever
+is on a row that goes is gone, and a player on it loses a life (no mount or
+heart helps), a charge on it goes off. It stops three rows above the hatch.
+Starts that scroll away move down. Species: Echo (slowly follows you),
+Tail (straight, fast), Grep (sees ten tiles, follows), Cat (pounces; egg
+hop), Pipe (charges; egg dash), and **the Pager** (leaps, calls up echoes).
+Cards in `adventure/scroll/`.
+
+### Static
+
+Grey snow. **Flickering tiles** (`!`): solid and open in turn, each on its
+own beat (`FLICKER`), never shutting on anyone. Species: Snow, Noise
+(straight, fast), Glitch (warps, `ability: warp`, never near a player),
+Typo (types blocks behind it, `ability: type`), Burst (charges; egg dash),
+and **Payload** (warps, follows on sight, calls up glitches). Cards in
+`adventure/static/`.
+
 ## Decisions
 
 David, 2026-10-29: Dot is the hero and the player plays Dot; co-op's second

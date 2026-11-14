@@ -1,0 +1,25 @@
+name: Echo
+about: an echo of something typed long ago; it slowly follows you wherever you go
+hp: 1
+speed: 0.4
+move: chase
+points: 200
+colors: g=110,230,140 d=40,120,70 k=10,20,14
+art:
+.gggggg.
+gg.gg.gg
+gkggggkg
+gggggggg
+g.gggg.g
+gg.gg.gg
+.g.dd.g.
+..d..d..
+art2:
+.gggggg.
+gg.gg.gg
+gkggggkg
+gggggggg
+g.gggg.g
+gg.gg.gg
+.gd..dg.
+.d....d.

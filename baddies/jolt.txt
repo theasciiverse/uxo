@@ -1,0 +1,28 @@
+name: Jolt
+about: a jolt of current; when it sees you lined up it discharges at you
+hp: 2
+speed: 0.6
+move: wander
+sees: 6
+on_sight: charge
+points: 500
+egg: dash
+colors: y=250,220,60 o=230,130,30 w=255,255,255 k=20,20,28
+art:
+....yy..
+...yy...
+..yyyyy.
+.ywkywky
+.yyyyyy.
+..oyyo..
+.o.yo...
+...o....
+art2:
+...yy...
+..yy....
+.yyyyyy.
+ywkywky.
+.yyyyyy.
+..oyyo..
+...oy.o.
+....o...

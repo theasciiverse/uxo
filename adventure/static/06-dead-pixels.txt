@@ -1,0 +1,29 @@
+name: Dead Pixels
+world: Static
+clock: 05:39
+theme: static
+goal: clear
+give: surge
+time: 190
+story: A corner of the screen where the pixels died years ago, and the
+story: picture never quite reaches. Open ground, flickering tiles, bursts
+story: and glitches. Out here the bombs surge.
+baddie: n snow
+baddie: z noise
+baddie: g glitch
+baddie: y typo
+baddie: q burst
+baddie: x payload
+grid:
+#######################
+#1.2+++.....+++.....+.#
+#..+.+..!.!..+.+..!...#
+#.+++.....q.....+++...#
+#..!...+++...!....g...#
+#.....+.!.+.....+++...#
+#..g...+++...!..+.+.q.#
+#.+.!.........+.......#
+#.+++...!...+++..!....#
+#..+....n..+.!.+....n.#
+#....!.....+++......E.#
+#######################

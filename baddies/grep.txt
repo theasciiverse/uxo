@@ -1,0 +1,27 @@
+name: Grep
+about: searches the scrollback for a pattern, and once it finds you, it doesn't let go
+hp: 1
+speed: 0.7
+move: wander
+sees: 10
+on_sight: chase
+points: 300
+colors: g=110,230,140 w=230,255,235 k=10,20,14 d=40,120,70
+art:
+..gggg..
+.gwwwwg.
+gwkwwkwg
+gwwwwwwg
+.gwwwwg.
+..ggggd.
+......dd
+.......d
+art2:
+..gggg..
+.gwwwwg.
+gwwkwwkg
+gwwwwwwg
+.gwwwwg.
+..ggggd.
+.....dd.
+.....d..

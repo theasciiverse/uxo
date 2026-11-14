@@ -1,0 +1,29 @@
+name: The Rectifier
+world: The Power Supply
+clock: 05:03
+theme: power
+goal: exit
+time: 200
+story: The rectifier lets the current through one way only, in lanes. The
+story: hatch is open, behind a red door; the key lies across three lanes of
+story: live wire. Count the pulses, then go.
+key: k red
+baddie: s spark
+baddie: f fan
+baddie: c cap
+baddie: a arc
+baddie: j jolt
+baddie: x bigfan
+grid:
+#####################
+#1.2.+...+...+...+..#
+#.#.#.#.#.#.#.#.#.#.#
+#-------------------#
+#.+..+...s...+..+...#
+#.#.#.#.#.#.#.#.#.#.#
+#-------------------#
+#.+...+..+...+...+..#
+#.#.#.#.#.#.#.#.#####
+#----------------#..#
+#k.+..+...s....+.K.E#
+#####################

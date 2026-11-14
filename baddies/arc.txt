@@ -1,0 +1,28 @@
+name: Arc
+about: an electric arc that jumps over the coils and follows you once it sees you
+hp: 1
+speed: 0.6
+move: wander
+sees: 6
+on_sight: chase
+flies: yes
+points: 300
+colors: c=120,200,255 w=240,250,255 k=20,40,80
+art:
+..c..c..
+.cwccwc.
+cwkwwkwc
+.cwwwwc.
+..cwwc..
+.c.cc.c.
+c..c...c
+...c....
+art2:
+.c..c...
+..cwwcc.
+cwkwwkwc
+.cwwwwc.
+.ccwwc..
+c..cc..c
+.c...c..
+....c...

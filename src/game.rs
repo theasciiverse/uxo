@@ -78,6 +78,17 @@ pub const RESTORE: u32 = 7 * HZ;
 pub const HOUSE: usize = MAX_PLAYERS;
 /// Fire of the bombs the Forgotten Game's creatures lay.
 const HOUSE_FIRE: u32 = 2;
+/// The Power Supply's live wires: a pulse of current runs along them every
+/// `WIRE_PERIOD` steps, `WIRE_SPREAD` steps a tile, live for `WIRE_LIVE` steps on
+/// each tile, and it shows `WIRE_WARN` steps before it arrives.
+pub const WIRE_PERIOD: u64 = 4 * HZ as u64;
+pub const WIRE_SPREAD: u64 = 5;
+pub const WIRE_LIVE: u64 = 24;
+pub const WIRE_WARN: u64 = 40;
+/// Static's flickering tiles: solid and open in turn, each on its own beat.
+pub const FLICKER: u64 = 3 * HZ as u64;
+/// Scrollback: the next row to go shows this long before it is gone.
+pub const SCROLL_WARN: u32 = 2 * HZ;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Tile {
@@ -146,6 +157,10 @@ pub enum Theme {
     Cold,
     Bin,
     Games,
+    /// Act 3, the Virus: the Power Supply, Scrollback, Static.
+    Power,
+    Scroll,
+    Static,
 }
 
 /// A beaten creature's deleted file in the Recycle Bin: it is restored after `left`
@@ -219,6 +234,12 @@ pub enum Ground {
     /// The Buffer's cells: a data block cleared from here is written back after
     /// `REWRITE` steps with nothing on it.
     Rewrite,
+    /// A live wire in the Power Supply: current runs along it in pulses.
+    Wire,
+    /// A row Scrollback has scrolled away: gone (under a wall).
+    Scrolled,
+    /// Static's flickering tile, shut (`Tile::Gate`) or open, on its own beat.
+    Flicker(u8),
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -603,6 +624,10 @@ pub enum Event {
     Restored { x: usize, y: usize },
     /// The floor froze round a creature.
     Chilled,
+    /// Scrollback scrolled a row away.
+    Scrolled { row: usize },
+    /// A creature warped across the stage.
+    Warped,
 }
 
 pub struct Game {
@@ -638,6 +663,11 @@ pub struct Game {
     pub rewrite: Vec<Vec<u32>>,
     /// Deleted files waiting to be restored (the Recycle Bin).
     pub restores: Vec<Restore>,
+    /// Scrollback: steps per row scrolled away (0: it doesn't scroll), the next row
+    /// to go, and the last row that may go (above the hatch).
+    pub scroll_every: u32,
+    pub scroll_top: usize,
+    pub scroll_last: usize,
     pub flames: Vec<Vec<Option<Flame>>>,
     pub bombs: Vec<Bomb>,
     pub surges: Vec<Surge>,
@@ -744,6 +774,9 @@ impl Game {
             shoves: Vec::new(),
             rewrite: vec![vec![0; w]; h],
             restores: Vec::new(),
+            scroll_every: 0,
+            scroll_top: 1,
+            scroll_last: 0,
             flames: vec![vec![None; w]; h],
             bombs: Vec::new(),
             surges: Vec::new(),
@@ -847,6 +880,11 @@ impl Game {
                     Cell::Part => g.pickups[y][x] = Some(Pickup::Part),
                     Cell::Socket => g.tiles[y][x] = Tile::Socket,
                     Cell::Packed => g.tiles[y][x] = Tile::Packed,
+                    Cell::Wire => g.ground[y][x] = Ground::Wire,
+                    Cell::Flicker => {
+                        let h = (x as u32).wrapping_mul(0x9e37_79b1) ^ (y as u32).wrapping_mul(0x85eb_ca77);
+                        g.ground[y][x] = Ground::Flicker((h >> 13) as u8);
+                    }
                 }
             }
         }
@@ -855,6 +893,9 @@ impl Game {
         g.theme = st.theme;
         g.goal = st.goal;
         g.exit_open = st.goal == Goal::Exit;
+        g.scroll_every = st.scroll * HZ;
+        // it scrolls no closer than three rows above the hatch
+        g.scroll_last = g.exit.map_or(st.h.saturating_sub(5), |(_, ey)| ey.saturating_sub(3));
         for (id, x, y) in placed {
             let si = g.species.iter().position(|s| s.id == id).unwrap_or_else(|| panic!("{}: no baddie {id:?}", st.name));
             let sp = g.species[si].clone();
@@ -1039,6 +1080,7 @@ impl Game {
         self.tick_board();
         self.step_baddies();
         self.tick_restores();
+        self.tick_scroll();
         self.hurt_and_pickup();
         self.infect();
         self.take_eggs();
@@ -1412,6 +1454,10 @@ impl Game {
     }
 
     /// Is anyone or anything standing on tile (x, y): a player, a baddie, a bomb?
+    pub(crate) fn occupied_pub(&self, x: usize, y: usize) -> bool {
+        self.occupied(x, y)
+    }
+
     fn occupied(&self, x: usize, y: usize) -> bool {
         (0..MAX_PLAYERS).any(|j| self.players[j].joined && self.overlaps(j, x, y))
             || self.bomb_at(x, y).is_some()
@@ -1506,6 +1552,19 @@ impl Game {
                 }
             }
         }
+        // Static's tiles flicker, each on its own beat, never shutting on anyone
+        for y in 0..self.h {
+            for x in 0..self.w {
+                let Ground::Flicker(phase) = self.ground[y][x] else { continue };
+                if self.flicker_open(phase) {
+                    if self.tiles[y][x] == Tile::Gate {
+                        self.tiles[y][x] = Tile::Floor;
+                    }
+                } else if self.tiles[y][x] == Tile::Floor && !self.occupied(x, y) && self.flames[y][x].is_none() && self.items[y][x].is_none() {
+                    self.tiles[y][x] = Tile::Gate;
+                }
+            }
+        }
         // the Buffer writes its cleared blocks back, onto nothing and no one
         for y in 0..self.h {
             for x in 0..self.w {
@@ -1536,6 +1595,77 @@ impl Game {
             }
             self.events.push(Event::SocketOpen);
         }
+    }
+
+    /// Is a flickering tile with this phase open right now?
+    pub fn flicker_open(&self, phase: u8) -> bool {
+        (self.steps + phase as u64 * FLICKER / 256) % FLICKER < FLICKER * 3 / 5
+    }
+
+    /// Steps until the current reaches wire tile (x, y), counting round the period:
+    /// 0 to `WIRE_LIVE` means live now.
+    pub fn wire_phase(&self, x: usize, y: usize) -> u64 {
+        (self.steps + WIRE_PERIOD * 4 - (x + y) as u64 * WIRE_SPREAD % WIRE_PERIOD) % WIRE_PERIOD
+    }
+
+    /// Is the wire on (x, y) live?
+    pub fn wire_live(&self, x: usize, y: usize) -> bool {
+        self.ground[y][x] == Ground::Wire && self.wire_phase(x, y) < WIRE_LIVE
+    }
+
+    /// Scrollback: every `scroll_every` steps the top row goes, and whatever is on it.
+    fn tick_scroll(&mut self) {
+        // a few seconds' grace before the first row goes
+        let grace = 4 * HZ;
+        if self.scroll_every == 0 || self.scroll_top > self.scroll_last || self.clock <= grace || (self.clock - grace) % self.scroll_every != 0 {
+            return;
+        }
+        let y = self.scroll_top;
+        self.scroll_top += 1;
+        // a charge carried off the top goes off as it goes
+        let mut charges = Vec::new();
+        for x in 1..self.w - 1 {
+            if self.tiles[y][x] == Tile::Dud {
+                charges.push(self.set_off_charge(x, y, HOUSE));
+            }
+        }
+        for x in 1..self.w - 1 {
+            self.tiles[y][x] = Tile::Wall;
+            self.ground[y][x] = Ground::Scrolled;
+            self.items[y][x] = None;
+            self.pickups[y][x] = None;
+            self.flames[y][x] = None;
+        }
+        self.bombs.retain(|b| b.tile().1 != y || charges.contains(&b.id));
+        let species = &self.species;
+        self.baddies.retain(|b| {
+            let n = species[b.species].size as usize;
+            !(b.tile().1..b.tile().1 + n).contains(&y)
+        });
+        self.eggs.retain(|e| e.y.div_euclid(TILE) != y as i32);
+        self.restores.retain(|r| r.y != y);
+        for i in 0..MAX_PLAYERS {
+            let p = &self.players[i];
+            if p.joined && p.alive && p.tile().1 <= y {
+                // scrolled off the top: no mount or heart saves you from that
+                self.die(i, None);
+            }
+        }
+        // starts that scrolled away move down to the nearest free floor
+        for i in 0..MAX_PLAYERS {
+            let (sx, sy) = self.spawns[i];
+            if sy > y {
+                continue;
+            }
+            let free = (y + 1..self.h - 1)
+                .flat_map(|ny| (0..self.w).map(move |d| (d, ny)))
+                .map(|(d, ny)| ((sx + d) % (self.w - 2) + 1, ny))
+                .find(|&(nx, ny)| self.tiles[ny][nx] == Tile::Floor && self.ground[ny][nx] == Ground::Plain && !self.occupied(nx, ny));
+            if let Some(at) = free {
+                self.spawns[i] = at;
+            }
+        }
+        self.events.push(Event::Scrolled { row: y });
     }
 
     /// The Clock's beat: false on the tick, true on the tock.
@@ -2073,7 +2203,7 @@ impl Game {
             let burning = matches!(self.tiles[ty][tx], Tile::Burning(t) if t > BURN - 8);
             if let Some(f) = self.flames[ty][tx] {
                 self.hurt(i, Some(f.owner));
-            } else if burning {
+            } else if burning || self.wire_live(tx, ty) {
                 self.hurt(i, None);
             }
             if !self.players[i].alive {
@@ -3168,5 +3298,71 @@ mod tests {
         }
         assert!(laid, "the fizz lays a bomb");
         assert_eq!(g.baddies.len(), 1, "the game's bombs don't hurt its own creatures");
+    }
+
+    #[test]
+    fn a_live_wire_hurts_only_while_the_current_passes() {
+        let mut g = act2("power", "#########\n#1.2....#\n#.......#\n#.-----.#\n#.......#\n#..s...E#\n#########");
+        g.baddies.clear();
+        (g.players[0].x, g.players[0].y) = (centre(4), centre(3));
+        g.players[0].invuln = 0;
+        let mut quiet = 0;
+        for _ in 0..WIRE_PERIOD * 2 {
+            g.step(&[Cmd::default(); MAX_PLAYERS]);
+            if !g.players[0].alive {
+                assert!(g.wire_live(4, 3), "it caught you while live");
+                assert!(quiet > 0, "and not at once");
+                return;
+            }
+            quiet += 1;
+        }
+        panic!("no current came in two periods");
+    }
+
+    #[test]
+    fn scrollback_takes_the_top_row_and_whoever_is_on_it() {
+        let text = "name: T\nworld: T\ntheme: scroll\ngoal: exit\nscroll: 1\ngrid:\n#######\n#1.2..#\n#.....#\n#.....#\n#.....#\n#.....#\n#.....#\n#....E#\n#######";
+        let st = crate::stage::parse(text).unwrap();
+        let mut g = Game::from_stage(&st, 3);
+        g.adventure = true;
+        g.join(0);
+        g.join(1);
+        (g.players[1].x, g.players[1].y) = (centre(3), centre(3));
+        for _ in 0..5 * HZ {
+            g.step(&[Cmd::default(); MAX_PLAYERS]);
+        }
+        assert_eq!(g.tiles[1][2], Tile::Wall, "the top row is gone");
+        assert_eq!(g.ground[1][2], Ground::Scrolled);
+        assert!(g.players[0].deaths > 0, "player 1 went with it");
+        assert_eq!(g.players[1].deaths, 0);
+        assert!(g.spawns[0].1 > 1, "the start moved down");
+        for _ in 0..10 * HZ {
+            g.step(&[Cmd::default(); MAX_PLAYERS]);
+        }
+        assert_eq!(g.scroll_top, 5, "it stops three rows above the hatch");
+    }
+
+    #[test]
+    fn a_flickering_tile_turns_solid_and_open_but_never_on_anyone() {
+        let mut g = act2("static", "#########\n#1.2....#\n#.......#\n#...!...#\n#.......#\n#..s...E#\n#########");
+        g.baddies.clear();
+        let (mut shut, mut open) = (false, false);
+        for _ in 0..FLICKER {
+            g.step(&[Cmd::default(); MAX_PLAYERS]);
+            shut |= g.tiles[3][4] == Tile::Gate;
+            open |= g.tiles[3][4] == Tile::Floor;
+        }
+        assert!(shut && open);
+        while g.tiles[3][4] != Tile::Floor {
+            g.step(&[Cmd::default(); MAX_PLAYERS]);
+        }
+        (g.players[0].x, g.players[0].y) = (centre(4), centre(3));
+        g.players[0].invuln = 9999;
+        for _ in 0..FLICKER {
+            g.step(&[Cmd::default(); MAX_PLAYERS]);
+            if g.players[0].tile() == (4, 3) {
+                assert_ne!(g.tiles[3][4], Tile::Gate, "it shut on a player");
+            }
+        }
     }
 }

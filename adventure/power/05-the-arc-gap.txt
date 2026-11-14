@@ -1,0 +1,30 @@
+name: The Arc Gap
+world: The Power Supply
+clock: 05:07
+theme: power
+goal: clear
+give: surge
+time: 180
+story: A wide gap where the current jumps across in arcs. Arcs float over
+story: the coils and follow {dot} once they see. Out in the open the
+story: bombs surge. Beat them all.
+baddie: s spark
+baddie: f fan
+baddie: c cap
+baddie: a arc
+baddie: j jolt
+baddie: x bigfan
+grid:
+#######################
+#1.2+++.......+++.....#
+#..+.+..#...#..+.+..+.#
+#.+++...........+++...#
+#.....a...+++.......a.#
+#..#.....+...+.....#..#
+#.......+..a..+.......#
+#..#.....+...+.....#..#
+#.....a...+++.........#
+#.+++...........+++...#
+#..+.+..#...#..+.+..s.#
+#.....+++.......+++..E#
+#######################

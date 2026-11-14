@@ -1,0 +1,45 @@
+name: the Pager
+about: the program that shows the scrollback a page at a time, infected by Payload; it leaps a page at a time and calls up echoes
+hp: 11
+speed: 0.5
+move: wander
+size: 2
+every: 200
+ability: hop
+summon: echo
+points: 9000
+colors: g=110,230,140 l=200,255,210 d=30,90,50 k=10,20,14 w=255,255,255 v=170,90,220
+art:
+................
+.dddddddddddddd.
+.dllllllllllldd.
+.dlggggggggggld.
+.dlgwwggggwwgld.
+.dlgwkggggwkgld.
+.dlggggggggggld.
+.dlgggvvvvgggld.
+.dlggggggggggld.
+.dlg.g.g.g.g.ld.
+.dlggggggggggld.
+.dlg.g.g.g.g.ld.
+.dllllllllllldd.
+.dddddddddddddd.
+..dd........dd..
+..dd........dd..
+art2:
+................
+.dddddddddddddd.
+.dllllllllllldd.
+.dlggggggggggld.
+.dlgwwggggwwgld.
+.dlgkwggggkwgld.
+.dlggggggggggld.
+.dlggvvvvvvggld.
+.dlggggggggggld.
+.dlgg.g.g.g.gld.
+.dlggggggggggld.
+.dlgg.g.g.g.gld.
+.dllllllllllldd.
+.dddddddddddddd.
+.dd..........dd.
+.dd..........dd.

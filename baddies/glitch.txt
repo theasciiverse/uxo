@@ -1,0 +1,27 @@
+name: Glitch
+about: a glitch in the picture; now and then it vanishes and turns up somewhere else
+hp: 1
+speed: 0.6
+move: wander
+every: 200
+ability: warp
+points: 300
+colors: m=220,80,230 c=80,230,230 y=240,230,80 k=20,20,28 w=255,255,255
+art:
+.mmmcc..
+mmwkcc.y
+mmmmcccy
+..mmmccc
+mmmm.cc.
+.mmmcccc
+mm..cc..
+.m...c..
+art2:
+..mmmcc.
+.mmwkccy
+.mmmmccc
+mmmcc...
+.mmm.ccc
+mmmmcc..
+.mm..cc.
+..m...c.

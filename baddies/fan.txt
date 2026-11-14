@@ -1,0 +1,25 @@
+name: Fan
+about: a little cooling fan blowing straight on, turning only at walls
+hp: 1
+speed: 1.2
+move: straight
+points: 200
+colors: g=150,155,165 d=70,74,84 w=255,255,255 k=20,20,28
+art:
+.dddddd.
+dg.gg.gd
+d.gwkg.d
+dggkkggd
+dggkkggd
+d.gwkg.d
+dg.gg.gd
+.dddddd.
+art2:
+.dddddd.
+d.gggg.d
+dggwkggd
+dgkkkkgd
+dgkkkkgd
+dggwkggd
+d.gggg.d
+.dddddd.

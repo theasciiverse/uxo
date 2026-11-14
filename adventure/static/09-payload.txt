@@ -1,0 +1,36 @@
+name: Payload
+world: Static
+clock: 05:43
+theme: static
+goal: boss
+time: 240
+story: In the middle of the static, Payload itself, thirty years asleep and
+story: wide awake now: a virus can't fight fair, so it flickers away and
+story: back, and calls up glitches to do it for it. Seventeen minutes to
+story: six. Every bomb in here is a kill, and this one is for Payload.
+ending: The last kill goes through, and Payload comes apart in a burst of
+ending: snow. The screen clears. For a moment there is nothing on it at all
+ending: but a single blinking cursor at the bottom, waiting: the prompt.
+ending: Then, beside it, one character types itself. Then another. A virus
+ending: never leaves only one copy, and the last one is at the prompt,
+ending: typing the command that dials out at six.
+ending: Next: the Prompt!
+baddie: n snow
+baddie: z noise
+baddie: g glitch
+baddie: y typo
+baddie: q burst
+baddie: x payload
+grid:
+#####################
+#1.2................#
+#..!...+.....+...!..#
+#...B.....!.....B...#
+#.+.......!.......+.#
+#....!....x....!....#
+#...................#
+#.+...B.......B...+.#
+#.........!.........#
+#..!...+.....+...!..#
+#.....n.......n.....#
+#####################

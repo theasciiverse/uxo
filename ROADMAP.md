@@ -1,10 +1,11 @@
 # Roadmap
 
-uXo is at 0.7.0 (2026-11-14): battle mode complete, act 1 whole (the
-Screensaver, the Clock, the Buffer and purged's fight) and act 2 whole (Cold
+uXo is at 0.8.0 (2026-11-14): battle mode complete, act 1 whole (the
+Screensaver, the Clock, the Buffer and purged's fight), act 2 whole (Cold
 Storage, the Recycle Bin, the Games Folder and Demo's fight, on the
-Forgotten Game's branching maps), with the world's rules settled
-(`WORLD.md`). The adventure is a story in three
+Forgotten Game's branching maps) and act 3 up to the Prompt (the Power
+Supply, Scrollback, Static and Payload's first fight), with the world's
+rules settled (`WORLD.md`). The adventure is a story in three
 acts, inside the machine, built one world at a time. 1.0.0 is when all
 three acts are in.
 
@@ -81,9 +82,17 @@ three acts are in.
 - [x] Progress is saved in the state folder (`$XDG_STATE_HOME/uxo`); 0.6's
   is still read
 
-## 0.8.0: act 3, the Virus
+## 0.8.0: act 3, the Virus, built
 
-- [ ] The Power Supply, Scrollback, Static
+- [x] The Power Supply: live wires with a pulse of current running along
+  them; Spark, Fan, Cap, Arc, Jolt and the Big Fan
+- [x] Scrollback: tall stages whose top row scrolls away every few seconds,
+  and whoever is on it (charges go off as they go); Echo, Tail, Grep, Cat,
+  Pipe and the Pager
+- [x] Static: tiles that flicker solid and open, each on its own beat;
+  Snow, Noise, Glitch (warps), Typo (types blocks), Burst, and Payload's
+  first fight
+- [x] Act 3 runs straight on, no map: a race to the modem at six
 
 ## 1.0.0
 

@@ -606,6 +606,11 @@ fn feel(ev: Event, g: &Game, seats: &[Ctl], input: &mut Input, shake: &mut u32, 
             *toast = Some(("RESTORED! WALK OVER THE FILES".to_string(), HZ * 2));
         }
         Event::Chilled => debug!("the floor froze"),
+        Event::Scrolled { row } => {
+            info!("row {row} scrolled away");
+            *shake = (*shake).max(3);
+        }
+        Event::Warped => debug!("a creature warped"),
     }
 }
 
@@ -1291,7 +1296,7 @@ fn adv_banner(r: &Run, area: Rect, buf: &mut Buffer) {
             panel(lines, area, buf);
         }
         A::Map { cursor } => panel(map_lines(r, cursor), area, buf),
-        A::Done => banner(&["TO BE CONTINUED", "act 3, the Virus, is next", "bomb for the title"], area, buf),
+        A::Done => banner(&["TO BE CONTINUED", "the Prompt, and the way out, is next", "bomb for the title"], area, buf),
         A::Play => {}
     }
 }

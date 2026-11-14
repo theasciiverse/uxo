@@ -1,0 +1,28 @@
+name: The Typo
+world: Static
+clock: 05:34
+theme: static
+goal: exit
+time: 200
+story: A cursor gone wrong runs along the lines, typing blocks behind it as
+story: it goes. The hatch is open, behind a red door, and the red key is at
+story: the far end of the screen. Don't let it type you in.
+key: k red
+baddie: n snow
+baddie: z noise
+baddie: g glitch
+baddie: y typo
+baddie: q burst
+baddie: x payload
+grid:
+#####################
+#1.2.......y.......k#
+#.#.#.#.#.#.#.#.#.#.#
+#....!.....!.....!..#
+#.#.#.#.#.#.#.#.#.#.#
+#.........y.........#
+#.#.#.#.#.#.#.#.#.###
+#..!.....!.....!..#E#
+#.#.#.#.#.#.#.#.#.#K#
+#........n..........#
+#####################

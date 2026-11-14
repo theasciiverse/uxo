@@ -1,0 +1,32 @@
+name: The Pager
+world: Scrollback
+clock: 05:28
+theme: scroll
+goal: boss
+time: 240
+story: At the bottom of the scrollback, the program that shows it a page at
+story: a time: the Pager, infected, leaping a page at a time and calling up
+story: echoes. The scroll has stopped here. Beat it.
+ending: The Pager stops on its last page, and the scrollback lies still. In
+ending: the very last line of it, something has written itself in, a line
+ending: at a time: it is going to the screen itself, where the picture is
+ending: drawn, and from the screen to the prompt. Payload is ahead. The
+ending: screen is full of static.
+baddie: e echo
+baddie: t tail
+baddie: g grep
+baddie: k cat
+baddie: p pipe
+baddie: x pager
+grid:
+###################
+#1.2..............#
+#...+...+...+...+.#
+#.B.............B.#
+#...+.........+...#
+#.......x.........#
+#...+.........+...#
+#.B.............B.#
+#...+...+...+...+.#
+#.....e.....e.....#
+###################

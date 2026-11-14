@@ -37,6 +37,10 @@ pub enum Ability {
     Chill,
     /// Lays one of the Forgotten Game's own bombs where it stands.
     Bomb,
+    /// Vanishes and turns up somewhere else on the stage.
+    Warp,
+    /// Types a soft block onto the tile behind it.
+    Type,
 }
 
 /// What a tamed baddie lets you do when you ride it.
@@ -74,7 +78,7 @@ pub struct Species {
 
 const BASE: i32 = 12;
 
-pub const FILES: [(&str, &str); 37] = [
+pub const FILES: [(&str, &str); 55] = [
     ("grub", include_str!("../baddies/grub.txt")),
     ("beetle", include_str!("../baddies/beetle.txt")),
     ("hedgehog", include_str!("../baddies/hedgehog.txt")),
@@ -117,6 +121,27 @@ pub const FILES: [(&str, &str); 37] = [
     ("diskette", include_str!("../baddies/diskette.txt")),
     ("turbo", include_str!("../baddies/turbo.txt")),
     ("demo", include_str!("../baddies/demo.txt")),
+    // Act 3, the Virus: the Power Supply
+    ("spark", include_str!("../baddies/spark.txt")),
+    ("fan", include_str!("../baddies/fan.txt")),
+    ("cap", include_str!("../baddies/cap.txt")),
+    ("arc", include_str!("../baddies/arc.txt")),
+    ("jolt", include_str!("../baddies/jolt.txt")),
+    ("bigfan", include_str!("../baddies/bigfan.txt")),
+    // Scrollback
+    ("echo", include_str!("../baddies/echo.txt")),
+    ("tail", include_str!("../baddies/tail.txt")),
+    ("grep", include_str!("../baddies/grep.txt")),
+    ("cat", include_str!("../baddies/cat.txt")),
+    ("pipe", include_str!("../baddies/pipe.txt")),
+    ("pager", include_str!("../baddies/pager.txt")),
+    // Static, and Payload
+    ("snow", include_str!("../baddies/snow.txt")),
+    ("noise", include_str!("../baddies/noise.txt")),
+    ("glitch", include_str!("../baddies/glitch.txt")),
+    ("typo", include_str!("../baddies/typo.txt")),
+    ("burst", include_str!("../baddies/burst.txt")),
+    ("payload", include_str!("../baddies/payload.txt")),
 ];
 
 pub fn roster() -> Vec<Species> {
@@ -187,6 +212,8 @@ pub fn parse(id: &str, text: &str) -> Result<Species, String> {
                     "roll" => Ability::Roll,
                     "chill" => Ability::Chill,
                     "bomb" => Ability::Bomb,
+                    "warp" => Ability::Warp,
+                    "type" => Ability::Type,
                     "none" => Ability::None,
                     _ => return Err(bad()),
                 }
@@ -497,6 +524,21 @@ impl Game {
                         // laid, and it goes on its way
                         self.house_bomb(tx, ty, sp.fire);
                     }
+                    Ability::Warp => {
+                        if let Some((nx, ny)) = self.warp_spot(&sp, tx, ty) {
+                            let b = &mut self.baddies[k];
+                            (b.x, b.y) = (centre(nx), centre(ny));
+                            b.state = State::Pause(30);
+                            b.hurt = b.hurt.max(20);
+                            self.events.push(Event::Warped);
+                            return;
+                        }
+                    }
+                    Ability::Type => {
+                        let (dx, dy) = back(self.baddies[k].dir).vec();
+                        let (bx, by) = ((x + dx) as usize, (y + dy) as usize);
+                        self.type_block(bx, by);
+                    }
                     Ability::None => {}
                 }
             }
@@ -623,6 +665,43 @@ impl Game {
                 let pool = if fwd.is_empty() { &open } else { &fwd };
                 pool[self.rand_u(pool.len() as u32) as usize]
             }
+        }
+    }
+
+    /// A free spot for a warping creature, at least four tiles from every player and
+    /// from where it was.
+    fn warp_spot(&mut self, sp: &Species, fx: usize, fy: usize) -> Option<(usize, usize)> {
+        for _ in 0..40 {
+            let x = 1 + self.rand_u(self.w as u32 - 2) as i32;
+            let y = 1 + self.rand_u(self.h as u32 - 2) as i32;
+            let far = self.players.iter().filter(|p| p.joined && p.alive).all(|p| {
+                let (px, py) = p.tile();
+                px.abs_diff(x as usize) + py.abs_diff(y as usize) >= 4
+            });
+            let away = fx.abs_diff(x as usize) + fy.abs_diff(y as usize) >= 4;
+            if far && away && self.baddie_free(sp, x, y) && self.ground[y as usize][x as usize] == crate::game::Ground::Plain {
+                return Some((x as usize, y as usize));
+            }
+        }
+        None
+    }
+
+    /// Type a soft block onto (x, y), if it is plain free floor with nothing on it.
+    fn type_block(&mut self, x: usize, y: usize) {
+        if x == 0 || y == 0 || x >= self.w - 1 || y >= self.h - 1 {
+            return;
+        }
+        let near = self.players.iter().any(|p| p.joined && p.alive && p.tile().0.abs_diff(x) + p.tile().1.abs_diff(y) <= 1);
+        if self.tiles[y][x] == Tile::Floor
+            && self.ground[y][x] == crate::game::Ground::Plain
+            && self.exit != Some((x, y))
+            && self.flames[y][x].is_none()
+            && self.items[y][x].is_none()
+            && self.pickups[y][x].is_none()
+            && !near
+            && !self.occupied_pub(x, y)
+        {
+            self.tiles[y][x] = Tile::Soft;
         }
     }
 
@@ -923,5 +1002,25 @@ mod tests {
         g.players[0].invuln = 9999;
         g.step(&idle());
         assert!(!g.baddies[0].disguised);
+    }
+
+    #[test]
+    fn a_glitch_warps_and_a_typo_types_blocks() {
+        let grid = "###########\n#1.2......#\n#.........#\n#.........#\n#....q....#\n#.........#\n#.........#\n#........E#\n###########";
+        let mut g = stage("goal: clear\nbaddie: q glitch\n", grid);
+        let at = g.baddies[0].tile();
+        g.baddies[0].timer = 0;
+        let mut moved = false;
+        for _ in 0..30 {
+            g.step(&idle());
+            let (x, y) = g.baddies[0].tile();
+            moved |= x.abs_diff(at.0) + y.abs_diff(at.1) > 1;
+        }
+        assert!(moved, "the glitch jumped");
+        let mut g = stage("goal: clear\nbaddie: q typo\n", &grid.replace('1', "1").replace("#1.2......#", "#1.2......#"));
+        for _ in 0..600 {
+            g.step(&idle());
+        }
+        assert!(g.tiles.iter().flatten().any(|t| *t == Tile::Soft), "the typo typed blocks");
     }
 }

@@ -1,0 +1,33 @@
+name: The Big Fan
+world: The Power Supply
+clock: 05:13
+theme: power
+goal: boss
+time: 240
+story: The supply's great fan, infected and spun up far past its limit. It
+story: curls up and rolls at {dot}, flattening the coils, and calls up
+story: sparks. It can't roll through a crate.
+ending: The Big Fan spins down, and the hum of the supply drops back to
+ending: what it always was. No overload, no restart. Payload doesn't care:
+ending: it was never only one plan. It has already slipped up into the
+ending: terminal, into the scrollback, where everything ever printed on
+ending: this machine scrolls away out of sight. A good place to hide.
+baddie: s spark
+baddie: f fan
+baddie: c cap
+baddie: a arc
+baddie: j jolt
+baddie: x bigfan
+grid:
+#####################
+#1.2................#
+#..+...+.....+...+..#
+#...B.....-.....B...#
+#.+.......-.......+.#
+#....+....x....+....#
+#..........-........#
+#.+...B.......B...+.#
+#.........-.........#
+#..+...+.....+...+..#
+#.....s.......s.....#
+#####################

@@ -82,6 +82,12 @@ fn floors(theme: Theme) -> (Rgb, Rgb, Rgb) {
         Theme::Bin => ([54, 56, 62], [48, 50, 56], [30, 31, 36]),
         // the Games Folder: an old game's purple checker
         Theme::Games => ([52, 32, 84], [44, 27, 72], [26, 15, 44]),
+        // the Power Supply: a green circuit board
+        Theme::Power => ([30, 64, 44], [26, 57, 39], [14, 34, 22]),
+        // Scrollback: a terminal's black, a little green
+        Theme::Scroll => ([14, 20, 16], [11, 16, 13], [4, 6, 5]),
+        // Static: grey snow
+        Theme::Static => ([52, 52, 58], [46, 46, 52], [26, 26, 30]),
         _ => (FLOOR_A, FLOOR_B, FLOOR_SHADOW),
     }
 }
@@ -263,6 +269,82 @@ fn floppy(a: i32) -> &'static [&'static str] {
         8 => &["ggrrrrgg", "ggrdrrgg", "ggrrrrgg", "gggggggg", "glllllld", "glrrrrld", "gllllllg", "dddddddd"],
         6 => &["grrrgg", "grdrgg", "gggggg", "gllllg", "glrrlg", "dddddd"],
         _ => &["grrg", "gggg", "glld", "dddd"],
+    }
+}
+
+/// A Power Supply block: a coil of copper wire on its bobbin.
+fn coil(a: i32) -> &'static [&'static str] {
+    match a {
+        8 => &["dddddddd", "rlglglgr", "rglglglr", "rlglglgr", "rglglglr", "rlglglgr", "rglglglr", "dddddddd"],
+        6 => &["dddddd", "rlglgr", "rglglr", "rlglgr", "rglglr", "dddddd"],
+        _ => &["dddd", "rlgr", "rglr", "dddd"],
+    }
+}
+
+/// A Scrollback block: a line of green text.
+fn text_line(a: i32) -> &'static [&'static str] {
+    match a {
+        8 => &["dddddddd", "dlldlgld", "dgdldlld", "dlldlgdd", "dddddddd", "dgldlldd", "dldgdlgd", "dddddddd"],
+        6 => &["dddddd", "dlgldd", "dldlgd", "dddddd", "dgldld", "dddddd"],
+        _ => &["dddd", "dlgd", "dgld", "dddd"],
+    }
+}
+
+/// A Static block: a square of snow.
+fn snow(a: i32) -> &'static [&'static str] {
+    match a {
+        8 => &["lgrlgrdl", "rlgdlgrg", "glrlgdlr", "dgrlrlgd", "lrgdglrl", "grldrgdg", "rlgrlgrl", "dddddddd"],
+        6 => &["lgrlgd", "rldgrl", "grlrgd", "lgdlrg", "rlgrld", "dddddd"],
+        _ => &["lgrd", "rlgl", "gdrl", "dddd"],
+    }
+}
+
+/// A live wire's current, over the copper: lit while live, a flicker as it comes.
+fn wire_current(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, phase: u64, t: u64) {
+    use crate::game::{WIRE_LIVE, WIRE_PERIOD, WIRE_WARN};
+    let m = a / 2;
+    if phase < WIRE_LIVE {
+        for v in 0..a {
+            for u in 0..a {
+                let d = (v - m).abs().min((u - m).abs());
+                let hot = d == 0 || hash(x0 + u, y0 + v, t / 2) % 4 == 0 && d <= 1;
+                if hot {
+                    cv.block(x0 + u * k, y0 + v * k, k, if d == 0 { [255, 255, 200] } else { [120, 200, 255] });
+                }
+            }
+        }
+    } else if phase > WIRE_PERIOD - WIRE_WARN && (t / 4) % 2 == 0 {
+        for u in 0..a {
+            cv.block(x0 + u * k, y0 + m * k, k, [255, 220, 120]);
+            cv.block(x0 + m * k, y0 + u * k, k, [255, 220, 120]);
+        }
+    }
+}
+
+/// A row Scrollback has scrolled away: near black, a trace of old text.
+fn scrolled(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, tx: usize, ty: usize) {
+    for v in 0..a {
+        for u in 0..a {
+            let h = hash(u + tx as i32 * 8, v + ty as i32 * 8, 41) % 9;
+            cv.block(x0 + u * k, y0 + v * k, k, if h == 0 && v % 2 == 1 { [22, 44, 28] } else { [4, 6, 5] });
+        }
+    }
+}
+
+/// A flickering tile in Static, shut: a block of noise that won't stay still.
+fn flicker_block(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, t: u64) {
+    for v in 0..a {
+        for u in 0..a {
+            let h = hash(x0 + u, y0 + v, t / 3) % 5;
+            let c = match h {
+                0 => [240, 240, 245],
+                1 => [170, 170, 180],
+                2 => [110, 110, 122],
+                3 => [200, 90, 220],
+                _ => [70, 70, 80],
+            };
+            cv.block(x0 + u * k, y0 + v * k, k, c);
+        }
     }
 }
 
@@ -667,6 +749,7 @@ pub fn draw_arena(g: &Game, zoom: Zoom, cam: (i32, i32), shake: i16, area: Rect,
             match g.tiles[ty][tx] {
                 Tile::Wall if g.ground[ty][tx] == Ground::Water => water(&mut cv, x0, y0, a, k, t),
                 Tile::Wall if g.ground[ty][tx] == Ground::Tree => canopy(&mut cv, x0, y0, a, k, tx, ty),
+                Tile::Wall if g.ground[ty][tx] == Ground::Scrolled => scrolled(&mut cv, x0, y0, a, k, tx, ty),
                 Tile::Wall => {
                     let edge = tx == 0 || ty == 0 || tx == gw - 1 || ty == gh - 1;
                     let (h, m, d) = if edge {
@@ -696,6 +779,7 @@ pub fn draw_arena(g: &Game, zoom: Zoom, cam: (i32, i32), shake: i16, area: Rect,
                 Tile::Door(c) => door(&mut cv, x0, y0, a, k, KEY_COLOURS[c as usize]),
                 Tile::Gate => match g.ground[ty][tx] {
                     Ground::Shutter(tock) => shutter(&mut cv, x0, y0, a, k, tock, t),
+                    Ground::Flicker(_) => flicker_block(&mut cv, x0, y0, a, k, t),
                     _ => gate(&mut cv, x0, y0, a, k),
                 },
                 Tile::Socket => socket(&mut cv, x0, y0, a, k, t),
@@ -738,6 +822,15 @@ pub fn draw_arena(g: &Game, zoom: Zoom, cam: (i32, i32), shake: i16, area: Rect,
                     if g.ground[ty][tx] == Ground::Rewrite {
                         buffer_cell(&mut cv, x0, y0, a, k, g.rewrite[ty][tx]);
                     }
+                    if g.ground[ty][tx] == Ground::Wire {
+                        wire_current(&mut cv, x0, y0, a, k, g.wire_phase(tx, ty), t);
+                    }
+                    if g.theme == Theme::Static && g.ground[ty][tx] == Ground::Plain && hash(tx as i32, ty as i32, t / 6) % 7 == 0 {
+                        // a speck of snow on the floor
+                        let h = hash(tx as i32, ty as i32, t / 6 + 1);
+                        let (fx, fy) = ((h % a as u32) as i32, (h / 7 % a as u32) as i32);
+                        cv.block(x0 + fx * k, y0 + fy * k, k, [120, 120, 130]);
+                    }
                     // the block above casts a shadow onto the top of this floor tile
                     if ty > 0 && g.tiles[ty - 1][tx] != Tile::Floor {
                         for x in 0..s {
@@ -753,6 +846,20 @@ pub fn draw_arena(g: &Game, zoom: Zoom, cam: (i32, i32), shake: i16, area: Rect,
                         Some(Pickup::Key(c)) => key(&mut cv, x0, y0, a, k, KEY_COLOURS[c as usize], t),
                         Some(Pickup::Part) => part(&mut cv, x0, y0, a, k, t),
                         None => {}
+                    }
+                }
+            }
+        }
+    }
+
+    // Scrollback: the next row to go flashes red for its last two seconds
+    if g.scroll_every > 0 && g.scroll_top <= g.scroll_last && g.clock + g.scroll_every > 4 * HZ && g.scroll_every - (g.clock + g.scroll_every - 4 * HZ) % g.scroll_every <= crate::game::SCROLL_WARN && (t / 8) % 2 == 0 {
+        let y = g.scroll_top as i32 * s;
+        for tx in 1..gw - 1 {
+            for v in 0..a {
+                if v == 0 || v == a - 1 {
+                    for u in 0..a {
+                        cv.block(tx as i32 * s + u * k, y + v * k, k, [230, 60, 60]);
                     }
                 }
             }
@@ -1129,7 +1236,22 @@ fn ground(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, gr: Ground, t: u64)
     let px = |cv: &mut Canvas, u: i32, v: i32, c: Rgb| cv.block(x0 + u * k, y0 + v * k, k, c);
     match gr {
         // drawn by `buffer_cell`, which knows how long it has waited
-        Ground::Plain | Ground::Water | Ground::Tree | Ground::Rewrite => {}
+        Ground::Plain | Ground::Water | Ground::Tree | Ground::Rewrite | Ground::Scrolled => {}
+        Ground::Wire => {
+            // a copper wire across the tile, with a pad where it bends
+            let m = a / 2;
+            for u in 0..a {
+                px(cv, u, m, [176, 112, 60]);
+                px(cv, m, u, [176, 112, 60]);
+            }
+            px(cv, m, m, [230, 180, 110]);
+        }
+        Ground::Flicker(_) => {
+            // its frame, while it is open
+            for (u, v) in [(0, 0), (a - 1, 0), (0, a - 1), (a - 1, a - 1)] {
+                px(cv, u, v, [150, 90, 170]);
+            }
+        }
         Ground::Sunk => {
             // a block's top, flush with the water round it
             for v in 0..a {
@@ -1304,6 +1426,9 @@ fn soft_block(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, burning: Option
         Theme::Cold => frost(a),
         Theme::Bin => paper(a),
         Theme::Games => floppy(a),
+        Theme::Power => coil(a),
+        Theme::Scroll => text_line(a),
+        Theme::Static => snow(a),
     };
     for (dy, row) in rows.iter().enumerate() {
         for (dx, ch) in row.chars().enumerate() {
@@ -1336,6 +1461,18 @@ fn soft_block(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, burning: Option
                 (Theme::Games, 'g') => [64, 76, 168],
                 (Theme::Games, 'r') => [172, 176, 192],
                 (Theme::Games, 'd') => [28, 30, 84],
+                (Theme::Power, 'l') => [236, 176, 96],
+                (Theme::Power, 'g') => [184, 112, 52],
+                (Theme::Power, 'r') => [96, 62, 40],
+                (Theme::Power, 'd') => [60, 64, 70],
+                (Theme::Scroll, 'l') => [150, 255, 170],
+                (Theme::Scroll, 'g') => [60, 170, 90],
+                (Theme::Scroll, 'r') => [30, 80, 45],
+                (Theme::Scroll, 'd') => [18, 34, 22],
+                (Theme::Static, 'l') => [235, 235, 240],
+                (Theme::Static, 'g') => [160, 160, 170],
+                (Theme::Static, 'r') => [100, 100, 112],
+                (Theme::Static, 'd') => [40, 40, 46],
                 _ => continue,
             };
             if burning.is_some() {
@@ -1474,6 +1611,7 @@ fn draw_small(g: &Game, cam: (i32, i32), area: Rect, buf: &mut Buffer) {
             match g.tiles[ty][tx] {
                 Tile::Wall if g.ground[ty][tx] == Ground::Water => put(x, y, "~~", [150, 200, 240], [45, 95, 175]),
                 Tile::Wall if g.ground[ty][tx] == Ground::Tree => put(x, y, "♣♣", [110, 175, 80], [30, 80, 35]),
+                Tile::Wall if g.ground[ty][tx] == Ground::Scrolled => put(x, y, "  ", [4, 6, 5], [4, 6, 5]),
                 Tile::Wall => put(x, y, "██", [150, 150, 168], floor),
                 Tile::Pressure(_) => put(x, y, "▓▓", [235, 190, 60], [90, 62, 18]),
                 Tile::Dud => put(x, y, "!!", [250, 205, 60], [150, 30, 35]),
@@ -1482,6 +1620,9 @@ fn draw_small(g: &Game, cam: (i32, i32), area: Rect, buf: &mut Buffer) {
                 Tile::Soft if g.theme == Theme::Cold => put(x, y, "▒▒", [225, 242, 252], [112, 152, 182]),
                 Tile::Soft if g.theme == Theme::Bin => put(x, y, "▒▒", [242, 240, 230], [112, 110, 104]),
                 Tile::Soft if g.theme == Theme::Games => put(x, y, "▒▒", [172, 176, 192], [64, 76, 168]),
+                Tile::Soft if g.theme == Theme::Power => put(x, y, "▒▒", [236, 176, 96], [96, 62, 40]),
+                Tile::Soft if g.theme == Theme::Scroll => put(x, y, "▒▒", [150, 255, 170], [18, 34, 22]),
+                Tile::Soft if g.theme == Theme::Static => put(x, y, "▒▒", [235, 235, 240], [100, 100, 112]),
                 Tile::Packed => put(x, y, "≡≡", [242, 222, 120], [138, 100, 182]),
                 Tile::Soft => put(x, y, "▒▒", [205, 130, 66], [108, 58, 32]),
                 Tile::Burning(_) => put(x, y, "▒▒", [255, 200, 60], [200, 70, 25]),
@@ -1489,6 +1630,7 @@ fn draw_small(g: &Game, cam: (i32, i32), area: Rect, buf: &mut Buffer) {
                 Tile::Door(c) => put(x, y, "##", KEY_COLOURS[c as usize], [30, 30, 38]),
                 Tile::Gate => match g.ground[ty][tx] {
                     Ground::Shutter(tock) => put(x, y, "==", shutter_colours(tock).0, shutter_colours(tock).1),
+                    Ground::Flicker(_) => put(x, y, "░░", [235, 235, 240], [110, 70, 130]),
                     _ => put(x, y, "||", [120, 200, 230], floor),
                 },
                 Tile::Socket => put(x, y, "[]", [235, 195, 70], [28, 28, 36]),
@@ -1515,6 +1657,12 @@ fn draw_small(g: &Game, cam: (i32, i32), area: Rect, buf: &mut Buffer) {
                     (None, Ground::Warp) => put(x, y, "()", [120, 230, 255], [60, 30, 110]),
                     (None, Ground::Ice) => put(x, y, "  ", [255, 255, 255], [175, 218, 240]),
                     (None, Ground::Rewrite) => put(x, y, "··", [62, 84, 92], floor),
+                    (None, Ground::Wire) => {
+                        let live = g.wire_live(tx, ty);
+                        put(x, y, if live { "≈≈" } else { "--" }, if live { [255, 255, 200] } else { [176, 112, 60] }, if live { [60, 120, 220] } else { floor })
+                    }
+                    (None, Ground::Flicker(_)) => put(x, y, "::", [150, 90, 170], floor),
+                    (None, Ground::Scrolled) => put(x, y, "  ", floor, floor),
                     (None, Ground::Plain | Ground::Water | Ground::Tree) => put(x, y, "  ", floor, floor),
                 },
             }

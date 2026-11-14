@@ -1,0 +1,29 @@
+name: The Heat Sink
+world: The Power Supply
+clock: 05:10
+theme: power
+goal: exit
+time: 220
+story: The heat sink's fins, row on row, and the wires between them. Four
+story: parts of the supply's own lie at the ends of the fins; they open the
+story: sockets in front of the hatch. Jolts discharge along the rows.
+baddie: s spark
+baddie: f fan
+baddie: c cap
+baddie: a arc
+baddie: j jolt
+baddie: x bigfan
+grid:
+#######################
+#1.2+.+.+.+.+.+.+.+.+$#
+#.###################.#
+#.+.+.+.+.j.+.+.+.+.+-#
+####################.##
+#$+.+.+.+.+.+.+.+.+.+.#
+#.#####################
+#-+.+.+.+.+.+.+.+.+.+.#
+####################.##
+#.+.+.j.+.+.+.+.+.+.+$#
+#-#####################
+#$+.+.+.+.+.+.+.+.+.SE#
+#######################

@@ -7,15 +7,16 @@ that made those games feel like chaos you could still read. Same kind of
 mechanics, our own identity. Not a clone.
 
 Own git repo, private at github.com/theasciiverse/uxo (`main`).
-Version 0.7.0 (2026-11-14). What comes next, release by release, is in `ROADMAP.md`.
+Version 0.8.0 (2026-11-14). What comes next, release by release, is in `ROADMAP.md`.
 
-**Status:** Acts 1 and 2 of Adventure playable: act 1's three worlds (the Clock
-and the Buffer built 2026-10-29) and act 2's, the Forgotten Game (Cold Storage,
-the Recycle Bin and the Games Folder on branching maps, built 2026-11-14);
-battle mode complete (2026-10-04). A title screen (big
+**Status:** Acts 1 and 2 of Adventure playable and act 3 up to the Prompt:
+act 1's three worlds (the Clock and the Buffer built 2026-10-29), act 2's, the
+Forgotten Game (Cold Storage, the Recycle Bin and the Games Folder on branching
+maps), and act 3's Power Supply, Scrollback and Static (both built 2026-11-14);
+battle mode complete (2026-10-04). Next: the Prompt and the way out (1.0). A title screen (big
 pixel logo over fireworks) leads to **Adventure** (alone or two together: the
 Screensaver's, the Clock's and the Buffer's nine stages each, story cards,
-thirty-one baddie species and six bosses, act 2's branching maps, purged's charges, tamed mounts, lives,
+forty-six baddie species and nine bosses, act 2's branching maps, purged's charges, tamed mounts, lives,
 score, a clock, saved progress for Continue, which can start at any stage reached: left and right pick it) or **Battle**.
 
 Battle: One player practises; a second
@@ -329,6 +330,19 @@ party bomb game.
   action, 4 and 5 each open both 6 and 7, and 6 and 7 lead to 8, then the
   boss. Tests check every map stage can be reached and only the boss leads
   nowhere; the hatch test follows warps.
+- **Act 3, the Virus (built 2026-11-14 up to the Prompt), see `WORLD.md`:**
+  Payload races Dot to the modem, which dials out at six; 05:01 on. No
+  map. World 7, **the Power Supply** (`adventure/power/`, theme `power`):
+  live wires (`-`, `Ground::Wire`, `Game::wire_live`); Spark, Fan, Cap, Arc,
+  Jolt and the Big Fan. World 8, **Scrollback** (`adventure/scroll/`, theme
+  `scroll`, laid out once by a generator, the files are the source of
+  truth): stage header `scroll: N`, `Game::tick_scroll` takes the top row
+  every N seconds after 4 s of grace, red for its last two seconds; Echo,
+  Tail, Grep, Cat, Pipe and the Pager. World 9, **Static**
+  (`adventure/static/`, theme `static`): flickering tiles (`!`,
+  `Ground::Flicker`); Snow, Noise, Glitch (`ability: warp`), Typo
+  (`ability: type`), Burst and Payload, whose ending sends Dot on to the
+  Prompt.
 - **Store copy waits for the story.** The catalog page written on
   2026-10-27 sells bombs and chain reactions with no story; David found it
   "nowhere how to present a bomb-arena game". The classics sold a villain

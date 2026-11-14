@@ -1,0 +1,47 @@
+name: Payload
+about: the virus itself, thirty years asleep in the old game; it flickers away and back, and calls up glitches
+hp: 12
+speed: 0.6
+move: wander
+size: 2
+sees: 7
+on_sight: chase
+every: 220
+ability: warp
+summon: glitch
+points: 10000
+colors: v=90,220,90 d=30,120,40 l=180,255,170 k=20,20,28 w=255,255,255 r=220,40,60
+art:
+.....v....v.....
+..v...v..v...v..
+...vvvvvvvvvv...
+..vllllllllllv..
+.vlvvvvvvvvvvdv.
+vvlvwwvvvvwwvdvv
+..lvwkvvvvwkvd..
+..lvvvvvvvvvvd..
+..lvvrrrrrrvvd..
+vvlvvrvrrvrvvdvv
+.vlvvvvvvvvvvdv.
+..vddddddddddv..
+...vvvvvvvvvv...
+..v...v..v...v..
+.....v....v.....
+................
+art2:
+....v......v....
+...v..v..v..v...
+...vvvvvvvvvv...
+..vllllllllllv..
+vvlvvvvvvvvvvdvv
+.vlvwwvvvvwwvdv.
+..lvkwvvvvkwvd..
+..lvvvvvvvvvvd..
+..lvvrrrrrrvvd..
+.vlvvrvrrvrvvdv.
+vvlvvvvvvvvvvdvv
+..vddddddddddv..
+...vvvvvvvvvv...
+...v..v..v..v...
+....v......v....
+................

@@ -1,0 +1,25 @@
+name: Noise
+about: a burst of noise rushing straight across the screen
+hp: 1
+speed: 1.4
+move: straight
+points: 200
+colors: w=240,240,245 m=210,90,230 c=90,220,230 k=20,20,28
+art:
+........
+mwcwmwc.
+wmkwckm.
+cwmwcwmw
+mcwmwcwm
+.wcmwmc.
+..m..c..
+........
+art2:
+........
+cwmwcwm.
+wckwmkc.
+mwcwmwcw
+cmwcwmwc
+.wmcwcm.
+..c..m..
+........

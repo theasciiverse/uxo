@@ -1,0 +1,30 @@
+name: Test Pattern
+world: Static
+clock: 05:38
+theme: static
+goal: exit
+time: 220
+story: The screen's own test pattern, bars and a circle, stuck there since
+story: the screen was new. Four parts of the picture have come loose; put
+story: them back and the sockets round the hatch open. Noise runs straight
+story: across.
+baddie: n snow
+baddie: z noise
+baddie: g glitch
+baddie: y typo
+baddie: q burst
+baddie: x payload
+grid:
+#######################
+#1.2...!.....!......$.#
+#.##.###.###.###.###..#
+#........!...!..!..z..#
+#.##.###.##...##.####.#
+#$.....!...S...!.....$#
+#.##.###.#SES#.###.##.#
+#.......!..S..!...z...#
+#.##.###.##.##.###.##.#
+#..z..!.........!.....#
+#.##.###.###.###.###..#
+#$.....!.......!......#
+#######################

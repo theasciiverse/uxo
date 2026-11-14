@@ -1,0 +1,28 @@
+name: Root
+about: runs as root, and nothing stops it; when it sees you lined up it charges
+hp: 2
+speed: 0.6
+move: wander
+sees: 6
+on_sight: charge
+points: 500
+egg: dash
+colors: r=230,70,60 a=255,190,70 k=20,16,10 w=255,255,255
+art:
+.a.aa.a.
+.aaaaaa.
+.rrrrrr.
+rrwkrwkr
+rrrrrrrr
+.rrrrrr.
+.r.rr.r.
+r......r
+art2:
+.a.aa.a.
+.aaaaaa.
+.rrrrrr.
+rrwkrwkr
+rrrrrrrr
+.rrrrrr.
+..r..r..
+.rr..rr.

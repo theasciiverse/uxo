@@ -208,8 +208,7 @@ Diskette (hides as a floppy disk; 2 HP), Turbo (charges; egg dash), and
 
 ## Act 3: the Virus
 
-**Built 2026-11-14 up to the Prompt** (the Prompt, the last fight and the
-way out are 1.0).
+**Built 2026-11-14**, the Prompt and the way out included.
 
 - **Payload** was in the Forgotten Game all along: a virus asleep on its
   disk for thirty years (shareware went round on floppies, and so did
@@ -233,7 +232,8 @@ way out are 1.0).
 | 05:01 to 05:13 | the Power Supply | Payload runs the power up; the Big Fan |
 | 05:15 to 05:28 | Scrollback | it hides in the scrollback; the Pager |
 | 05:30 to 05:43 | Static | the screen full of noise; Payload's first fight |
-| 05:45 to 06:00 | the Prompt (1.0) | its last copy types the command to dial out |
+| 05:45 to 05:58 | the Prompt | its last copy types the command to dial out |
+| 06:00 | the ending | only the mail goes out; Dot steps out through the prompt |
 
 ### The Power Supply
 
@@ -265,6 +265,24 @@ own beat (`FLICKER`), never shutting on anyone. Species: Snow, Noise
 Typo (types blocks behind it, `ability: type`), Burst (charges; egg dash),
 and **Payload** (warps, follows on sight, calls up glitches). Cards in
 `adventure/static/`.
+
+### The Prompt, and the way out
+
+The command line at the bottom of the screen, amber on the dark, its blocks
+typed characters. Payload's last copy is typing the command that dials out:
+**the command line** (`,`, stage header `typing:` half-seconds a character)
+fills a character at a time from its first gap, after five seconds' grace;
+a blast deletes characters, and it types on from the first gap again. With
+the whole line typed it presses Enter, and that costs a life and the stage,
+like the clock running out. The HUD shows the command's progress in place
+of the hints. Species: Arg, Flag (straight, fast), Wildcard (warps), Alias
+(passes for a typed character; 2 HP), Root (charges; egg dash), Bang
+(hops; egg hop), and **Payload's last copy** (lays green logic bombs,
+follows on sight, calls up wildcards; 16 HP). Its ending is the game's:
+six o'clock, only the mail goes out, and the prompt is a cursor, the way
+through. Dot (and Caret) step out onto the screen of the old machine, in
+a dark room getting light. Rule 2's promise kept: the game ends where it
+began, at a cursor. Cards in `adventure/prompt/`.
 
 ## Decisions
 

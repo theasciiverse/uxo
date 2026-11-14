@@ -7,16 +7,17 @@ that made those games feel like chaos you could still read. Same kind of
 mechanics, our own identity. Not a clone.
 
 Own git repo, private at github.com/theasciiverse/uxo (`main`).
-Version 0.8.0 (2026-11-14). What comes next, release by release, is in `ROADMAP.md`.
+Version 0.9.0 (2026-11-14). What comes next, release by release, is in `ROADMAP.md`.
 
-**Status:** Acts 1 and 2 of Adventure playable and act 3 up to the Prompt:
-act 1's three worlds (the Clock and the Buffer built 2026-10-29), act 2's, the
+**Status:** All three acts of Adventure playable, ten worlds, 90 stages: act
+1's three worlds (the Clock and the Buffer built 2026-10-29), act 2's, the
 Forgotten Game (Cold Storage, the Recycle Bin and the Games Folder on branching
-maps), and act 3's Power Supply, Scrollback and Static (both built 2026-11-14);
-battle mode complete (2026-10-04). Next: the Prompt and the way out (1.0). A title screen (big
+maps), and act 3's Power Supply, Scrollback, Static and the Prompt with the
+ending (both built 2026-11-14); battle mode complete (2026-10-04). Next: a
+play-through by hand, then 1.0.0. A title screen (big
 pixel logo over fireworks) leads to **Adventure** (alone or two together: the
 Screensaver's, the Clock's and the Buffer's nine stages each, story cards,
-forty-six baddie species and nine bosses, act 2's branching maps, purged's charges, tamed mounts, lives,
+fifty-two baddie species and ten bosses, act 2's branching maps, purged's charges, tamed mounts, lives,
 score, a clock, saved progress for Continue, which can start at any stage reached: left and right pick it) or **Battle**.
 
 Battle: One player practises; a second
@@ -342,7 +343,12 @@ party bomb game.
   (`adventure/static/`, theme `static`): flickering tiles (`!`,
   `Ground::Flicker`); Snow, Noise, Glitch (`ability: warp`), Typo
   (`ability: type`), Burst and Payload, whose ending sends Dot on to the
-  Prompt.
+  Prompt. World 10, **the Prompt** (`adventure/prompt/`, theme `prompt`):
+  the command line (`,`, `Ground::Line`, `typing:` header,
+  `Game::tick_line`) Payload types full, Enter (`Event::Enter`) costing a
+  life and the stage like time up (`Run::entered` for the banner); Arg,
+  Flag, Wildcard, Alias, Root, Bang and Payload's last copy (`lastcopy`).
+  Its ending is the game's, then THE END.
 - **Store copy waits for the story.** The catalog page written on
   2026-10-27 sells bombs and chain reactions with no story; David found it
   "nowhere how to present a bomb-arena game". The classics sold a villain

@@ -78,7 +78,7 @@ pub struct Species {
 
 const BASE: i32 = 12;
 
-pub const FILES: [(&str, &str); 55] = [
+pub const FILES: [(&str, &str); 62] = [
     ("grub", include_str!("../baddies/grub.txt")),
     ("beetle", include_str!("../baddies/beetle.txt")),
     ("hedgehog", include_str!("../baddies/hedgehog.txt")),
@@ -142,6 +142,14 @@ pub const FILES: [(&str, &str); 55] = [
     ("typo", include_str!("../baddies/typo.txt")),
     ("burst", include_str!("../baddies/burst.txt")),
     ("payload", include_str!("../baddies/payload.txt")),
+    // the Prompt, and Payload's last copy
+    ("arg", include_str!("../baddies/arg.txt")),
+    ("flag", include_str!("../baddies/flag.txt")),
+    ("wildcard", include_str!("../baddies/wildcard.txt")),
+    ("alias", include_str!("../baddies/alias.txt")),
+    ("root", include_str!("../baddies/root.txt")),
+    ("bang", include_str!("../baddies/bang.txt")),
+    ("lastcopy", include_str!("../baddies/lastcopy.txt")),
 ];
 
 pub fn roster() -> Vec<Species> {

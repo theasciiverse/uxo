@@ -1,0 +1,28 @@
+name: Alias
+about: goes by another name: it passes for a typed character until you come close, then chases you
+hp: 2
+speed: 0.7
+move: wander
+sees: 5
+on_sight: chase
+mimic: yes
+points: 400
+colors: a=176,124,52 g=134,92,36 d=70,46,18 k=20,16,10 w=255,255,255
+art:
+dddddddd
+daaaaagd
+dawkawkd
+daaaaagd
+dagggggd
+daaaaagd
+.d.dd.d.
+d......d
+art2:
+dddddddd
+daaaaagd
+dawkawkd
+daaaaagd
+dagggggd
+daaaaagd
+..d..d..
+.dd..dd.

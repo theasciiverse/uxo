@@ -15,7 +15,8 @@ Push crates for cover, hold switches down to open the gates, hunt down keys
 and lost parts. Ride the beasts that hatch from the eggs the baddies leave.
 And watch the kills that hang: they lie there live, waiting.
 
-Three acts of the Adventure, 81 stages, Dot alone or Dot and Caret together.
+The whole Adventure: three acts, ten worlds, 90 stages, Dot alone or Dot and
+Caret together.
 Act 1: through the Screensaver to the Bramblehog, into the Clock, where purged
 winds the time on toward four and the Cuckoo waits to strike the hour, and down
 into the Buffer, where blocks come back as fast as you blow them away and purged
@@ -26,7 +27,9 @@ comes back unless you empty it, and the Games Folder, where its creatures lay
 bombs of their own and its hero, Demo, waits at the end. Act 3: a virus
 that slept thirty years in that old game races Dot to the modem, which dials
 out at six: through the Power Supply's live wires, up the Scrollback, where the
-top line keeps scrolling away, and into the Static on the screen itself. Battle takes up to four players
+top line keeps scrolling away, into the Static on the screen itself, and
+down to the Prompt, where its last copy is typing the command that dials out.
+Delete it, character by character, and find the way out. Battle takes up to four players
 through six arenas, with revenge riders, sudden death and the dreaded skull.
 A love letter to the 90s bomb-arena games.
 

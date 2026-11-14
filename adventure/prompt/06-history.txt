@@ -1,0 +1,31 @@
+name: History
+world: The Prompt
+clock: 05:53
+theme: prompt
+goal: clear
+typing: 6
+give: surge
+time: 190
+story: The shell's history expansion: bangs, bounding two tiles back to
+story: anything. Open ground round the command line, and out here {dot}'s
+story: bombs surge. Beat a bang and ride its copy.
+baddie: a arg
+baddie: f flag
+baddie: q wildcard
+baddie: l alias
+baddie: r root
+baddie: b bang
+baddie: x lastcopy
+grid:
+#######################
+#1.2+++.......+++.....#
+#..+.+..b...b..+.+....#
+#.+++...........+++...#
+#.....+++...+++.......#
+#..,,,,,,,,,,,,,,,,,..#
+#.....+++...+++...a...#
+#.+++.....b.....+++...#
+#..+.+...........+.+..#
+#.+++..a......b..+++..#
+#....+++.....+++.....E#
+#######################

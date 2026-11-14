@@ -1,0 +1,31 @@
+name: Tab Completion
+world: The Prompt
+clock: 05:54
+theme: prompt
+goal: exit
+typing: 5
+time: 220
+story: Payload has found tab completion, and types faster. Four parts of
+story: the prompt lie in the corners; they open the sockets round the
+story: hatch. Keep the line short while you look.
+baddie: a arg
+baddie: f flag
+baddie: q wildcard
+baddie: l alias
+baddie: r root
+baddie: b bang
+baddie: x lastcopy
+grid:
+#######################
+#1.2..?...?...?....?.$#
+#.#.#.#.#.#.#.#.#.#.#.#
+#..?......?..a?..?....#
+#.#.#.#.#.###.#.#.#.#.#
+#$,,,,,,,,SES,,,,,,,,$#
+#.#.#.#.#.#S#.#.#.#.#.#
+#..?..?...?...?..a....#
+#.#.#.#.#.#.#.#.#.#.#.#
+#.?...f...?...?..?..?.#
+#.#.#.#.#.#.#.#.#.#.#.#
+#$..?...?...?...?...?.#
+#######################

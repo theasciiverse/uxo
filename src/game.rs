@@ -89,6 +89,8 @@ pub const WIRE_WARN: u64 = 40;
 pub const FLICKER: u64 = 3 * HZ as u64;
 /// Scrollback: the next row to go shows this long before it is gone.
 pub const SCROLL_WARN: u32 = 2 * HZ;
+/// The Prompt: a few seconds before the first character of the command is typed.
+const LINE_GRACE: u32 = 5 * HZ;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Tile {
@@ -161,6 +163,8 @@ pub enum Theme {
     Power,
     Scroll,
     Static,
+    /// The Prompt, the last world.
+    Prompt,
 }
 
 /// A beaten creature's deleted file in the Recycle Bin: it is restored after `left`
@@ -240,6 +244,9 @@ pub enum Ground {
     Scrolled,
     /// Static's flickering tile, shut (`Tile::Gate`) or open, on its own beat.
     Flicker(u8),
+    /// The Prompt's command line: Payload types its command onto these, one
+    /// character (a soft block) at a time, in reading order.
+    Line,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -628,6 +635,10 @@ pub enum Event {
     Scrolled { row: usize },
     /// A creature warped across the stage.
     Warped,
+    /// Payload typed a character of its command.
+    Typed,
+    /// The command is typed in full, and Payload pressed Enter.
+    Enter,
 }
 
 pub struct Game {
@@ -668,6 +679,10 @@ pub struct Game {
     pub scroll_every: u32,
     pub scroll_top: usize,
     pub scroll_last: usize,
+    /// The Prompt: steps per character Payload types (0: no command line).
+    pub line_every: u32,
+    /// The command line's tiles, in reading order.
+    pub line: Vec<(usize, usize)>,
     pub flames: Vec<Vec<Option<Flame>>>,
     pub bombs: Vec<Bomb>,
     pub surges: Vec<Surge>,
@@ -777,6 +792,8 @@ impl Game {
             scroll_every: 0,
             scroll_top: 1,
             scroll_last: 0,
+            line_every: 0,
+            line: Vec::new(),
             flames: vec![vec![None; w]; h],
             bombs: Vec::new(),
             surges: Vec::new(),
@@ -881,6 +898,10 @@ impl Game {
                     Cell::Socket => g.tiles[y][x] = Tile::Socket,
                     Cell::Packed => g.tiles[y][x] = Tile::Packed,
                     Cell::Wire => g.ground[y][x] = Ground::Wire,
+                    Cell::Line => {
+                        g.ground[y][x] = Ground::Line;
+                        g.line.push((x, y));
+                    }
                     Cell::Flicker => {
                         let h = (x as u32).wrapping_mul(0x9e37_79b1) ^ (y as u32).wrapping_mul(0x85eb_ca77);
                         g.ground[y][x] = Ground::Flicker((h >> 13) as u8);
@@ -894,6 +915,7 @@ impl Game {
         g.goal = st.goal;
         g.exit_open = st.goal == Goal::Exit;
         g.scroll_every = st.scroll * HZ;
+        g.line_every = st.typing * HZ / 2;
         // it scrolls no closer than three rows above the hatch
         g.scroll_last = g.exit.map_or(st.h.saturating_sub(5), |(_, ey)| ey.saturating_sub(3));
         for (id, x, y) in placed {
@@ -1081,6 +1103,7 @@ impl Game {
         self.step_baddies();
         self.tick_restores();
         self.tick_scroll();
+        self.tick_line();
         self.hurt_and_pickup();
         self.infect();
         self.take_eggs();
@@ -1666,6 +1689,40 @@ impl Game {
             }
         }
         self.events.push(Event::Scrolled { row: y });
+    }
+
+    /// The command line's next free tile: where Payload types next.
+    pub fn line_cursor(&self) -> Option<(usize, usize)> {
+        self.line.iter().copied().find(|&(x, y)| self.tiles[y][x] != Tile::Soft && !matches!(self.tiles[y][x], Tile::Burning(_)))
+    }
+
+    /// How much of the command is typed, out of how much.
+    pub fn line_typed(&self) -> (usize, usize) {
+        let typed = self.line.iter().filter(|&&(x, y)| self.tiles[y][x] == Tile::Soft).count();
+        (typed, self.line.len())
+    }
+
+    /// The Prompt: Payload types the next character of its command onto the line;
+    /// a blast deletes characters, and it types on from the first gap. With the
+    /// whole line typed, it presses Enter.
+    fn tick_line(&mut self) {
+        if self.line_every == 0 || self.cleared || self.clock <= LINE_GRACE || (self.clock - LINE_GRACE) % self.line_every != 0 {
+            return;
+        }
+        // with the boss beaten, nobody is typing
+        if self.goal == Goal::Boss && !self.baddies.iter().any(|b| b.alive && self.species[b.species].size > 1) {
+            return;
+        }
+        match self.line_cursor() {
+            Some((x, y)) => {
+                if self.tiles[y][x] == Tile::Floor && !self.occupied(x, y) && self.flames[y][x].is_none() {
+                    self.items[y][x] = None;
+                    self.tiles[y][x] = Tile::Soft;
+                    self.events.push(Event::Typed);
+                }
+            }
+            None => self.events.push(Event::Enter),
+        }
     }
 
     /// The Clock's beat: false on the tick, true on the tock.

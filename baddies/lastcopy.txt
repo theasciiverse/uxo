@@ -1,0 +1,48 @@
+name: Payload
+about: the virus's last copy, at the prompt, typing its command; it lays logic bombs, follows you on sight and calls up wildcards
+hp: 16
+speed: 0.6
+move: wander
+size: 2
+sees: 8
+on_sight: chase
+every: 160
+ability: bomb
+fire: 3
+summon: wildcard
+points: 20000
+colors: v=90,220,90 d=30,120,40 l=180,255,170 k=20,20,28 w=255,255,255 r=220,40,60 a=255,190,70
+art:
+.....v....v.....
+..v...v..v...v..
+...vvvvvvvvvv...
+..vllllllllllv..
+.vlvvvvvvvvvvdv.
+vvlvwwvvvvwwvdvv
+..lvkwvvvvkwvd..
+..lvvvvvvvvvvd..
+..lvvrrrrrrvvd..
+vvlvvrvrrvrvvdvv
+.vlvvvvvvvvvvdv.
+..vddddddddddv..
+...vvvvvvvvvv...
+..v...v..v...v..
+.....v....v.....
+....aaaaaaaa....
+art2:
+....v......v....
+...v..v..v..v...
+...vvvvvvvvvv...
+..vllllllllllv..
+vvlvvvvvvvvvvdvv
+.vlvwwvvvvwwvdv.
+..lvwkvvvvwkvd..
+..lvvvvvvvvvvd..
+..lvvrrrrrrvvd..
+.vlvvrvrrvrvvdv.
+vvlvvvvvvvvvvdvv
+..vddddddddddv..
+...vvvvvvvvvv...
+...v..v..v..v...
+....v......v....
+................

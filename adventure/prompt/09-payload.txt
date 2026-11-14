@@ -1,0 +1,39 @@
+name: Payload's Last Copy
+world: The Prompt
+clock: 05:58
+theme: prompt
+goal: boss
+typing: 5
+time: 240
+story: Two minutes to six. Payload's last copy, at the very end of the
+story: command line, typing with one hand and laying logic bombs with the
+story: other. Keep deleting its command, and beat it before it presses
+story: Enter. Every bomb in here is a kill, and this is the last one.
+ending: The last kill goes through, and the last copy of Payload comes apart
+ending: character by character, until there is nothing on the line at all.
+ending: Six o'clock. The modem dials out for the mail, and only the mail
+ending: goes. The screen is empty but for the prompt, blinking at the bottom,
+ending: and a cursor is a way through. One step, and out: {dot}, blinking
+ending: on the screen of an old machine, in a dark room where the sky
+ending: outside is getting light.
+ending: Blasted out to the real world. THE END.
+baddie: a arg
+baddie: f flag
+baddie: q wildcard
+baddie: l alias
+baddie: r root
+baddie: b bang
+baddie: x lastcopy
+grid:
+#####################
+#1.2................#
+#..+...+.....+...+..#
+#...B.....+.....B...#
+#.+.......+.......+.#
+#....+....x....+....#
+#...................#
+#.+...B.......B...+.#
+#...................#
+#.,,,,,,,,,,,,,,,,,.#
+#.....a.......a.....#
+#####################

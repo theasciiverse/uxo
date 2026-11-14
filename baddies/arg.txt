@@ -1,0 +1,25 @@
+name: Arg
+about: an argument left on the command line, wandering about looking for its command
+hp: 1
+speed: 0.6
+move: wander
+points: 200
+colors: a=210,235,255 d=110,150,190 k=20,16,10 w=255,255,255
+art:
+..aaaa..
+.aaaaaa.
+aawkawka
+aaaaaaaa
+aaddddaa
+.aaaaaa.
+..a..a..
+.aa..aa.
+art2:
+..aaaa..
+.aaaaaa.
+aawkawka
+aaaaaaaa
+aaddddaa
+.aaaaaa.
+.a....a.
+aa....aa

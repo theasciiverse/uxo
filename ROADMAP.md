@@ -1,11 +1,12 @@
 # Roadmap
 
-uXo is at 0.8.0 (2026-11-14): battle mode complete, act 1 whole (the
-Screensaver, the Clock, the Buffer and purged's fight), act 2 whole (Cold
-Storage, the Recycle Bin, the Games Folder and Demo's fight, on the
-Forgotten Game's branching maps) and act 3 up to the Prompt (the Power
-Supply, Scrollback, Static and Payload's first fight), with the world's
-rules settled (`WORLD.md`). The adventure is a story in three
+uXo is at 0.9.0 (2026-11-14): battle mode complete and all three acts of
+the adventure in, ten worlds and 90 stages: act 1 (the Screensaver, the
+Clock, the Buffer and purged's fight), act 2 (Cold Storage, the Recycle
+Bin, the Games Folder and Demo's fight, on the Forgotten Game's branching
+maps) and act 3 (the Power Supply, Scrollback, Static, the Prompt and
+Payload's last copy, and the way out), with the world's rules settled
+(`WORLD.md`). What is left for 1.0.0 is a play-through by hand. The adventure is a story in three
 acts, inside the machine, built one world at a time. 1.0.0 is when all
 three acts are in.
 
@@ -94,10 +95,22 @@ three acts are in.
   first fight
 - [x] Act 3 runs straight on, no map: a race to the modem at six
 
+## 0.9.0: the Prompt and the way out, built
+
+- [x] The Prompt: Payload's last copy types its dial-out command onto the
+  command line (`,`) a character at a time; a blast deletes characters,
+  and with the whole line typed it presses Enter (a life, and the stage
+  again); the HUD shows how much is typed. Arg, Flag, Wildcard, Alias,
+  Root, Bang, and Payload's last copy, who lays logic bombs
+- [x] The way out: the game's ending, and THE END
+- [x] Tuned by scripted checks: each new stage's start is safe for a few
+  seconds, every hatch can be reached and no locked hatch can be walked
+  round
+
 ## 1.0.0
 
-- [ ] The Prompt, the last fight, and the way out
-- [ ] Everything played through and tuned
+- [ ] Everything played through by hand and tuned (David's call: tag
+  1.0.0 then)
 
 ## After 1.0
 

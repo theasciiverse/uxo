@@ -1,0 +1,27 @@
+name: Wildcard
+about: matches anything and anywhere; now and then it is suddenly somewhere else
+hp: 1
+speed: 0.6
+move: wander
+every: 180
+ability: warp
+points: 350
+colors: a=210,235,255 g=120,255,120 k=20,16,10 w=255,255,255
+art:
+a..a..a.
+.a.a.a..
+..aaa...
+aawkwkaa
+..aaa...
+.a.a.a..
+a..a..a.
+...g....
+art2:
+...a....
+a..a..a.
+.aaaaa..
+.awkwka.
+.aaaaa..
+a..a..a.
+...a....
+...g....

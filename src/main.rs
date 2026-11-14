@@ -611,6 +611,11 @@ fn feel(ev: Event, g: &Game, seats: &[Ctl], input: &mut Input, shake: &mut u32, 
             *shake = (*shake).max(3);
         }
         Event::Warped => debug!("a creature warped"),
+        Event::Typed => debug!("Payload typed a character"),
+        Event::Enter => {
+            info!("Payload pressed Enter");
+            *shake = (*shake).max(12);
+        }
     }
 }
 
@@ -1062,7 +1067,15 @@ fn adv_hud(r: &Run, input: &Input, seats: &[Ctl], cam: &Camera, lay: &Lay, area:
         "bomb: A X Space Enter · action: B F / · ride: Y E . · pause: Start P · size: +/- 0 ({}) · title: Esc · {keys}",
         cam.label()
     );
-    if area.height >= 3 {
+    if area.height >= 3 && !g.line.is_empty() {
+        // the Prompt: how much of Payload's command is typed, in place of the hints
+        let (typed, of) = g.line_typed();
+        let bar: String = (0..of).map(|i| if i < typed { '█' } else { '·' }).collect();
+        let near = typed * 4 >= of * 3 && (g.steps / 15) % 2 == 0;
+        let ink = if near { Color::Rgb(255, 70, 40) } else { Color::Rgb(120, 255, 120) };
+        let line = Line::from(vec![Span::styled("PAYLOAD'S COMMAND ", Style::default().fg(DIM)), Span::styled(bar, Style::default().fg(ink)), Span::styled(format!(" {typed}/{of}"), Style::default().fg(DIM))]);
+        Paragraph::new(line.centered()).render(Rect::new(area.x, area.bottom() - 2, area.width, 1), buf);
+    } else if area.height >= 3 {
         Paragraph::new(Line::from(hint).centered()).style(Style::default().fg(DIM)).render(Rect::new(area.x, area.bottom() - 2, area.width, 1), buf);
     }
 }
@@ -1275,6 +1288,7 @@ fn adv_banner(r: &Run, area: Rect, buf: &mut Buffer) {
             }
             panel(lines, area, buf);
         }
+        A::TimeUp { .. } if r.entered => banner(&["ENTER!", "Payload ran its command", "the stage starts again"], area, buf),
         A::TimeUp { .. } => banner(&["TIME UP!", "the stage starts again"], area, buf),
         A::GameOver => {
             let mut lines = vec![Line::from(Span::styled("GAME OVER", gold)).centered(), Line::raw("")];
@@ -1296,7 +1310,7 @@ fn adv_banner(r: &Run, area: Rect, buf: &mut Buffer) {
             panel(lines, area, buf);
         }
         A::Map { cursor } => panel(map_lines(r, cursor), area, buf),
-        A::Done => banner(&["TO BE CONTINUED", "the Prompt, and the way out, is next", "bomb for the title"], area, buf),
+        A::Done => banner(&["THE END", "you blasted your way out to the real world!", "thanks for playing uXo", "bomb for the title"], area, buf),
         A::Play => {}
     }
 }

@@ -7,7 +7,7 @@ use crate::game::{Cmd, Event, Game, HZ, MAX_PLAYERS};
 use crate::stage::{self, Stage};
 use log::info;
 
-pub const STAGES: [&str; 81] = [
+pub const STAGES: [&str; 90] = [
     include_str!("../adventure/orchard/01-windfall-lane.txt"),
     include_str!("../adventure/orchard/02-beetle-rows.txt"),
     include_str!("../adventure/orchard/03-hedge-maze.txt"),
@@ -91,12 +91,21 @@ pub const STAGES: [&str; 81] = [
     include_str!("../adventure/static/07-signal-lost.txt"),
     include_str!("../adventure/static/08-white-noise.txt"),
     include_str!("../adventure/static/09-payload.txt"),
+    include_str!("../adventure/prompt/01-the-prompt.txt"),
+    include_str!("../adventure/prompt/02-arguments.txt"),
+    include_str!("../adventure/prompt/03-wildcards.txt"),
+    include_str!("../adventure/prompt/04-aliases.txt"),
+    include_str!("../adventure/prompt/05-root.txt"),
+    include_str!("../adventure/prompt/06-history.txt"),
+    include_str!("../adventure/prompt/07-tab-completion.txt"),
+    include_str!("../adventure/prompt/08-the-command.txt"),
+    include_str!("../adventure/prompt/09-payload.txt"),
 ];
 
 /// Stages in each world, in order: act 1's Screensaver, Clock and Buffer, act 2's
 /// Cold Storage, Recycle Bin and Games Folder, act 3's Power Supply, Scrollback and
-/// Static.
-pub const WORLDS: [usize; 9] = [9, 9, 9, 9, 9, 9, 9, 9, 9];
+/// Static, and the Prompt, the last.
+pub const WORLDS: [usize; 10] = [9, 9, 9, 9, 9, 9, 9, 9, 9, 9];
 
 /// The first stage index of the world stage `index` is in, and its stage count.
 pub fn world_of(index: usize) -> (usize, usize) {
@@ -189,6 +198,8 @@ pub struct Run {
     pub tally: Tally,
     /// Stages cleared on this run, for the branching maps.
     pub cleared: Vec<bool>,
+    /// The last stage was lost to Payload's command, not the clock.
+    pub entered: bool,
     seed: u64,
 }
 
@@ -207,6 +218,7 @@ impl Run {
             left: 0,
             tally: Tally::default(),
             cleared: vec![false; STAGES.len()],
+            entered: false,
             seed,
         };
         r.begin(false);
@@ -315,6 +327,7 @@ impl Run {
         }
         self.left = self.stage.time * HZ;
         self.tally = Tally::default();
+        self.entered = false;
         self.phase = Phase::Card(0.0);
         info!("playtest {} {}: start, lives {}", self.code(), self.stage.name, self.lives_text());
     }
@@ -538,6 +551,16 @@ impl Run {
                     self.phase = Phase::GameOver;
                 }
             }
+            Event::Enter if self.phase == Phase::Play => {
+                info!("playtest {} {}: Payload pressed Enter after {}s", self.code(), self.stage.name, self.played());
+                for i in 0..self.players {
+                    if self.game.players[i].joined && !self.game.players[i].out {
+                        self.lose_life(i);
+                    }
+                }
+                self.entered = true;
+                self.phase = if self.all_out() { Phase::GameOver } else { Phase::TimeUp { t: TIME_UP_HOLD } };
+            }
             Event::Cleared if self.phase == Phase::Play => {
                 let secs = self.left / HZ;
                 self.tally.time_bonus = secs * TIME_BONUS;
@@ -636,7 +659,7 @@ mod tests {
         for i in 0..STAGES.len() {
             assert_eq!(index_of(&code_of(i)), Some(i));
         }
-        assert_eq!(index_of("10-1"), None);
+        assert_eq!(index_of("11-1"), None);
         assert_eq!(index_of("1-10"), None);
         assert_eq!(index_of("0-1"), None);
     }
@@ -769,5 +792,35 @@ mod tests {
         r.step(&press);
         assert_eq!(r.index, start + 2);
         assert_eq!(r.phase, Phase::Card(0.0));
+    }
+
+    #[test]
+    fn payloads_command_is_typed_deleted_and_entered() {
+        let start = WORLDS[..9].iter().sum::<usize>();
+        let mut r = Run::new(1, 1, start);
+        assert!(!r.game.line.is_empty(), "the Prompt has a command line");
+        r.phase = Phase::Play;
+        r.game.baddies.clear();
+        r.game.players[0].invuln = u32::MAX / 2;
+        let every = r.stage.typing * HZ / 2;
+        for _ in 0..6 * HZ + 3 * every {
+            r.step(&[Cmd::default(); MAX_PLAYERS]);
+        }
+        let (typed, of) = r.game.line_typed();
+        assert!(typed >= 2 && typed < of, "it types a character at a time ({typed}/{of})");
+        // a blast deletes the first character; typing picks up there again
+        let (x, y) = r.game.line[0];
+        r.game.tiles[y][x] = crate::game::Tile::Burning(1);
+        r.step(&[Cmd::default(); MAX_PLAYERS]);
+        assert_eq!(r.game.line_cursor(), Some((x, y)));
+        // left alone it finishes, and pressing Enter costs a life
+        for _ in 0..(of as u32 + 2) * every {
+            r.step(&[Cmd::default(); MAX_PLAYERS]);
+            if r.phase != Phase::Play {
+                break;
+            }
+        }
+        assert!(r.entered);
+        assert_eq!(r.lives[0], LIVES - 1);
     }
 }

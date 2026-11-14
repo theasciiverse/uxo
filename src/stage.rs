@@ -23,11 +23,13 @@
 //! - `=` a packed archive: solid; a blast unpacks it into soft blocks round it
 //! - `-` a live wire: a pulse of current runs along it now and then, and hurts
 //! - `!` a flickering tile: solid and open in turn, each on its own beat
+//! - `,` the Prompt's command line: typed full of blocks a character at a time
 //!
 //! Adventure stages also have `world:`, `clock:` (the machine's time, shown on the card),
 //! `story:` lines (the card before the stage; `{dot}` names the heroes),
 //! `goal:` clear | duds | boss | exit (the hatch open from the start), `time:` seconds, `theme:` brick | orchard | clock | buffer |
-//! cold | bin | games | power | scroll | static, `scroll:` seconds per row
+//! cold | bin | games | power | scroll | static, `typing:` half-seconds per character on the command
+//! line (the Prompt), `scroll:` seconds per row
 //! (Scrollback: the top row goes, then the next, never closer than three rows above
 //! the hatch), `ending:` lines (after a world's last stage), and on a world
 //! with a branching map `map: col row` (the stage's place on it) and `next: 2 3` (the
@@ -68,6 +70,8 @@ pub enum Cell {
     Wire,
     /// A tile that flickers between solid and open.
     Flicker,
+    /// A tile of the Prompt's command line.
+    Line,
 }
 
 const COLOURS: [&str; 4] = ["red", "blue", "green", "yellow"];
@@ -93,6 +97,8 @@ pub struct Stage {
     pub next: Vec<usize>,
     /// Seconds per row scrolled away (0: still).
     pub scroll: u32,
+    /// Half-seconds per character typed on the command line (0: none).
+    pub typing: u32,
     pub w: usize,
     pub h: usize,
     pub cells: Vec<Vec<Cell>>,
@@ -148,6 +154,7 @@ pub fn parse(text: &str) -> Result<Stage, String> {
         map: None,
         next: Vec::new(),
         scroll: 0,
+        typing: 0,
         w: 0,
         h: 0,
         cells: Vec::new(),
@@ -193,6 +200,7 @@ pub fn parse(text: &str) -> Result<Stage, String> {
                     "power" => Theme::Power,
                     "scroll" => Theme::Scroll,
                     "static" => Theme::Static,
+                    "prompt" => Theme::Prompt,
                     _ => return Err(format!("bad theme {v:?}")),
                 }
             }
@@ -218,6 +226,7 @@ pub fn parse(text: &str) -> Result<Stage, String> {
                 }
                 st.map = Some((n[0], n[1]));
             }
+            "typing" => st.typing = v.parse().map_err(|_| format!("bad typing {v:?}"))?,
             "scroll" => st.scroll = v.parse().map_err(|_| format!("bad scroll {v:?}"))?,
             "next" => {
                 for w in v.split_whitespace() {
@@ -276,6 +285,7 @@ pub fn parse(text: &str) -> Result<Stage, String> {
                 '=' => Cell::Packed,
                 '-' => Cell::Wire,
                 '!' => Cell::Flicker,
+                ',' => Cell::Line,
                 _ => match (legend.iter().find(|(k, _)| *k == c), keys.iter().find(|(k, _)| *k == c.to_ascii_lowercase())) {
                     (_, Some(&(k, n))) if k == c => Cell::Key(n),
                     (_, Some(&(_, n))) => Cell::Door(n),

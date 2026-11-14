@@ -1,0 +1,30 @@
+name: Root
+world: The Prompt
+clock: 05:51
+theme: prompt
+goal: exit
+typing: 7
+time: 210
+key: k red
+story: Root runs with every permission, and nothing stops it: it charges
+story: at {dot} along any line it sees {dot} on. The hatch is open, behind a
+story: red door; the key is at the far end of the command line.
+baddie: a arg
+baddie: f flag
+baddie: q wildcard
+baddie: l alias
+baddie: r root
+baddie: b bang
+baddie: x lastcopy
+grid:
+#####################
+#1.2..?..?..?..?..?.#
+#.#.#.#.#.#.#.#.#.#.#
+#..?..r..?.....?..?.#
+#.#.#.#.#.#.#.#.#.#.#
+#.?..?..?..?..r..?..#
+#.#.#.#.#.#.#.#.###K#
+#.,,,,,,,,,,,,,,,##E#
+#.#.#.#.#.#.#.#.#####
+#..?..a..?.....?..?k#
+#####################

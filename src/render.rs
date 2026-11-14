@@ -88,6 +88,8 @@ fn floors(theme: Theme) -> (Rgb, Rgb, Rgb) {
         Theme::Scroll => ([14, 20, 16], [11, 16, 13], [4, 6, 5]),
         // Static: grey snow
         Theme::Static => ([52, 52, 58], [46, 46, 52], [26, 26, 30]),
+        // the Prompt: the dark of a terminal, warm
+        Theme::Prompt => ([20, 17, 12], [16, 14, 10], [6, 5, 3]),
         _ => (FLOOR_A, FLOOR_B, FLOOR_SHADOW),
     }
 }
@@ -287,6 +289,15 @@ fn text_line(a: i32) -> &'static [&'static str] {
         8 => &["dddddddd", "dlldlgld", "dgdldlld", "dlldlgdd", "dddddddd", "dgldlldd", "dldgdlgd", "dddddddd"],
         6 => &["dddddd", "dlgldd", "dldlgd", "dddddd", "dgldld", "dddddd"],
         _ => &["dddd", "dlgd", "dgld", "dddd"],
+    }
+}
+
+/// A Prompt block: a typed character, amber on the dark.
+fn typed(a: i32) -> &'static [&'static str] {
+    match a {
+        8 => &["lllllllr", "lgrrrglr", "lrgggrlr", "lrrrrrlr", "lrgggrlr", "lrgggrlr", "lllllllr", "dddddddd"],
+        6 => &["llllld", "lgrrgd", "lrggrd", "lrrrrd", "lrggrd", "dddddd"],
+        _ => &["llld", "lrrd", "lrgd", "dddd"],
     }
 }
 
@@ -662,7 +673,8 @@ fn draw_item(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, item: Item) {
 }
 
 /// Draw a bomb with its top-left at (x0, y0).
-fn draw_bomb(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, b: &Bomb, t: u64) {
+#[allow(clippy::too_many_arguments)]
+fn draw_bomb(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, b: &Bomb, t: u64, theme: Theme) {
     if let Some(left) = b.uxo {
         return draw_uxo(cv, x0, y0, a, k, left, t);
     }
@@ -677,6 +689,7 @@ fn draw_bomb(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, b: &Bomb, t: u64
         BombKind::Mine => [70, 70, 78],
         BombKind::Surge => [20, 70, 110],
         // the Forgotten Game's own bombs, in its old purple
+        _ if b.owner == crate::game::HOUSE && theme == Theme::Prompt => [30, 110, 40],
         _ if b.owner == crate::game::HOUSE => [80, 30, 110],
         _ => [24, 24, 34],
     };
@@ -822,6 +835,13 @@ pub fn draw_arena(g: &Game, zoom: Zoom, cam: (i32, i32), shake: i16, area: Rect,
                     if g.ground[ty][tx] == Ground::Rewrite {
                         buffer_cell(&mut cv, x0, y0, a, k, g.rewrite[ty][tx]);
                     }
+                    if g.ground[ty][tx] == Ground::Line && g.line_cursor() == Some((tx, ty)) && (t / 30) % 2 == 0 {
+                        // where Payload types next: its cursor, blinking
+                        for u in 0..a {
+                            cv.block(x0 + u * k, y0 + (a - 2) * k, k, [120, 255, 120]);
+                            cv.block(x0 + u * k, y0 + (a - 1) * k, k, [120, 255, 120]);
+                        }
+                    }
                     if g.ground[ty][tx] == Ground::Wire {
                         wire_current(&mut cv, x0, y0, a, k, g.wire_phase(tx, ty), t);
                     }
@@ -876,7 +896,7 @@ pub fn draw_arena(g: &Game, zoom: Zoom, cam: (i32, i32), shake: i16, area: Rect,
 
     // grounded bombs; armed mines are buried out of sight
     for b in g.bombs.iter().filter(|b| b.grounded() && !b.armed) {
-        draw_bomb(&mut cv, snap(b.x), snap(b.y), a, k, b, t);
+        draw_bomb(&mut cv, snap(b.x), snap(b.y), a, k, b, t, g.theme);
     }
 
     for ty in ty0..ty1 {
@@ -1017,7 +1037,7 @@ pub fn draw_arena(g: &Game, zoom: Zoom, cam: (i32, i32), shake: i16, area: Rect,
             Motion::Carried { .. } => y0 -= (a * 2 / 3) * k,
             _ => {}
         }
-        draw_bomb(&mut cv, x0, y0, a, k, b, t);
+        draw_bomb(&mut cv, x0, y0, a, k, b, t, g.theme);
     }
 
     // firework sparks
@@ -1246,6 +1266,12 @@ fn ground(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, gr: Ground, t: u64)
             }
             px(cv, m, m, [230, 180, 110]);
         }
+        Ground::Line => {
+            // the command line's baseline
+            for u in 0..a {
+                px(cv, u, a - 1, [90, 60, 20]);
+            }
+        }
         Ground::Flicker(_) => {
             // its frame, while it is open
             for (u, v) in [(0, 0), (a - 1, 0), (0, a - 1), (a - 1, a - 1)] {
@@ -1429,6 +1455,7 @@ fn soft_block(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, burning: Option
         Theme::Power => coil(a),
         Theme::Scroll => text_line(a),
         Theme::Static => snow(a),
+        Theme::Prompt => typed(a),
     };
     for (dy, row) in rows.iter().enumerate() {
         for (dx, ch) in row.chars().enumerate() {
@@ -1473,6 +1500,10 @@ fn soft_block(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, burning: Option
                 (Theme::Static, 'g') => [160, 160, 170],
                 (Theme::Static, 'r') => [100, 100, 112],
                 (Theme::Static, 'd') => [40, 40, 46],
+                (Theme::Prompt, 'l') => [176, 124, 52],
+                (Theme::Prompt, 'g') => [134, 92, 36],
+                (Theme::Prompt, 'r') => [70, 46, 18],
+                (Theme::Prompt, 'd') => [36, 28, 14],
                 _ => continue,
             };
             if burning.is_some() {
@@ -1623,6 +1654,7 @@ fn draw_small(g: &Game, cam: (i32, i32), area: Rect, buf: &mut Buffer) {
                 Tile::Soft if g.theme == Theme::Power => put(x, y, "▒▒", [236, 176, 96], [96, 62, 40]),
                 Tile::Soft if g.theme == Theme::Scroll => put(x, y, "▒▒", [150, 255, 170], [18, 34, 22]),
                 Tile::Soft if g.theme == Theme::Static => put(x, y, "▒▒", [235, 235, 240], [100, 100, 112]),
+                Tile::Soft if g.theme == Theme::Prompt => put(x, y, "▒▒", [176, 124, 52], [70, 46, 18]),
                 Tile::Packed => put(x, y, "≡≡", [242, 222, 120], [138, 100, 182]),
                 Tile::Soft => put(x, y, "▒▒", [205, 130, 66], [108, 58, 32]),
                 Tile::Burning(_) => put(x, y, "▒▒", [255, 200, 60], [200, 70, 25]),
@@ -1662,6 +1694,7 @@ fn draw_small(g: &Game, cam: (i32, i32), area: Rect, buf: &mut Buffer) {
                         put(x, y, if live { "≈≈" } else { "--" }, if live { [255, 255, 200] } else { [176, 112, 60] }, if live { [60, 120, 220] } else { floor })
                     }
                     (None, Ground::Flicker(_)) => put(x, y, "::", [150, 90, 170], floor),
+                    (None, Ground::Line) => put(x, y, if g.line_cursor() == Some((tx, ty)) && (t / 30) % 2 == 0 { "__" } else { "  " }, [120, 255, 120], floor),
                     (None, Ground::Scrolled) => put(x, y, "  ", floor, floor),
                     (None, Ground::Plain | Ground::Water | Ground::Tree) => put(x, y, "  ", floor, floor),
                 },

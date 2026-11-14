@@ -1,0 +1,47 @@
+name: the Freezer
+about: the Forgotten Game's first boss, a great old freezer; it freezes the floor round it, charges when it sees you, and calls up puffs
+hp: 10
+speed: 0.5
+move: wander
+size: 2
+sees: 8
+on_sight: charge
+every: 300
+ability: chill
+summon: puff
+points: 8000
+colors: w=235,242,250 g=180,195,215 d=110,125,150 k=20,20,28 b=120,200,255 r=220,60,60 s=160,165,175
+art:
+................
+..wwwwwwwwwwww..
+.wwwwwwwwwwwwwg.
+.wggggggggggggd.
+.wgwwwwwwwwwwgd.
+.wgwbbwwwwbbwgd.
+.wgwbkwwwwbkwgd.
+.wgwwwwwwwwwwgd.
+.wgwwwrrrrwwwgd.
+.wggggggggggggd.
+.wsssssssssssgd.
+.wgwwwwwwwwwwgd.
+.wgwwwwwwwwwwgd.
+.wggggggggggggd.
+..dddddddddddd..
+...kk......kk...
+art2:
+..bb........bb..
+..wwwwwwwwwwww..
+.wwwwwwwwwwwwwg.
+.wggggggggggggd.
+.wgwwwwwwwwwwgd.
+.wgwbbwwwwbbwgd.
+.wgwbkwwwwbkwgd.
+.wgwwwwwwwwwwgd.
+.wgwwrrrrrrwwgd.
+.wggggggggggggd.
+.wsssssssssssgd.
+.wgwwwwwwwwwwgd.
+.wgwwwwwwwwwwgd.
+.wggggggggggggd.
+..dddddddddddd..
+..kk........kk..

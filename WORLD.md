@@ -134,6 +134,78 @@ whatever it touches is gone. Drawn as a pink eraser. Beating it is a kill
 like any other (rule 8): purged stops, and runs again tomorrow at 3:14 as
 it was written, tidying and never wiping. Cards in `adventure/buffer/*.txt`.
 
+## Act 2: the Forgotten Game
+
+**Built 2026-11-14.** What the rules above become after four o'clock.
+
+- **The Forgotten Game** is an old shareware bomb game, thirty years on the
+  disk and never played. Its name is never given; it is "the old game".
+  Its title has blinked PRESS ANY KEY every night all that time. At 3:14 a
+  key was pressed (act 1's first card), and it felt it too. With purged
+  stopped, it pulls Dot (and Caret) down: at last, players.
+- **The stake is the clock again.** At five o'clock its demo starts over,
+  and whoever is still inside plays it forever. Act 2 is that hour, 04:01
+  to 05:00, on the cards.
+- **Its three episodes are three worlds.** Episode 1 was the free one, and
+  was archived into Cold Storage; episodes 2 and 3 were never paid for:
+  episode 2 was deleted into the Recycle Bin, and episode 3 is at home in
+  the Games Folder, beside every other game the machine ever played.
+- **Its creatures are its own sprites**, not purged's rewrites, drawn in an
+  old game's flat, bright colours. Rule 8 holds: a kill sends them home,
+  and rule 9: some leave copies to ride.
+- **Its bombs are its own** (rule 3 is about purged, whose creatures have no
+  kills). In the Games Folder its creatures are bombers like Dot and lay the
+  game's bombs, round and purple; they never hurt the game's own creatures.
+- **The branching map is the game's own level map.** Each world shows it
+  after every stage: two ways from the first stage to the boss, the upper
+  mostly puzzles, the lower mostly action, crossing in the middle.
+- **Its hero is Demo**, who has played the attract-mode demo every night
+  for thirty years and never lost; as the last boss it walks the walls the
+  same way every time, so its route can be learnt. Checked 2026-11-14:
+  "Demo" is a plain word, fine for a character inside uXo, like Dot.
+- **The ending:** the game's first GAME OVER in thirty years, Dot's name at
+  the top of the high score table, and Demo happily playing its demo again
+  at five, because now somebody has played. Under Dot's name a second new
+  one nobody typed: PAYLOAD, act 3's villain, there all along.
+
+| Machine time | Where | What happens |
+|---|---|---|
+| 04:01 | Cold Storage | the old game thaws out and starts its first episode |
+| 04:17 | the Freezer | episode 1's boss |
+| 04:19 to 04:35 | the Recycle Bin | episode 2, deleted, played anyway; the Compactor |
+| 04:38 to 04:58 | the Games Folder | episode 3 at home; Demo |
+| 05:00 | act 2's ending | the demo starts over, and Demo plays it happily |
+
+### Cold Storage
+
+Where files nobody opens are packed away and frozen: a frosted slate floor,
+ice-cube blocks, ice lanes (`~`). Its own tile is the **packed archive**
+(`=`): solid, and a blast stops at it and unpacks it, its tile clearing and
+soft blocks spilling onto the free floor beside it. Species: Puff (wanders),
+Skid (straight and fast), Packrat (hides as an archive; 2 HP), Hail (hops;
+egg hop), Plow (charges; egg dash), and **the Freezer** (freezes the floor
+round it into ice, charges, calls up puffs). Cards in `adventure/cold/`.
+
+### The Recycle Bin
+
+Where deleted files wait before they are gone for good: a dark mesh floor,
+crumpled paper for blocks. Its rule is **restore**: a beaten creature (one
+that leaves no egg) leaves its deleted file, and the bin restores it after
+`RESTORE` (7 s) unless someone walks over the file first, emptying it for
+good (100 points). A stage to clear needs its files emptied too. Species:
+Scrap, Clip (straight, fast), Wad (hops; egg hop), Fade (flies, follows on
+sight), Shortcut (charges; egg dash), and **the Compactor** (curls up and
+rolls, flattening the heaps; calls up scraps). Cards in `adventure/bin/`.
+
+### The Games Folder
+
+The old game's home: its purple checker floor and floppy disks for blocks.
+Its creatures lay the game's bombs (`ability: bomb`, `fire:`). Species:
+Fizz (a wandering bomber), Stick (straight, fast), Bonus (hops; egg hop),
+Diskette (hides as a floppy disk; 2 HP), Turbo (charges; egg dash), and
+**Demo** (walks the walls, right-hand rule, laying fire-3 bombs). Warps
+(`o`) join the Warp Zone's four rooms. Cards in `adventure/games/`.
+
 ## Decisions
 
 David, 2026-10-29: Dot is the hero and the player plays Dot; co-op's second

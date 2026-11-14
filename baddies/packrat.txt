@@ -1,0 +1,28 @@
+name: Packrat
+about: hides packed among the archives until you come close, then chases you
+hp: 2
+speed: 0.7
+move: wander
+sees: 5
+on_sight: chase
+mimic: yes
+points: 400
+colors: g=150,140,130 d=90,80,75 p=235,150,170 k=20,20,28 w=255,255,255
+art:
+.p....p.
+.gg..gg.
+.gggggg.
+gwkggwkg
+gggppggg
+.gggggg.
+.dg..gd.
+dd....dd
+art2:
+.p....p.
+.gg..gg.
+.gggggg.
+gwkggwkg
+gggppggg
+.gggggg.
+..dggd..
+.dd..dd.

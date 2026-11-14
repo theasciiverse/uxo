@@ -1,0 +1,31 @@
+name: Deep Freeze
+about: crates that slide on the ice, and a locked door
+world: Cold Storage
+clock: 04:04
+theme: cold
+goal: exit
+time: 200
+map: 1 0
+next: 4
+story: The game's second level is frozen solid. Crates slide on the ice
+story: until something stops them, and so does {dot}. The hatch is open,
+story: behind a red door, and the red key is across the rink.
+key: a red
+baddie: p puff
+baddie: k skid
+baddie: m packrat
+baddie: h hail
+baddie: n plow
+baddie: x freezer
+grid:
+#####################
+#1.2....~~~~~~~...+.#
+#.###.#~~~~~~~~~#+#.#
+#..B..#~~~~B~~~~#.+.#
+#.###.#~~~~~~~~~#.#+#
+#++.+.~~~~~~~~~~~+.+#
+###.###~~~~~~~~~###.#
+#a.p#..~~~~B~~~~..k.#
+#.###.#~~~~~~~~~#####
+#..+..#....+.p..A..E#
+#####################

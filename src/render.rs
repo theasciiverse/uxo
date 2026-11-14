@@ -76,6 +76,12 @@ fn floors(theme: Theme) -> (Rgb, Rgb, Rgb) {
         Theme::Clock => ([44, 52, 78], [39, 46, 70], [26, 31, 50]),
         // the Buffer: rows of empty memory cells
         Theme::Buffer => ([31, 37, 44], [27, 32, 39], [17, 20, 26]),
+        // Cold Storage: frosted slate
+        Theme::Cold => ([74, 96, 116], [67, 88, 107], [44, 60, 76]),
+        // the Recycle Bin: the dark mesh of its floor
+        Theme::Bin => ([54, 56, 62], [48, 50, 56], [30, 31, 36]),
+        // the Games Folder: an old game's purple checker
+        Theme::Games => ([52, 32, 84], [44, 27, 72], [26, 15, 44]),
         _ => (FLOOR_A, FLOOR_B, FLOOR_SHADOW),
     }
 }
@@ -231,6 +237,71 @@ fn buffer_cell(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, waited: u32) {
             }
         }
     }
+}
+
+/// A Cold Storage block: a frozen file, an ice cube with a highlight.
+fn frost(a: i32) -> &'static [&'static str] {
+    match a {
+        8 => &["llllllld", "lgggggrd", "lglgggrd", "lgggggrd", "lggglgrd", "lgggggrd", "lrrrrrrd", "dddddddd"],
+        6 => &["llllld", "lgglrd", "lglgrd", "lgggrd", "lrrrrd", "dddddd"],
+        _ => &["llld", "lgrd", "lrrd", "dddd"],
+    }
+}
+
+/// A Recycle Bin block: a crumpled sheet of ruled paper.
+fn paper(a: i32) -> &'static [&'static str] {
+    match a {
+        8 => &[".llgll..", "lgrrrlgl", "llgllrgl", "glrrrgld", "lgllglrl", "lrrrlgld", "dlglldgd", ".dddddd."],
+        6 => &[".llgl.", "lrrrgl", "lglrrd", "grrlgl", "dlglgd", ".dddd."],
+        _ => &[".lg.", "lrrl", "grld", ".dd."],
+    }
+}
+
+/// A Games Folder block: a floppy disk, its metal shutter on top, its label below.
+fn floppy(a: i32) -> &'static [&'static str] {
+    match a {
+        8 => &["ggrrrrgg", "ggrdrrgg", "ggrrrrgg", "gggggggg", "glllllld", "glrrrrld", "gllllllg", "dddddddd"],
+        6 => &["grrrgg", "grdrgg", "gggggg", "gllllg", "glrrlg", "dddddd"],
+        _ => &["grrg", "gggg", "glld", "dddd"],
+    }
+}
+
+/// A packed archive: a box zipped shut down the middle.
+fn packed(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32) {
+    let rows: &[&str] = match a {
+        8 => &["hhhhhhhd", "hbbzybbd", "hbbyzbbd", "hbbzybbd", "hbbyzbbd", "hbbzybbd", "hbbyzbbd", "dddddddd"],
+        6 => &["hhhhhd", "hbzybd", "hbyzbd", "hbzybd", "hbyzbd", "dddddd"],
+        _ => &["hhhd", "hzyd", "hyzd", "dddd"],
+    };
+    cv.sprite(x0, y0, k, rows, |c| match c {
+        'h' => Some([200, 170, 232]),
+        'b' => Some([138, 100, 182]),
+        'z' => Some([242, 222, 120]),
+        'y' => Some([160, 128, 60]),
+        'd' => Some([70, 50, 96]),
+        _ => None,
+    });
+}
+
+/// A deleted file waiting in the Recycle Bin: a dog-eared page that flickers
+/// faster as its restore comes near.
+fn deleted_file(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, left: u32, t: u64) {
+    let soon = left < 2 * HZ;
+    let period = if soon { 4 } else { 14 };
+    let bright = (t / period) % 2 == 0;
+    let rows: &[&str] = match a {
+        8 => &["........", ".pppp...", ".ppppf..", ".plllpp.", ".pppppp.", ".plllpp.", ".pppppp.", "........"],
+        6 => &["......", ".pppf.", ".pllp.", ".pppp.", ".pllp.", "......"],
+        _ => &["....", ".pf.", ".pp.", "...."],
+    };
+    let paper = if bright { [235, 232, 220] } else { [160, 158, 150] };
+    let line = if soon && bright { [230, 80, 70] } else { [120, 140, 190] };
+    cv.sprite(x0, y0, k, rows, |c| match c {
+        'p' => Some(paper),
+        'f' => Some([120, 118, 110]),
+        'l' => Some(line),
+        _ => None,
+    });
 }
 
 /// An Orchard hedge: leaves and a few apples.
@@ -523,6 +594,8 @@ fn draw_bomb(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, b: &Bomb, t: u64
         BombKind::Rubber => [120, 40, 90],
         BombKind::Mine => [70, 70, 78],
         BombKind::Surge => [20, 70, 110],
+        // the Forgotten Game's own bombs, in its old purple
+        _ if b.owner == crate::game::HOUSE => [80, 30, 110],
         _ => [24, 24, 34],
     };
     let body = if hot { [110, 22, 26] } else { base };
@@ -626,6 +699,7 @@ pub fn draw_arena(g: &Game, zoom: Zoom, cam: (i32, i32), shake: i16, area: Rect,
                     _ => gate(&mut cv, x0, y0, a, k),
                 },
                 Tile::Socket => socket(&mut cv, x0, y0, a, k, t),
+                Tile::Packed => packed(&mut cv, x0, y0, a, k),
                 Tile::Soft => soft_block(&mut cv, x0, y0, a, k, None, t, g.theme),
                 Tile::Burning(left) => soft_block(&mut cv, x0, y0, a, k, Some(left), t, g.theme),
                 Tile::Dud => {
@@ -722,6 +796,11 @@ pub fn draw_arena(g: &Game, zoom: Zoom, cam: (i32, i32), shake: i16, area: Rect,
         }
     }
 
+    // deleted files in the Recycle Bin, waiting to be restored
+    for r in &g.restores {
+        deleted_file(&mut cv, r.x as i32 * s, r.y as i32 * s, a, k, r.left, t);
+    }
+
     // eggs left by tamed baddies, wobbling
     for e in &g.eggs {
         let wob = if (t / 30) % 2 == 0 { 0 } else { k };
@@ -733,7 +812,12 @@ pub fn draw_arena(g: &Game, zoom: Zoom, cam: (i32, i32), shake: i16, area: Rect,
         let sp = &g.species[b.species];
         let (x0, mut y0) = (snap(b.x), snap(b.y));
         if b.disguised {
-            soft_block(&mut cv, x0, y0, a, k, None, t, g.theme);
+            // in Cold Storage it passes for a packed archive
+            if g.theme == Theme::Cold {
+                packed(&mut cv, x0, y0, a, k);
+            } else {
+                soft_block(&mut cv, x0, y0, a, k, None, t, g.theme);
+            }
             continue;
         }
         if let State::Hop { t: ht, dur, .. } = b.state {
@@ -1217,6 +1301,9 @@ fn soft_block(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, burning: Option
         Theme::Orchard => hedge(a),
         Theme::Clock => cog(a),
         Theme::Buffer => data(a),
+        Theme::Cold => frost(a),
+        Theme::Bin => paper(a),
+        Theme::Games => floppy(a),
     };
     for (dy, row) in rows.iter().enumerate() {
         for (dx, ch) in row.chars().enumerate() {
@@ -1237,6 +1324,18 @@ fn soft_block(cv: &mut Canvas, x0: i32, y0: i32, a: i32, k: i32, burning: Option
                 (Theme::Buffer, 'g') => [45, 120, 95],
                 (Theme::Buffer, 'r') => [70, 92, 102],
                 (Theme::Buffer, 'd') => [32, 42, 50],
+                (Theme::Cold, 'l') => [225, 242, 252],
+                (Theme::Cold, 'g') => [158, 198, 222],
+                (Theme::Cold, 'r') => [112, 152, 182],
+                (Theme::Cold, 'd') => [62, 90, 118],
+                (Theme::Bin, 'l') => [242, 240, 230],
+                (Theme::Bin, 'g') => [200, 196, 184],
+                (Theme::Bin, 'r') => [150, 170, 210],
+                (Theme::Bin, 'd') => [112, 110, 104],
+                (Theme::Games, 'l') => [236, 236, 242],
+                (Theme::Games, 'g') => [64, 76, 168],
+                (Theme::Games, 'r') => [172, 176, 192],
+                (Theme::Games, 'd') => [28, 30, 84],
                 _ => continue,
             };
             if burning.is_some() {
@@ -1380,6 +1479,10 @@ fn draw_small(g: &Game, cam: (i32, i32), area: Rect, buf: &mut Buffer) {
                 Tile::Dud => put(x, y, "!!", [250, 205, 60], [150, 30, 35]),
                 Tile::Soft if g.theme == Theme::Buffer => put(x, y, "▒▒", [120, 225, 170], [45, 120, 95]),
                 Tile::Soft if g.theme == Theme::Clock => put(x, y, "▒▒", [196, 160, 96], [92, 66, 36]),
+                Tile::Soft if g.theme == Theme::Cold => put(x, y, "▒▒", [225, 242, 252], [112, 152, 182]),
+                Tile::Soft if g.theme == Theme::Bin => put(x, y, "▒▒", [242, 240, 230], [112, 110, 104]),
+                Tile::Soft if g.theme == Theme::Games => put(x, y, "▒▒", [172, 176, 192], [64, 76, 168]),
+                Tile::Packed => put(x, y, "≡≡", [242, 222, 120], [138, 100, 182]),
                 Tile::Soft => put(x, y, "▒▒", [205, 130, 66], [108, 58, 32]),
                 Tile::Burning(_) => put(x, y, "▒▒", [255, 200, 60], [200, 70, 25]),
                 Tile::Block => put(x, y, "[]", [235, 190, 110], [150, 102, 48]),
@@ -1416,6 +1519,9 @@ fn draw_small(g: &Game, cam: (i32, i32), area: Rect, buf: &mut Buffer) {
                 },
             }
         }
+    }
+    for r in &g.restores {
+        put(r.x as i32, r.y as i32, "%%", if r.left < 2 * HZ && (t / 4) % 2 == 0 { [230, 80, 70] } else { [235, 232, 220] }, floor_at(r.x as i32, r.y as i32));
     }
     for b in g.bombs.iter().filter(|b| !b.armed) {
         let hot = b.fuse < FUSE / 3 && (t / 6) % 2 == 0;

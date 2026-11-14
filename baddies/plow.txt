@@ -1,0 +1,28 @@
+name: Plow
+about: clears the snow; when it sees you lined up it lowers its blade and charges
+hp: 2
+speed: 0.6
+move: wander
+sees: 6
+on_sight: charge
+points: 500
+egg: dash
+colors: y=245,200,40 o=200,120,30 s=200,205,215 k=20,20,28 w=255,255,255
+art:
+...yy...
+..yyyy..
+.ywkwky.
+.yyyyyy.
+sssssss.
+.oyyyyo.
+.k.kk.k.
+........
+art2:
+...yy...
+..yyyy..
+.ywkwky.
+.yyyyyy.
+.sssssss
+.oyyyyo.
+k.k..k.k
+........

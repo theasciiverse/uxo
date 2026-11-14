@@ -1,0 +1,31 @@
+name: The Archive
+about: charges packed among the archives, and packrats hiding as archives
+world: Cold Storage
+clock: 04:11
+theme: cold
+goal: duds
+time: 220
+map: 3 0
+next: 8
+story: The game kept its oldest levels here, packed tight. Some of the
+story: archives are not archives: packrats sit among them, packed up
+story: and waiting. And someone has left charges in here too, the game's
+story: own, wired to go off at five. Set every one off early.
+baddie: p puff
+baddie: k skid
+baddie: m packrat
+baddie: h hail
+baddie: n plow
+baddie: x freezer
+grid:
+#####################
+#1.2..=.=.=.=.=.=...#
+#.#.#.#.#.#.#.#.#.#.#
+#..=.*.=.m.=.*.=..=.#
+#=#.#.#.#.#.#.#.#.#.#
+#...=.m.=.=.=.m.=...#
+#.#.#.#.#.#.#.#.#.#=#
+#.=.*.=.=.p.=.*.=...#
+#.#.#.#.#.#.#.#.#.#.#
+#..=..m..=.....=..E.#
+#####################

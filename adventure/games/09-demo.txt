@@ -1,0 +1,39 @@
+name: Demo
+about: the game's own hero
+world: The Games Folder
+clock: 04:58
+theme: games
+goal: boss
+time: 240
+map: 5 1
+story: Two minutes to five, and the game sends out its own hero: Demo,
+story: who has played the same demo every night for thirty years and
+story: never once lost. It walks the same way round the walls every time
+story: and lays big bombs as it goes. Learn its way, and beat it.
+ending: Demo's last life goes, and for the first time in thirty years the
+ending: game shows its own GAME OVER. Then the high score table, and at
+ending: the top of it, the name {dot}. That was all it ever wanted: to be
+ending: played. Five o'clock comes, the demo starts over, and Demo plays
+ending: it happily, because now somebody has. The hatch opens onward.
+ending: But there is a second new name on the table, under {dot}'s,
+ending: that nobody typed: PAYLOAD.
+ending: Act 2 is over. Next: the Virus!
+baddie: z fizz
+baddie: i stick
+baddie: n bonus
+baddie: d diskette
+baddie: q turbo
+baddie: x demo
+grid:
+#####################
+#1.2................#
+#..+...+.....+...+..#
+#.....#.......#.....#
+#.+.......B.......+.#
+#....+...x.....+....#
+#...................#
+#.+.......B.......+.#
+#.....#.......#.....#
+#..+...+.....+...+..#
+#...................#
+#####################

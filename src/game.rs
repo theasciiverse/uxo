@@ -71,6 +71,13 @@ pub const SHOVE_STEPS: u32 = 12;
 pub const TICK: u32 = 2 * HZ;
 /// Steps an empty Buffer cell waits before its data block is written back.
 pub const REWRITE: u32 = 8 * HZ;
+/// Steps a beaten creature's deleted file lies in the Recycle Bin before it is
+/// restored, unless someone empties it first by walking over it.
+pub const RESTORE: u32 = 7 * HZ;
+/// The owner of the Forgotten Game's own bombs, laid by its creatures: no player.
+pub const HOUSE: usize = MAX_PLAYERS;
+/// Fire of the bombs the Forgotten Game's creatures lay.
+const HOUSE_FIRE: u32 = 2;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Tile {
@@ -92,6 +99,9 @@ pub enum Tile {
     Gate,
     /// A socket, shut until every part on the stage has been picked up.
     Socket,
+    /// A packed archive (Cold Storage): solid; a blast stops at it and unpacks it,
+    /// spilling soft blocks onto the free floor round it.
+    Packed,
 }
 
 /// Things lying on the floor that are picked up and kept, never burnt.
@@ -132,6 +142,20 @@ pub enum Theme {
     Orchard,
     Clock,
     Buffer,
+    /// Act 2, the Forgotten Game: Cold Storage, the Recycle Bin, the Games Folder.
+    Cold,
+    Bin,
+    Games,
+}
+
+/// A beaten creature's deleted file in the Recycle Bin: it is restored after `left`
+/// steps, unless someone walks over it and empties it for good.
+#[derive(Clone, Copy, Debug)]
+pub struct Restore {
+    pub x: usize,
+    pub y: usize,
+    pub species: usize,
+    pub left: u32,
 }
 
 /// An egg a tamed baddie left behind: walk over it to ride.
@@ -571,6 +595,14 @@ pub enum Event {
     SocketOpen,
     /// A bomb fizzled and lies there live.
     Fizzled { x: usize, y: usize },
+    /// A packed archive was blasted open.
+    Unpacked { x: usize, y: usize },
+    /// A deleted file was emptied from the Recycle Bin for good.
+    Emptied { by: usize, x: usize, y: usize },
+    /// A deleted file was restored as the creature it was.
+    Restored { x: usize, y: usize },
+    /// The floor froze round a creature.
+    Chilled,
 }
 
 pub struct Game {
@@ -604,6 +636,8 @@ pub struct Game {
     pub shoves: Vec<Shove>,
     /// Steps each Buffer cell has stood empty, toward `REWRITE`.
     pub rewrite: Vec<Vec<u32>>,
+    /// Deleted files waiting to be restored (the Recycle Bin).
+    pub restores: Vec<Restore>,
     pub flames: Vec<Vec<Option<Flame>>>,
     pub bombs: Vec<Bomb>,
     pub surges: Vec<Surge>,
@@ -709,6 +743,7 @@ impl Game {
             pickups: vec![vec![None; w]; h],
             shoves: Vec::new(),
             rewrite: vec![vec![0; w]; h],
+            restores: Vec::new(),
             flames: vec![vec![None; w]; h],
             bombs: Vec::new(),
             surges: Vec::new(),
@@ -811,6 +846,7 @@ impl Game {
                     }
                     Cell::Part => g.pickups[y][x] = Some(Pickup::Part),
                     Cell::Socket => g.tiles[y][x] = Tile::Socket,
+                    Cell::Packed => g.tiles[y][x] = Tile::Packed,
                 }
             }
         }
@@ -1002,6 +1038,7 @@ impl Game {
         self.tick_surges();
         self.tick_board();
         self.step_baddies();
+        self.tick_restores();
         self.hurt_and_pickup();
         self.infect();
         self.take_eggs();
@@ -1035,7 +1072,7 @@ impl Game {
         }
         let met = match self.goal {
             Goal::None => false,
-            Goal::Clear => self.baddies.iter().all(|b| !b.alive),
+            Goal::Clear => self.baddies.iter().all(|b| !b.alive) && self.restores.is_empty(),
             Goal::Duds => !self.tiles.iter().flatten().any(|&t| t == Tile::Dud),
             Goal::Exit => true,
             // every boss is big: none of them left standing
@@ -1708,7 +1745,7 @@ impl Game {
                 self.bombs[k].uxo = Some(left.saturating_sub(1));
                 continue;
             }
-            let owner_gone = !self.players[b.owner].alive && !b.from_rider;
+            let owner_gone = b.owner >= MAX_PLAYERS || (!self.players[b.owner].alive && !b.from_rider);
             let b = &mut self.bombs[k];
             b.age += 1;
             match b.kind {
@@ -1760,6 +1797,10 @@ impl Game {
                     let (tx, ty) = ((x as i32 + dx * r) as usize, (y as i32 + dy * r) as usize);
                     match self.tiles[ty][tx] {
                         Tile::Wall | Tile::Pressure(_) | Tile::Block | Tile::Door(_) | Tile::Gate | Tile::Socket => break,
+                        Tile::Packed => {
+                            self.unpack(tx, ty);
+                            break;
+                        }
                         Tile::Dud => {
                             let id = self.set_off_charge(tx, ty, b.owner);
                             burst.push(id);
@@ -1767,7 +1808,7 @@ impl Game {
                         }
                         Tile::Soft => {
                             self.tiles[ty][tx] = Tile::Burning(BURN);
-                            self.players[b.owner].blocks += 1;
+                            self.credit_block(b.owner);
                             if pierce {
                                 continue;
                             }
@@ -1815,6 +1856,76 @@ impl Game {
 
     /// A blast reached one of purged's charges: it goes off with a real blast of its
     /// own, a step later for a surge, at once in a cross's chain. Returns its bomb.
+    /// A soft block broken by `owner`'s blast, for the battle tally.
+    fn credit_block(&mut self, owner: usize) {
+        if let Some(p) = self.players.get_mut(owner) {
+            p.blocks += 1;
+        }
+    }
+
+    /// A blast reaches a packed archive: it unpacks, its tile clears and soft blocks
+    /// spill onto the free floor beside it (not onto anyone, a bomb, an item or a flame).
+    fn unpack(&mut self, x: usize, y: usize) {
+        self.tiles[y][x] = Tile::Floor;
+        self.events.push(Event::Unpacked { x, y });
+        for d in [Dir::Up, Dir::Down, Dir::Left, Dir::Right] {
+            let (dx, dy) = d.vec();
+            let (nx, ny) = ((x as i32 + dx) as usize, (y as i32 + dy) as usize);
+            let free = self.tiles[ny][nx] == Tile::Floor
+                && self.ground[ny][nx] == Ground::Plain
+                && self.flames[ny][nx].is_none()
+                && self.items[ny][nx].is_none()
+                && self.pickups[ny][nx].is_none()
+                && self.exit != Some((nx, ny))
+                && !self.occupied(nx, ny)
+                && !self.eggs.iter().any(|e| (e.x.div_euclid(TILE), e.y.div_euclid(TILE)) == (nx as i32, ny as i32));
+            if free {
+                self.tiles[ny][nx] = Tile::Soft;
+            }
+        }
+    }
+
+    /// One of the Forgotten Game's creatures lays the game's own bomb where it stands.
+    pub fn house_bomb(&mut self, x: usize, y: usize, fire: u32) -> bool {
+        if self.tiles[y][x] != Tile::Floor || self.bomb_at(x, y).is_some() || self.exit == Some((x, y)) {
+            return false;
+        }
+        let b = self.new_bomb(HOUSE, x, y, if fire == 0 { HOUSE_FIRE } else { fire }, BombKind::Normal, FUSE);
+        self.bombs.push(b);
+        true
+    }
+
+    /// The Recycle Bin's deleted files: walked over, emptied for good; otherwise
+    /// restored when their time comes, as the creature they were.
+    fn tick_restores(&mut self) {
+        let mut k = 0;
+        while k < self.restores.len() {
+            let r = self.restores[k];
+            let by = (0..MAX_PLAYERS).find(|&j| {
+                let p = &self.players[j];
+                p.joined && p.alive && p.tile() == (r.x, r.y)
+            });
+            if let Some(j) = by {
+                self.restores.swap_remove(k);
+                self.events.push(Event::Emptied { by: j, x: r.x, y: r.y });
+                continue;
+            }
+            if r.left > 1 {
+                self.restores[k].left -= 1;
+            } else if self.tiles[r.y][r.x] == Tile::Floor && self.bomb_at(r.x, r.y).is_none() && self.flames[r.y][r.x].is_none() {
+                self.restores.swap_remove(k);
+                let sp = self.species[r.species].clone();
+                let mut b = crate::baddie::Baddie::new(r.species, &sp, r.x, r.y, self.rand(sp.every.max(60)));
+                b.hurt = 30;
+                b.state = crate::baddie::State::Pause(30);
+                self.baddies.push(b);
+                self.events.push(Event::Restored { x: r.x, y: r.y });
+                continue;
+            }
+            k += 1;
+        }
+    }
+
     fn set_off_charge(&mut self, x: usize, y: usize, by: usize) -> u32 {
         self.tiles[y][x] = Tile::Floor;
         self.events.push(Event::DudPopped { x, y, by });
@@ -1856,13 +1967,17 @@ impl Game {
                     s.seen.push((tx, ty));
                     match self.tiles[ty][tx] {
                         Tile::Wall | Tile::Pressure(_) | Tile::Burning(_) | Tile::Block | Tile::Door(_) | Tile::Gate | Tile::Socket => continue,
+                        Tile::Packed => {
+                            self.unpack(tx, ty);
+                            continue;
+                        }
                         Tile::Dud => {
                             self.set_off_charge(tx, ty, s.owner);
                             continue;
                         }
                         Tile::Soft => {
                             self.tiles[ty][tx] = Tile::Burning(BURN);
-                            self.players[s.owner].blocks += 1;
+                            self.credit_block(s.owner);
                             continue;
                         }
                         Tile::Floor => {}
@@ -2075,6 +2190,7 @@ impl Game {
         self.events.push(Event::Death { player: i, by });
         if let Some(k) = by
             && k != i
+            && k < MAX_PLAYERS
         {
             self.players[k].kills += 1;
         }
@@ -2241,6 +2357,7 @@ impl Game {
                     Tile::Door(c) => 400 + *c as u64,
                     Tile::Gate => 500,
                     Tile::Socket => 600,
+                    Tile::Packed => 700,
                 });
             }
         }
@@ -2989,5 +3106,67 @@ mod tests {
             g.hash()
         };
         assert_eq!(run(), run());
+    }
+
+    fn act2(theme: &str, grid: &str) -> Game {
+        let text = format!("name: T\nworld: T\ntheme: {theme}\ngoal: clear\nbaddie: s scrap\nbaddie: z fizz\ngrid:\n{grid}");
+        let st = crate::stage::parse(&text).unwrap();
+        let mut g = Game::from_stage(&st, 3);
+        g.adventure = true;
+        g.join(0);
+        g
+    }
+
+    #[test]
+    fn a_blast_unpacks_an_archive_into_soft_blocks() {
+        let mut g = act2("cold", "#########\n#1.2....#\n#.......#\n#...=...#\n#.......#\n#..s...E#\n#########");
+        g.baddies.clear();
+        g.place_bomb(0, 4, 1);
+        g.bombs[0].fuse = 1;
+        g.step(&[Cmd::default(); MAX_PLAYERS]);
+        assert_eq!(g.tiles[3][4], Tile::Floor, "the archive is unpacked");
+        assert_eq!(g.tiles[3][3], Tile::Soft);
+        assert_eq!(g.tiles[3][5], Tile::Soft);
+        assert_eq!(g.tiles[4][4], Tile::Soft);
+        assert_eq!(g.tiles[2][4], Tile::Floor, "not onto the blast that unpacked it");
+    }
+
+    #[test]
+    fn the_bin_restores_a_beaten_creature_unless_its_file_is_emptied() {
+        let grid = "#########\n#1.2....#\n#.......#\n#...s...#\n#.......#\n#......E#\n#########";
+        for empty in [false, true] {
+            let mut g = act2("bin", grid);
+            let (x, y) = g.baddies[0].tile();
+            g.flames[y][x] = Some(Flame { left: 5, links: 0, owner: 0, surge: false });
+            g.step(&[Cmd::default(); MAX_PLAYERS]);
+            assert_eq!(g.restores.len(), 1, "it leaves its deleted file");
+            assert!(!g.exit_open, "the file has to go too");
+            for _ in 0..10 {
+                g.step(&[Cmd::default(); MAX_PLAYERS]);
+            }
+            if empty {
+                (g.players[0].x, g.players[0].y) = (centre(x), centre(y));
+                g.players[0].invuln = 999;
+            }
+            for _ in 0..RESTORE + 5 {
+                g.step(&[Cmd::default(); MAX_PLAYERS]);
+            }
+            assert!(g.restores.is_empty());
+            assert_eq!(g.baddies.len(), if empty { 0 } else { 1 });
+            assert_eq!(g.exit_open, empty);
+        }
+    }
+
+    #[test]
+    fn a_bomber_lays_the_games_bombs_and_they_spare_its_kind() {
+        let mut g = act2("games", "#########\n#1.2....#\n#.......#\n#...z...#\n#.......#\n#......E#\n#########");
+        g.baddies[0].timer = 0;
+        let mut laid = false;
+        for _ in 0..FUSE + 60 {
+            g.step(&[Cmd::default(); MAX_PLAYERS]);
+            laid |= g.bombs.iter().any(|b| b.owner == HOUSE);
+        }
+        assert!(laid, "the fizz lays a bomb");
+        assert_eq!(g.baddies.len(), 1, "the game's bombs don't hurt its own creatures");
     }
 }

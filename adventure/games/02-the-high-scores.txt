@@ -1,0 +1,31 @@
+name: The High Scores
+about: the empty high score table, crates, and a red door
+world: The Games Folder
+clock: 04:42
+theme: games
+goal: exit
+time: 210
+map: 1 0
+next: 4
+story: The high score table, empty for thirty years but for the names the
+story: game came with. The hatch is behind a red door at the top of the
+story: table; the key is down at the very bottom of it.
+key: a red
+baddie: z fizz
+baddie: i stick
+baddie: n bonus
+baddie: d diskette
+baddie: q turbo
+baddie: x demo
+grid:
+#####################
+#1.2..+..+..+..A..E.#
+#.###################
+#.+..+..+..+..+...#.#
+###############.###.#
+#.+..z..+..+..+..+..#
+#.#################.#
+#..+..B..+..B..+..+.#
+#.###############.###
+#a..+..+..i..+..+...#
+#####################

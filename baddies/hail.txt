@@ -1,0 +1,28 @@
+name: Hail
+about: a hailstone that bounces two tiles at a time over anything
+hp: 1
+speed: 0.5
+move: wander
+every: 150
+ability: hop
+points: 300
+egg: hop
+colors: w=235,245,255 b=140,180,220 d=80,110,160 k=20,20,28
+art:
+........
+..wwww..
+.wwbwww.
+wwkwwkbw
+wbwwwwww
+wwwbbwbw
+.bwwwwb.
+..dddd..
+art2:
+..wwww..
+.wwbwww.
+wwkwwkbw
+wbwwwwww
+wwwbbwbw
+.bwwwwb.
+..dddd..
+........

@@ -1,0 +1,45 @@
+name: the Compactor
+about: the Forgotten Game's second boss, a crusher from a deleted level; it curls up and rolls at you flattening the heaps, and calls up scraps
+hp: 10
+speed: 0.5
+move: wander
+size: 2
+every: 260
+ability: roll
+summon: scrap
+points: 9000
+colors: s=150,155,170 l=200,205,215 d=80,85,100 y=245,200,40 k=20,20,28 w=255,255,255 r=220,60,60
+art:
+................
+.llllllllllllll.
+.lssssssssssssd.
+.lsykykykykykyd.
+.lssssssssssssd.
+.lsswwssssswwsd.
+.lsswkssssswksd.
+.lssssssssssssd.
+.lssrrrrrrrrssd.
+.lssssssssssssd.
+.lsykykykykykyd.
+.lssssssssssssd.
+.ldddddddddddd..
+..kk........kk..
+..kk........kk..
+................
+art2:
+................
+.llllllllllllll.
+.lssssssssssssd.
+.lskykykykykykd.
+.lssssssssssssd.
+.lsswwssssswwsd.
+.lsswkssssswksd.
+.lssssssssssssd.
+.lssrrrrrrrrssd.
+.lssssssssssssd.
+.lskykykykykykd.
+.lssssssssssssd.
+.ldddddddddddd..
+.kk..........kk.
+.kk..........kk.
+................

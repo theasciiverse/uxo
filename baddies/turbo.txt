@@ -1,0 +1,28 @@
+name: Turbo
+about: a racer out of the Forgotten Game's racing round; when it sees you lined up it floors it
+hp: 2
+speed: 0.6
+move: wander
+sees: 6
+on_sight: charge
+points: 500
+egg: dash
+colors: g=80,210,90 d=30,120,50 w=255,255,255 k=20,20,28 y=250,220,80
+art:
+...gg...
+..gggg..
+.gwkgwk.
+gggggggg
+yggggggy
+.dggggd.
+kk....kk
+kk....kk
+art2:
+...gg...
+..gggg..
+.gwkgwk.
+gggggggg
+yggggggy
+.dggggd.
+.kk..kk.
+.kk..kk.

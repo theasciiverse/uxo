@@ -1,8 +1,10 @@
 # Roadmap
 
-uXo is at 0.6.0 (2026-10-29): battle mode complete and act 1 whole,
-its three worlds (the Screensaver, the Clock and the Buffer) and purged's
-fight, with the world's rules settled (`WORLD.md`). The adventure is a story in three
+uXo is at 0.7.0 (2026-11-14): battle mode complete, act 1 whole (the
+Screensaver, the Clock, the Buffer and purged's fight) and act 2 whole (Cold
+Storage, the Recycle Bin, the Games Folder and Demo's fight, on the
+Forgotten Game's branching maps), with the world's rules settled
+(`WORLD.md`). The adventure is a story in three
 acts, inside the machine, built one world at a time. 1.0.0 is when all
 three acts are in.
 
@@ -62,11 +64,22 @@ three acts are in.
 - [x] Creatures catch you only on a real overlap
 - [x] A new preview recording in the Clock
 
-## 0.7.0: act 2, the Forgotten Game
+## 0.7.0: act 2, the Forgotten Game, built
 
-- [ ] Cold Storage, the Recycle Bin, the Games Folder
-- [ ] The branching map
-- [ ] Act 2's ending
+- [x] Cold Storage: nine stages on the ice, packed archives that a blast
+  unpacks into soft blocks, five species and the Freezer, which freezes the
+  floor round it
+- [x] The Recycle Bin: nine stages where a beaten creature's deleted file is
+  restored unless you walk over it first, five species and the Compactor
+- [x] The Games Folder: nine stages where the game's own creatures lay its
+  bombs, five species and Demo, the game's hero, who walks the same way
+  every time
+- [x] The branching map: each act 2 world is the Forgotten Game's own map,
+  two ways through (the upper mostly puzzles, the lower mostly action),
+  crossing in the middle; six stages to the boss, nine to see everything
+- [x] Act 2's ending, and Payload's name on the high score table
+- [x] Progress is saved in the state folder (`$XDG_STATE_HOME/uxo`); 0.6's
+  is still read
 
 ## 0.8.0: act 3, the Virus
 

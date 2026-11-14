@@ -1,0 +1,36 @@
+name: The Compactor
+about: the game's second boss
+world: The Recycle Bin
+clock: 04:35
+theme: bin
+goal: boss
+time: 240
+map: 5 1
+story: The end of episode 2, and its boss, deleted along with it: the
+story: Compactor, a crusher that curls up and rolls at {dot}, flattening
+story: the heaps as it goes, and calls up scraps to help. It can't roll
+story: through a crate.
+ending: The Compactor stops with a clank, and episode 2 is over. Its
+ending: files crumple up behind {dot}, and the bin is emptied at last,
+ending: for real this time. The old game doesn't mind. It has one episode
+ending: left, the one it keeps at home: in the Games Folder, among
+ending: every other game that was ever played on this machine but itself.
+baddie: s scrap
+baddie: c clip
+baddie: j wad
+baddie: f fade
+baddie: q shortcut
+baddie: x compactor
+grid:
+#####################
+#1.2................#
+#..+.....+...+...+..#
+#...B.....+.+...B...#
+#.+.......+.+.....+.#
+#.....+...x.....+...#
+#...................#
+#.+...B.......B...+.#
+#.....+...+.....+...#
+#..+.......s.....+..#
+#.....s.......s.....#
+#####################

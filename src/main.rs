@@ -594,6 +594,18 @@ fn feel(ev: Event, g: &Game, seats: &[Ctl], input: &mut Input, shake: &mut u32, 
             info!("every part found: the sockets open");
             *toast = Some(("EVERY PART FOUND!".to_string(), HZ * 3));
         }
+        Event::Unpacked { x, y } => info!("an archive unpacked at {x},{y}"),
+        Event::Emptied { by, x, y } => {
+            info!("player {} emptied a deleted file at {x},{y}", by + 1);
+            if let Some(c) = pad(by) {
+                input.rumble(c, 0.0, 0.4, 60);
+            }
+        }
+        Event::Restored { x, y } => {
+            info!("a deleted file was restored at {x},{y}");
+            *toast = Some(("RESTORED! WALK OVER THE FILES".to_string(), HZ * 2));
+        }
+        Event::Chilled => debug!("the floor froze"),
     }
 }
 
@@ -1097,6 +1109,109 @@ fn adv_card(r: &Run, input: &Input, i: usize, ctl: Ctl, rect: Rect, area: Rect, 
     }
 }
 
+/// The Forgotten Game's map of a world: stages as numbered stops, the paths
+/// between them, cleared ones ticked, open ones lit, the cursor on the chosen one.
+fn map_lines(r: &Run, cursor: usize) -> Vec<Line<'static>> {
+    let (first, n) = adventure::world_of(cursor);
+    let open = r.open_stages();
+    let stages: Vec<stage::Stage> = (first..first + n).map(adventure::load).collect();
+    const DX: usize = 9;
+    let (mut cols, mut rows) = (0usize, 0usize);
+    for s in &stages {
+        let (c, rw) = s.map.unwrap_or((0, 0));
+        cols = cols.max(c as usize);
+        rows = rows.max(rw as usize);
+    }
+    let (w, h) = (cols * DX + 3, rows * 2 + 1);
+    // each cell a char and a colour
+    let mut grid = vec![vec![(' ', [0u8, 0, 0]); w]; h];
+    let at = |s: &stage::Stage| {
+        let (c, rw) = s.map.unwrap_or((0, 0));
+        (c as usize * DX, rw as usize * 2)
+    };
+    for (k, s) in stages.iter().enumerate() {
+        let lit = r.cleared[first + k];
+        let ink = if lit { [200, 200, 120] } else { [80, 80, 92] };
+        let (x0, y0) = at(s);
+        for &j in &s.next {
+            let Some(t) = stages.get(j - 1) else { continue };
+            let (x1, y1) = at(t);
+            let mid = (x0 + 3 + x1) / 2;
+            if y0 == y1 {
+                for x in x0 + 3..x1 {
+                    grid[y0][x] = ('─', ink);
+                }
+            } else {
+                for x in x0 + 3..mid {
+                    grid[y0][x] = ('─', ink);
+                }
+                for x in mid + 1..x1 {
+                    grid[y1][x] = ('─', ink);
+                }
+                // the diagonal, one row at a time; two crossing make an X
+                let down = y1 > y0;
+                let span = y0.abs_diff(y1);
+                for k in 1..span {
+                    let y = if down { y0 + k } else { y0 - k };
+                    let x = mid + k - span / 2;
+                    let ch = if down { '╲' } else { '╱' };
+                    let old = grid[y][x].0;
+                    grid[y][x] = (if (old == '╲' || old == '╱') && old != ch { '╳' } else { ch }, ink);
+                }
+            }
+        }
+    }
+    let mut marks = Vec::new();
+    for (k, s) in stages.iter().enumerate() {
+        let i = first + k;
+        let (x, y) = at(s);
+        let num = char::from_digit((k + 1) as u32, 10).unwrap_or('?');
+        let (l, rr, c) = if r.cleared[i] {
+            ('[', ']', [120, 220, 120])
+        } else if open.contains(&i) {
+            ('(', ')', [240, 240, 245])
+        } else {
+            ('·', '·', [90, 90, 100])
+        };
+        grid[y][x] = (l, c);
+        grid[y][x + 1] = (num, c);
+        grid[y][x + 2] = (rr, c);
+        if i == cursor {
+            marks.push((x, y));
+        }
+    }
+    let blink = (r.game.steps / 20) % 2 == 0;
+    let gold = Style::default().fg(AMBER).add_modifier(Modifier::BOLD);
+    let dim = Style::default().fg(DIM);
+    let s = &stages[cursor - first];
+    let mut lines = vec![
+        Line::from(Span::styled(format!("{}  THE MAP", s.world.to_uppercase()), dim)).centered(),
+        Line::raw(""),
+    ];
+    for (y, row) in grid.iter().enumerate() {
+        let spans: Vec<Span> = row
+            .iter()
+            .enumerate()
+            .map(|(x, &(ch, c))| {
+                let mut st = Style::default().fg(Color::Rgb(c[0], c[1], c[2]));
+                if marks.iter().any(|&(mx, my)| my == y && (mx..mx + 3).contains(&x)) {
+                    st = if blink { Style::default().fg(Color::Black).bg(AMBER) } else { gold };
+                }
+                Span::styled(ch.to_string(), st)
+            })
+            .collect();
+        lines.push(Line::from(spans).centered());
+    }
+    lines.push(Line::raw(""));
+    lines.push(Line::from(Span::styled(format!("{}  {}", adventure::code_of(cursor), s.name.to_uppercase()), gold)).centered());
+    if !s.about.is_empty() {
+        lines.push(Line::from(Span::styled(s.about.clone(), Style::default().fg(Color::Rgb(230, 230, 236)))).centered());
+    }
+    lines.push(Line::raw(""));
+    lines.push(Line::from(Span::styled("move to choose · bomb to play", dim)).centered());
+    lines
+}
+
 /// The adventure's cards and banners: story, clear, time up, game over, ending.
 fn adv_banner(r: &Run, area: Rect, buf: &mut Buffer) {
     use adventure::Phase as A;
@@ -1142,6 +1257,9 @@ fn adv_banner(r: &Run, area: Rect, buf: &mut Buffer) {
             if t.duds > 0 {
                 lines.push(Line::from(vec![Span::styled(format!("{:<20}", "charges set off"), dim), Span::styled(format!("{:>8}", t.duds), white)]));
             }
+            if t.emptied > 0 {
+                lines.push(Line::from(vec![Span::styled(format!("{:<20}", "files emptied"), dim), Span::styled(format!("{:>8}", t.emptied), white)]));
+            }
             lines.push(Line::from(vec![Span::styled(format!("{:<20}", "time bonus"), dim), Span::styled(format!("{:>8}", t.time_bonus), white)]));
             lines.push(Line::raw(""));
             for i in 0..r.players {
@@ -1172,7 +1290,8 @@ fn adv_banner(r: &Run, area: Rect, buf: &mut Buffer) {
             lines.push(Line::from(Span::styled("bomb to go on", dim)).centered());
             panel(lines, area, buf);
         }
-        A::Done => banner(&["TO BE CONTINUED", "act 2, the Forgotten Game, is next", "bomb for the title"], area, buf),
+        A::Map { cursor } => panel(map_lines(r, cursor), area, buf),
+        A::Done => banner(&["TO BE CONTINUED", "act 3, the Virus, is next", "bomb for the title"], area, buf),
         A::Play => {}
     }
 }
@@ -1207,7 +1326,11 @@ fn snapshot(args: &[String], out: &str) -> io::Result<()> {
     }
     if let Some(n) = arg("--adventure").and_then(|v| v.parse::<usize>().ok()) {
         let mut r = Run::new(7, 2, n.saturating_sub(1));
-        if !args.iter().any(|a| a == "--card") {
+        if args.iter().any(|a| a == "--map") {
+            // the map after clearing stage N
+            r.cleared[r.index] = true;
+            r.phase = adventure::Phase::Map { cursor: r.index + 1 };
+        } else if !args.iter().any(|a| a == "--card") {
             r.phase = adventure::Phase::Play;
             for _ in 0..(secs * HZ as f32) as usize {
                 r.step(&[Cmd::default(); MAX_PLAYERS]);

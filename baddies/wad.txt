@@ -1,0 +1,28 @@
+name: Wad
+about: a wad of crumpled paper that bounces two tiles over anything
+hp: 1
+speed: 0.5
+move: wander
+every: 140
+ability: hop
+points: 300
+egg: hop
+colors: p=240,236,222 g=190,186,172 d=120,116,108 k=20,20,28
+art:
+........
+..pgpp..
+.pgppgp.
+pgkppkgp
+ppggpgpp
+gpppgppd
+.dpgppd.
+..dddd..
+art2:
+..pgpp..
+.pgppgp.
+pgkppkgp
+ppggpgpp
+gpppgppd
+.dpgppd.
+..dddd..
+........

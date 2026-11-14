@@ -1,0 +1,27 @@
+name: Fizz
+about: one of the Forgotten Game's own bombers; it wanders and lays the game's bombs as it goes
+hp: 1
+speed: 0.6
+move: wander
+every: 300
+ability: bomb
+points: 300
+colors: r=230,60,80 d=140,30,50 w=255,255,255 k=20,20,28 y=250,220,80
+art:
+...y....
+..yr....
+.rrrrrr.
+rrwkrwkr
+rrrrrrrr
+.rrddrr.
+..d..d..
+.dd..dd.
+art2:
+....y...
+...ry...
+.rrrrrr.
+rrwkrwkr
+rrrrrrrr
+.rrddrr.
+.d....d.
+dd....dd

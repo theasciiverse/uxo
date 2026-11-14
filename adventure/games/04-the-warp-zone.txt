@@ -1,0 +1,32 @@
+name: The Warp Zone
+about: four rooms joined by warps, and four parts
+world: The Games Folder
+clock: 04:46
+theme: games
+goal: exit
+time: 220
+map: 2 0
+next: 6 7
+story: A secret every game of its day had to have: four rooms with no
+story: doors, joined by warps, each sending {dot} on to the next. A part
+story: lies in each room; together they open the sockets round the hatch.
+baddie: z fizz
+baddie: i stick
+baddie: n bonus
+baddie: d diskette
+baddie: q turbo
+baddie: x demo
+grid:
+#######################
+#1.2+..+..#.+..+..+..$#
+#.#.#.#.#.#.#.#.#.#.#.#
+#..+..z..o#o..+..i..+.#
+#.#.#.#.#.#.#.#.#.#.#.#
+#$..+..+..#....SES..+.#
+###########.#.#S#.#####
+#.+..+..+.#.+.....+..$#
+#.#.#.#.#.#.#.#.#.#.#.#
+#..z..+..o#o..+..z..+.#
+#.#.#.#.#.#.#.#.#.#.#.#
+#$..+..+..#..+..+.....#
+#######################

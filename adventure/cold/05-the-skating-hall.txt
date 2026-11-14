@@ -1,0 +1,32 @@
+name: The Skating Hall
+about: a great rink with plows charging over it
+world: Cold Storage
+clock: 04:08
+theme: cold
+goal: clear
+time: 180
+map: 2 2
+next: 7 6
+story: The game's skating hall: one great rink, with plows that lower
+story: their blades and charge the moment they see {dot} lined up. On the
+story: ice a charge goes a long way. Beat a plow and ride its copy.
+baddie: p puff
+baddie: k skid
+baddie: m packrat
+baddie: h hail
+baddie: n plow
+baddie: x freezer
+grid:
+#######################
+#1.2????.......????...#
+#.#?#?#~~~~~~~~~#?#?#.#
+#.??~~~~~~~~~~~~~~~??.#
+#?#~~#~~#~~~#~~#~~#~#?#
+#??~~~~~n~~~~~~~~~~~??#
+#?#~~#~~#~~~#~~#~~#~#?#
+#??~~~~~~~~~~~n~~~~~??#
+#?#~~#~~#~~~#~~#~~#~#?#
+#.??~~~~~~~p~~~~~~~??.#
+#.#?#?#~~~~~~~~~#?#?#.#
+#..p.???..h....???..E.#
+#######################

@@ -7,7 +7,7 @@ use crate::game::{Cmd, Event, Game, HZ, MAX_PLAYERS};
 use crate::stage::{self, Stage};
 use log::info;
 
-pub const STAGES: [&str; 27] = [
+pub const STAGES: [&str; 54] = [
     include_str!("../adventure/orchard/01-windfall-lane.txt"),
     include_str!("../adventure/orchard/02-beetle-rows.txt"),
     include_str!("../adventure/orchard/03-hedge-maze.txt"),
@@ -35,10 +35,51 @@ pub const STAGES: [&str; 27] = [
     include_str!("../adventure/buffer/07-ring-buffer.txt"),
     include_str!("../adventure/buffer/08-the-last-charges.txt"),
     include_str!("../adventure/buffer/09-purged.txt"),
+    // act 2, the Forgotten Game
+    include_str!("../adventure/cold/01-thaw.txt"),
+    include_str!("../adventure/cold/02-deep-freeze.txt"),
+    include_str!("../adventure/cold/03-the-zip-lines.txt"),
+    include_str!("../adventure/cold/04-packed-rooms.txt"),
+    include_str!("../adventure/cold/05-the-skating-hall.txt"),
+    include_str!("../adventure/cold/06-the-archive.txt"),
+    include_str!("../adventure/cold/07-snowdrift.txt"),
+    include_str!("../adventure/cold/08-the-long-sleep.txt"),
+    include_str!("../adventure/cold/09-the-freezer.txt"),
+    include_str!("../adventure/bin/01-deleted-items.txt"),
+    include_str!("../adventure/bin/02-paper-heaps.txt"),
+    include_str!("../adventure/bin/03-the-sort.txt"),
+    include_str!("../adventure/bin/04-old-saves.txt"),
+    include_str!("../adventure/bin/05-the-shortcuts.txt"),
+    include_str!("../adventure/bin/06-lost-and-found.txt"),
+    include_str!("../adventure/bin/07-the-chute.txt"),
+    include_str!("../adventure/bin/08-empty-bin.txt"),
+    include_str!("../adventure/bin/09-the-compactor.txt"),
+    include_str!("../adventure/games/01-press-any-key.txt"),
+    include_str!("../adventure/games/02-the-high-scores.txt"),
+    include_str!("../adventure/games/03-bonus-round.txt"),
+    include_str!("../adventure/games/04-the-warp-zone.txt"),
+    include_str!("../adventure/games/05-two-player-mode.txt"),
+    include_str!("../adventure/games/06-the-secret-level.txt"),
+    include_str!("../adventure/games/07-hard-mode.txt"),
+    include_str!("../adventure/games/08-the-last-level.txt"),
+    include_str!("../adventure/games/09-demo.txt"),
 ];
 
-/// Stages in each world, in order: act 1's Screensaver, Clock and Buffer.
-pub const WORLDS: [usize; 3] = [9, 9, 9];
+/// Stages in each world, in order: act 1's Screensaver, Clock and Buffer, act 2's
+/// Cold Storage, Recycle Bin and Games Folder.
+pub const WORLDS: [usize; 6] = [9, 9, 9, 9, 9, 9];
+
+/// The first stage index of the world stage `index` is in, and its stage count.
+pub fn world_of(index: usize) -> (usize, usize) {
+    let mut first = 0;
+    for &n in WORLDS.iter() {
+        if index < first + n {
+            return (first, n);
+        }
+        first += n;
+    }
+    (first, 1)
+}
 
 /// The stage index of a code like "2-3", for `--from`.
 pub fn index_of(code: &str) -> Option<usize> {
@@ -68,6 +109,8 @@ pub fn load(i: usize) -> Stage {
 
 pub const LIVES: u32 = 3;
 const DUD_POINTS: u32 = 500;
+/// Points for emptying a deleted file from the Recycle Bin.
+const EMPTY_POINTS: u32 = 100;
 /// Points per second left on the clock at a clear.
 const TIME_BONUS: u32 = 10;
 /// Characters per step the story card types.
@@ -85,6 +128,9 @@ pub enum Phase {
     GameOver,
     /// After the world's last stage: its ending.
     Ending(f32),
+    /// The Forgotten Game's map of the world: pick the next stage among those open.
+    /// `cursor` is a stage index.
+    Map { cursor: usize },
     /// Nothing more yet.
     Done,
 }
@@ -94,6 +140,7 @@ pub enum Phase {
 pub struct Tally {
     pub baddies: u32,
     pub duds: u32,
+    pub emptied: u32,
     pub time_bonus: u32,
 }
 
@@ -111,6 +158,8 @@ pub struct Run {
     /// Steps left on the stage clock.
     pub left: u32,
     pub tally: Tally,
+    /// Stages cleared on this run, for the branching maps.
+    pub cleared: Vec<bool>,
     seed: u64,
 }
 
@@ -128,6 +177,7 @@ impl Run {
             phase: Phase::Card(0.0),
             left: 0,
             tally: Tally::default(),
+            cleared: vec![false; STAGES.len()],
             seed,
         };
         r.begin(false);
@@ -137,6 +187,67 @@ impl Run {
     /// "1-3": world and stage number.
     pub fn code(&self) -> String {
         code_of(self.index)
+    }
+
+    /// Does the current world have a branching map?
+    pub fn has_map(&self) -> bool {
+        self.stage.map.is_some()
+    }
+
+    /// The stages open on the current world's map: the first, the one being played,
+    /// and every stage a cleared one leads to. Cleared stages stay open (to play again).
+    pub fn open_stages(&self) -> Vec<usize> {
+        let (first, n) = world_of(self.index);
+        let mut open = vec![false; n];
+        open[0] = true;
+        open[self.index - first] = true;
+        for i in first..first + n {
+            if self.cleared[i] {
+                open[i - first] = true;
+                for &k in &load(i).next {
+                    if k >= 1 && k <= n {
+                        open[k - 1] = true;
+                    }
+                }
+            }
+        }
+        (0..n).filter(|&k| open[k]).map(|k| first + k).collect()
+    }
+
+    /// Where the map cursor starts: the first open stage not yet cleared that the
+    /// stage just cleared leads to.
+    fn map_start(&self) -> usize {
+        let (first, _) = world_of(self.index);
+        let open = self.open_stages();
+        load(self.index)
+            .next
+            .iter()
+            .map(|k| first + k - 1)
+            .find(|i| open.contains(i) && !self.cleared[*i])
+            .or_else(|| open.iter().copied().find(|&i| !self.cleared[i]))
+            .unwrap_or(self.index)
+    }
+
+    /// Move the map cursor one step toward `d`: the nearest open stage that way.
+    pub fn map_move(&mut self, d: crate::game::Dir) {
+        let Phase::Map { cursor } = self.phase else { return };
+        let at = load(cursor).map.unwrap_or((0, 0));
+        let (dx, dy) = d.vec();
+        let best = self
+            .open_stages()
+            .into_iter()
+            .filter(|&i| i != cursor)
+            .filter_map(|i| {
+                let m = load(i).map?;
+                let (ex, ey) = (m.0 as i32 - at.0 as i32, m.1 as i32 - at.1 as i32);
+                let along = ex * dx + ey * dy;
+                let side = (ex * dy - ey * dx).abs();
+                (along > 0).then_some((along * 2 + side * 3, i))
+            })
+            .min();
+        if let Some((_, i)) = best {
+            self.phase = Phase::Map { cursor: i };
+        }
     }
 
     /// Set up the current stage. `carry` keeps each player's power-ups and mount.
@@ -253,6 +364,8 @@ impl Run {
                 self.game.step(&[Cmd::default(); MAX_PLAYERS]);
                 if t > 1 {
                     self.phase = Phase::Clear { t: t - 1 };
+                } else if self.has_map() && self.stage.ending.is_empty() {
+                    self.phase = Phase::Map { cursor: self.map_start() };
                 } else if self.index + 1 < STAGES.len() && self.stage.ending.is_empty() {
                     self.index += 1;
                     self.begin(true);
@@ -275,6 +388,18 @@ impl Run {
                     self.lives = [LIVES; MAX_PLAYERS];
                     self.score = [0; MAX_PLAYERS];
                     self.begin(false);
+                }
+            }
+            Phase::Map { cursor } => {
+                for c in cmds {
+                    if let Some(d) = c.tap {
+                        self.map_move(d);
+                    }
+                }
+                if bomb {
+                    info!("playtest map: {} chosen", code_of(cursor));
+                    self.index = cursor;
+                    self.begin(true);
                 }
             }
             Phase::Done => {}
@@ -351,6 +476,12 @@ impl Run {
                     }
                 }
             }
+            Event::Emptied { by, .. } => {
+                if by < MAX_PLAYERS {
+                    self.score[by] += EMPTY_POINTS;
+                }
+                self.tally.emptied += 1;
+            }
             Event::DudPopped { by, .. } => {
                 if by < MAX_PLAYERS {
                     self.score[by] += DUD_POINTS;
@@ -360,6 +491,7 @@ impl Run {
             Event::Death { player, by } if self.phase == Phase::Play => {
                 let what = match by {
                     Some(k) if k == player => "own blast".to_string(),
+                    Some(crate::game::HOUSE) => "the game's bomb".to_string(),
                     Some(k) => format!("P{}'s blast", k + 1),
                     None => self.toucher(player),
                 };
@@ -395,6 +527,7 @@ impl Run {
                     self.score[..self.players].iter().map(u32::to_string).collect::<Vec<_>>().join("/")
                 );
                 crate::progress::reached(self.index + 1);
+                self.cleared[self.index] = true;
                 self.phase = Phase::Clear { t: CLEAR_HOLD };
             }
             _ => {}
@@ -467,7 +600,7 @@ mod tests {
         for i in 0..STAGES.len() {
             assert_eq!(index_of(&code_of(i)), Some(i));
         }
-        assert_eq!(index_of("4-1"), None);
+        assert_eq!(index_of("7-1"), None);
         assert_eq!(index_of("1-10"), None);
         assert_eq!(index_of("0-1"), None);
     }
@@ -509,6 +642,7 @@ mod tests {
             let crates = s.cells.iter().flatten().any(|c| *c == Cell::Block);
             let parts = s.cells.iter().flatten().filter(|c| **c == Cell::Part).count();
             let start = (0..s.h).flat_map(|y| (0..s.w).map(move |x| (x, y))).find(|&(x, y)| s.cells[y][x] == Cell::Start(0)).unwrap();
+            let warps = crate::stage::warps(&s);
             let mut keys = [false; 4];
             let mut found = 0;
             // widen the reachable area until nothing new opens up
@@ -527,6 +661,9 @@ mod tests {
                         continue;
                     }
                     seen[y][x] = true;
+                    if let Some(k) = warps.iter().position(|&p| p == (x, y)) {
+                        todo.push(warps[(k + 1) % warps.len()]);
+                    }
                     todo.extend([(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]);
                 }
                 let mut got = keys;
@@ -547,5 +684,54 @@ mod tests {
                 (keys, found) = (got, n);
             }
         }
+    }
+
+    /// A world with a map: every stage has a place, the places differ, every stage
+    /// can be reached from the first, and every way through ends at the boss.
+    #[test]
+    fn every_map_leads_from_the_first_stage_to_the_boss() {
+        let mut first = 0;
+        for n in WORLDS {
+            let stages: Vec<Stage> = (first..first + n).map(load).collect();
+            if stages[0].map.is_some() {
+                let mut places = std::collections::HashSet::new();
+                for s in &stages {
+                    assert!(places.insert(s.map.expect("every stage of a map world has a place")), "{}: two stages share a place", s.name);
+                    assert!(s.next.iter().all(|&k| k >= 1 && k <= n), "{}: next leads out of the world", s.name);
+                    assert_eq!(s.next.is_empty(), s.goal == crate::game::Goal::Boss, "{}: only the boss leads nowhere", s.name);
+                }
+                let mut seen = vec![false; n];
+                let mut todo = vec![0];
+                while let Some(k) = todo.pop() {
+                    if !std::mem::replace(&mut seen[k], true) {
+                        todo.extend(stages[k].next.iter().map(|j| j - 1));
+                    }
+                }
+                assert!(seen.iter().all(|&v| v), "{}: a stage can't be reached on the map", stages[0].world);
+            }
+            first += n;
+        }
+    }
+
+    #[test]
+    fn a_cleared_stage_on_a_map_opens_the_way_on() {
+        let start = WORLDS[..3].iter().sum::<usize>();
+        let mut r = Run::new(1, 1, start);
+        assert!(r.has_map());
+        assert_eq!(r.open_stages(), vec![start]);
+        r.phase = Phase::Play;
+        r.game.events.push(Event::Cleared);
+        r.step(&[Cmd::default(); MAX_PLAYERS]);
+        r.phase = Phase::Clear { t: 1 };
+        r.step(&[Cmd::default(); MAX_PLAYERS]);
+        let Phase::Map { cursor } = r.phase else { panic!("a clear on a map world shows the map, not {:?}", r.phase) };
+        assert_eq!(cursor, start + 1);
+        assert_eq!(r.open_stages(), vec![start, start + 1, start + 2]);
+        r.map_move(crate::game::Dir::Down);
+        assert_eq!(r.phase, Phase::Map { cursor: start + 2 }, "down picks the lower way");
+        let press = std::array::from_fn(|i| Cmd { bomb: i == 0, ..Cmd::default() });
+        r.step(&press);
+        assert_eq!(r.index, start + 2);
+        assert_eq!(r.phase, Phase::Card(0.0));
     }
 }

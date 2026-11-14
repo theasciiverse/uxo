@@ -1,0 +1,25 @@
+name: Clip
+about: a bent paperclip that springs straight along the bin, turning only at walls
+hp: 1
+speed: 1.4
+move: straight
+points: 200
+colors: s=200,205,220 d=110,115,135 k=20,20,28 w=255,255,255
+art:
+..ssss..
+.s....s.
+.s.ss.s.
+.swkwks.
+.s.ss.s.
+.s.s..s.
+..ss.ss.
+...d.d..
+art2:
+..ssss..
+.s....s.
+.s.ss.s.
+.swkwks.
+.s.ss.s.
+.s..s.s.
+.ss.ss..
+..d.d...

@@ -1,0 +1,28 @@
+name: Fade
+about: what is left of a deleted sprite; it drifts over the heaps and follows you once it sees you
+hp: 1
+speed: 0.6
+move: wander
+sees: 6
+on_sight: chase
+flies: yes
+points: 300
+colors: w=210,215,240 l=150,160,210 k=40,40,70
+art:
+..wwww..
+.wwwwww.
+wwkwwkww
+wwkwwkww
+wwwwwwww
+wwwwwwww
+wlwwlwwl
+l.l..l.l
+art2:
+..wwww..
+.wwwwww.
+wwkwwkww
+wwkwwkww
+wwwwwwww
+wwwwwwww
+lwwlwwlw
+.l.l..l.

@@ -20,11 +20,14 @@
 //! - `$` a part, `S` a socket (open once every part is picked up)
 //! - `%` a shutter that opens on the clock's tick, `&` one that opens on the tock
 //! - `:` a Buffer cell: a soft block, written back a while after it is blown up
+//! - `=` a packed archive: solid; a blast unpacks it into soft blocks round it
 //!
 //! Adventure stages also have `world:`, `clock:` (the machine's time, shown on the card),
 //! `story:` lines (the card before the stage; `{dot}` names the heroes),
-//! `goal:` clear | duds | boss | exit (the hatch open from the start), `time:` seconds, `theme:` brick | orchard | clock | buffer, and
-//! `ending:` lines (after a world's last stage).
+//! `goal:` clear | duds | boss | exit (the hatch open from the start), `time:` seconds, `theme:` brick | orchard | clock | buffer |
+//! cold | bin | games, `ending:` lines (after a world's last stage), and on a world
+//! with a branching map `map: col row` (the stage's place on it) and `next: 2 3` (the
+//! stages, numbered within the world, that clearing it opens).
 
 use crate::game::{Dir, Goal, Item, Theme};
 
@@ -55,6 +58,8 @@ pub enum Cell {
     Shutter(bool),
     /// A soft block that is written back after it is cleared.
     Rewrite,
+    /// A packed archive: solid, unpacked into soft blocks by a blast.
+    Packed,
 }
 
 const COLOURS: [&str; 4] = ["red", "blue", "green", "yellow"];
@@ -74,6 +79,10 @@ pub struct Stage {
     /// Seconds on the clock (adventure).
     pub time: u32,
     pub theme: Theme,
+    /// Place on the world's branching map (column, row), if it has one.
+    pub map: Option<(u8, u8)>,
+    /// Stages of this world (1-based) that clearing this one opens on the map.
+    pub next: Vec<usize>,
     pub w: usize,
     pub h: usize,
     pub cells: Vec<Vec<Cell>>,
@@ -126,6 +135,8 @@ pub fn parse(text: &str) -> Result<Stage, String> {
         goal: Goal::None,
         time: 180,
         theme: Theme::Brick,
+        map: None,
+        next: Vec::new(),
         w: 0,
         h: 0,
         cells: Vec::new(),
@@ -165,6 +176,9 @@ pub fn parse(text: &str) -> Result<Stage, String> {
                     "orchard" => Theme::Orchard,
                     "clock" => Theme::Clock,
                     "buffer" => Theme::Buffer,
+                    "cold" => Theme::Cold,
+                    "bin" => Theme::Bin,
+                    "games" => Theme::Games,
                     _ => return Err(format!("bad theme {v:?}")),
                 }
             }
@@ -182,6 +196,18 @@ pub fn parse(text: &str) -> Result<Stage, String> {
                     return Err(format!("key letter {c:?} is taken"));
                 }
                 keys.push((c, n as u8));
+            }
+            "map" => {
+                let n: Vec<u8> = v.split_whitespace().filter_map(|w| w.parse().ok()).collect();
+                if n.len() != 2 {
+                    return Err(format!("bad map {v:?}, want column and row"));
+                }
+                st.map = Some((n[0], n[1]));
+            }
+            "next" => {
+                for w in v.split_whitespace() {
+                    st.next.push(w.parse().map_err(|_| format!("bad next {w:?}"))?);
+                }
             }
             "grid" => break,
             other => return Err(format!("unknown header {other:?}")),
@@ -232,6 +258,7 @@ pub fn parse(text: &str) -> Result<Stage, String> {
                 '%' => Cell::Shutter(false),
                 '&' => Cell::Shutter(true),
                 ':' => Cell::Rewrite,
+                '=' => Cell::Packed,
                 _ => match (legend.iter().find(|(k, _)| *k == c), keys.iter().find(|(k, _)| *k == c.to_ascii_lowercase())) {
                     (_, Some(&(k, n))) if k == c => Cell::Key(n),
                     (_, Some(&(_, n))) => Cell::Door(n),
@@ -283,6 +310,12 @@ mod tests {
     }
 }
 
+/// The warps in reading order: each sends you on to the next.
+#[cfg(test)]
+pub fn warps(s: &Stage) -> Vec<(usize, usize)> {
+    (0..s.h).flat_map(|y| (0..s.w).map(move |x| (x, y))).filter(|&(x, y)| s.cells[y][x] == Cell::Warp).collect()
+}
+
 /// Every open or breakable tile can be reached from player 1's start (walking through
 /// soft blocks, which can be blown up), so no map has a sealed pocket, and every start
 /// has a free tile beside it to dodge into.
@@ -292,6 +325,7 @@ pub fn assert_connected(s: &Stage) {
     let open = |x: usize, y: usize| !matches!(s.cells[y][x], Cell::Wall | Cell::Water | Cell::Tree);
     let (w, h) = (s.w, s.h);
     let start = (0..h).flat_map(|y| (0..w).map(move |x| (x, y))).find(|&(x, y)| s.cells[y][x] == Cell::Start(0)).unwrap();
+    let warps = warps(s);
     let mut seen = vec![vec![false; w]; h];
     let mut todo = vec![start];
     while let Some((x, y)) = todo.pop() {
@@ -299,6 +333,9 @@ pub fn assert_connected(s: &Stage) {
             continue;
         }
         seen[y][x] = true;
+        if let Some(k) = warps.iter().position(|&p| p == (x, y)) {
+            todo.push(warps[(k + 1) % warps.len()]);
+        }
         for (dx, dy) in [(0i32, 1i32), (0, -1), (1, 0), (-1, 0)] {
             let (nx, ny) = (x as i32 + dx, y as i32 + dy);
             if nx >= 0 && ny >= 0 && (nx as usize) < w && (ny as usize) < h && open(nx as usize, ny as usize) {

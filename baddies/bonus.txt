@@ -1,0 +1,28 @@
+name: Bonus
+about: a bonus ball from the Forgotten Game's bonus rounds, bouncing two tiles over anything
+hp: 1
+speed: 0.5
+move: wander
+every: 130
+ability: hop
+points: 300
+egg: hop
+colors: y=250,215,60 o=230,140,30 w=255,255,255 k=20,20,28 g=60,190,90
+art:
+........
+..yyyy..
+.ywyyyy.
+ykyykyyo
+yyyyyyyo
+yyggggyo
+.yyyyyo.
+..oooo..
+art2:
+..yyyy..
+.ywyyyy.
+ykyykyyo
+yyyyyyyo
+yyggggyo
+.yyyyyo.
+..oooo..
+........

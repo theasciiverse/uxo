@@ -1,0 +1,32 @@
+name: The Zip Lines
+about: skids racing up and down long lanes of ice
+world: Cold Storage
+clock: 04:04
+theme: cold
+goal: clear
+time: 170
+map: 1 2
+next: 5
+story: Long lanes of ice, and skids racing up and down them, turning only
+story: at the walls. Step out at the wrong moment and you are on the ice
+story: with nowhere to stop. Beat every one of them.
+baddie: p puff
+baddie: k skid
+baddie: m packrat
+baddie: h hail
+baddie: n plow
+baddie: x freezer
+grid:
+#####################
+#1.2??????????????..#
+#.#####?#####?#####.#
+#.~~~~~~~~~~~~~~~~~k#
+#.#####?#####?#####?#
+#??????p??????p?????#
+#?#####?#####?#####?#
+#.~~~~~~~~~~~~~~~~~k#
+#?#####?#####?#####?#
+#?????p??????????h??#
+#.#####?#####?#####.#
+#k~~~~~~~~~~~~~~~~.E#
+#####################

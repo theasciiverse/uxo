@@ -1,0 +1,25 @@
+name: Scrap
+about: a torn-off scrap of a deleted level, wandering the bin
+hp: 1
+speed: 0.6
+move: wander
+points: 100
+colors: p=235,230,215 l=150,170,210 k=20,20,28 d=150,145,135
+art:
+.ppp....
+.pppppp.
+pkpppkpp
+plllllpp
+pppppppd
+.plllll.
+..pd.pd.
+..d...d.
+art2:
+....ppp.
+.pppppp.
+ppkpppkp
+pplllllp
+dppppppp
+.lllllp.
+.dp.dp..
+.d...d..

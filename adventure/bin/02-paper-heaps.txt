@@ -1,0 +1,32 @@
+name: Paper Heaps
+about: crates in the heaps, a switch, and the gates it holds open
+world: The Recycle Bin
+clock: 04:22
+theme: bin
+goal: exit
+time: 200
+map: 1 0
+next: 4
+story: A level the game's maker threw away half finished: heaps of paper,
+story: crates left lying about, and gates in front of the hatch. They
+story: open while the switch is held down. {dot} can't stand on it and
+story: walk through at once, but a crate can.
+baddie: s scrap
+baddie: c clip
+baddie: j wad
+baddie: f fade
+baddie: q shortcut
+baddie: x compactor
+grid:
+#####################
+#1.2+++.....+++.....#
+#..#+++#.B.#+++#.s..#
+#.###.###.###.###.#.#
+#.+.+.+.......+.+.+.#
+#.#.###.#+#.###.###.#
+#.+.....#_#.....+...#
+#.#.#.###.###.#.#.#.#
+#..s..+...B...+..j..#
+###.###.#.#.#.###|###
+#++...+.......+..|.E#
+#####################

@@ -1,0 +1,28 @@
+name: Diskette
+about: passes for a floppy disk until you come close, then it chases you
+hp: 2
+speed: 0.7
+move: wander
+sees: 5
+on_sight: chase
+mimic: yes
+points: 400
+colors: g=64,76,168 d=28,30,84 r=172,176,192 l=236,236,242 k=20,20,28 w=255,255,255
+art:
+ggrrrrgg
+ggrdrrgg
+gwkggwkg
+gggggggg
+glllllld
+glrrrrld
+.d.dd.d.
+d......d
+art2:
+ggrrrrgg
+ggrdrrgg
+gwkggwkg
+gggggggg
+glllllld
+glrrrrld
+..d..d..
+.dd..dd.

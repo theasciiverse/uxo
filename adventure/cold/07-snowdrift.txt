@@ -1,0 +1,33 @@
+name: Snowdrift
+about: open snowfields, hailstones and plows, and the surge
+world: Cold Storage
+clock: 04:11
+theme: cold
+goal: clear
+time: 180
+map: 3 2
+next: 8
+give: surge
+story: A snowfield the game drew in an afternoon and never finished: no
+story: walls to speak of, only drifts. Out in the open {dot}'s bombs
+story: surge, round corners and over the drifts. Hailstones bounce, plows
+story: charge. Clear the field.
+baddie: p puff
+baddie: k skid
+baddie: m packrat
+baddie: h hail
+baddie: n plow
+baddie: x freezer
+grid:
+#######################
+#1.2+++.....+++.....+.#
+#..+++..+.+..+...+++..#
+#.++.h...+++....n..++.#
+#.+...++......++...+..#
+#...+++...p.....+++...#
+#..++.....+++..h...++.#
+#.+...n..++.++......+.#
+#.++.....+++....++++..#
+#..+++.p.......+...p..#
+#....++..+++++...+...E#
+#######################

@@ -1,0 +1,28 @@
+name: Shortcut
+about: a deleted shortcut, still pointing; when it sees you lined up it takes the short way, at a charge
+hp: 2
+speed: 0.6
+move: wander
+sees: 6
+on_sight: charge
+points: 500
+egg: dash
+colors: w=245,245,250 b=60,110,220 k=20,20,28 d=40,60,130
+art:
+wwwwwww.
+wbbbbbw.
+wbwwkbw.
+wbbbbbw.
+wbbwbbw.
+wbwbbbw.
+wwwwwww.
+.d...d..
+art2:
+wwwwwww.
+wbbbbbw.
+wbwwkbw.
+wbbbbbw.
+wbbwbbw.
+wbwbbbw.
+wwwwwww.
+..d.d...

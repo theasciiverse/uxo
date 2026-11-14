@@ -1,0 +1,25 @@
+name: Puff
+about: the Forgotten Game's first enemy, a little puff of snow on two feet; it wanders
+hp: 1
+speed: 0.5
+move: wander
+points: 100
+colors: w=245,250,255 b=170,205,235 k=20,20,28 o=240,140,60
+art:
+..www...
+.wwwwww.
+wwkwwkww
+wwwwwwww
+wbwwwwbw
+.bwwwwb.
+..bbbb..
+..o..o..
+art2:
+...www..
+.wwwwww.
+wwkwwkww
+wwwwwwww
+wbwwwwbw
+.bwwwwb.
+..bbbb..
+.o....o.

@@ -7,13 +7,15 @@ that made those games feel like chaos you could still read. Same kind of
 mechanics, our own identity. Not a clone.
 
 Own git repo, private at github.com/theasciiverse/uxo (`main`).
-Version 0.6.0 (2026-10-29). What comes next, release by release, is in `ROADMAP.md`.
+Version 0.7.0 (2026-11-14). What comes next, release by release, is in `ROADMAP.md`.
 
-**Status:** Act 1 of Adventure playable, its three worlds (the Clock and the
-Buffer built 2026-10-29), battle mode complete (2026-10-04). A title screen (big
+**Status:** Acts 1 and 2 of Adventure playable: act 1's three worlds (the Clock
+and the Buffer built 2026-10-29) and act 2's, the Forgotten Game (Cold Storage,
+the Recycle Bin and the Games Folder on branching maps, built 2026-11-14);
+battle mode complete (2026-10-04). A title screen (big
 pixel logo over fireworks) leads to **Adventure** (alone or two together: the
 Screensaver's, the Clock's and the Buffer's nine stages each, story cards,
-sixteen baddie species and three bosses, purged's charges, tamed mounts, lives,
+thirty-one baddie species and six bosses, act 2's branching maps, purged's charges, tamed mounts, lives,
 score, a clock, saved progress for Continue, which can start at any stage reached: left and right pick it) or **Battle**.
 
 Battle: One player practises; a second
@@ -44,6 +46,7 @@ UXO_NO_PADS=1 cargo run --release             # leave every gamepad out (recordi
 cargo run --release -- --from 2-5             # Continue offers every stage up to 2-5 (playtesting)
 RUST_LOG=info cargo run --release 2>uxo.log; grep playtest uxo.log  # per stage: start, lives lost and to what, clear time
 cargo run --release -- --snapshot out.ppm --zoom l --size 100x42  # staged scene as an image (zoom s, m or l)
+cargo run --release -- --snapshot out.ppm --adventure 31 --map     # the map after clearing adventure stage 31 (4-4)
 cargo test --release                          # movement, assist, chains, determinism
 ```
 
@@ -307,6 +310,25 @@ party bomb game.
   round the core, four parts for its sockets. 8 The Last Charges, everything.
   9 purged. Act 1's ending: purged stops and will run again tomorrow as it
   was written; four o'clock passes; the hatch leads down to act 2.
+- **Act 2, the Forgotten Game (built 2026-11-14), see `WORLD.md`:** the
+  old shareware bomb game's three episodes, 04:01 to 05:00 on the cards.
+  World 4, **Cold Storage** (`adventure/cold/`, theme `cold`): ice lanes and
+  the packed archive (`=`, `Tile::Packed`), which a blast unpacks into soft
+  blocks round it (`Game::unpack`); Puff, Skid, Packrat, Hail, Plow and the
+  Freezer (`ability: chill` freezes the floor round it). World 5, **the
+  Recycle Bin** (`adventure/bin/`, theme `bin`): a beaten creature that
+  leaves no egg leaves its deleted file (`Restore`, `RESTORE` 7 s), restored
+  unless walked over; Scrap, Clip, Wad, Fade, Shortcut and the Compactor.
+  World 6, **the Games Folder** (`adventure/games/`, theme `games`): the
+  game's creatures lay its own bombs (`ability: bomb`, owner `HOUSE`, purple,
+  harmless to them); Fizz, Stick, Bonus, Diskette, Turbo and Demo, the
+  game's hero (walls, fire-3 bombs). **The branching map:** stage headers
+  `map: col row` and `next: 2 3`; after each clear in a map world the
+  Forgotten Game's map shows (`Phase::Map`), cleared stages ticked, open ones
+  lit; the upper way (2, 4, 6) is mostly puzzles, the lower (3, 5, 7) mostly
+  action, 4 and 5 each open both 6 and 7, and 6 and 7 lead to 8, then the
+  boss. Tests check every map stage can be reached and only the boss leads
+  nowhere; the hatch test follows warps.
 - **Store copy waits for the story.** The catalog page written on
   2026-10-27 sells bombs and chain reactions with no story; David found it
   "nowhere how to present a bomb-arena game". The classics sold a villain
@@ -376,7 +398,10 @@ Rules (`src/adventure.rs`): 3 lives each; a lost life costs the handling items a
 the mount, power-ups otherwise carry on stage to stage; a stage clock (time up costs a
 life and restarts the stage); score (baddie points, 500 a dud, 10 a second left); the
 exit hatch opens when the goal is met; firework celebrations; Continue from the
-furthest stage (`$XDG_DATA_HOME/uxo/progress`).
+furthest stage (`$XDG_STATE_HOME/uxo/progress` since 0.7.0; 0.6's file under
+`$XDG_DATA_HOME` is still read). Tests never touch it (`path()` is `None` under
+`cfg(test)`); scripted play sets `XDG_STATE_HOME` and `XDG_DATA_HOME` to a
+scratch folder in the same command.
 
 ## Baddies (approved; engine built in `src/baddie.rs`)
 

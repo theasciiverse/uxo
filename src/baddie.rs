@@ -33,6 +33,10 @@ pub enum Ability {
     None,
     Hop,
     Roll,
+    /// Freezes the floor round it into ice.
+    Chill,
+    /// Lays one of the Forgotten Game's own bombs where it stands.
+    Bomb,
 }
 
 /// What a tamed baddie lets you do when you ride it.
@@ -61,6 +65,8 @@ pub struct Species {
     pub size: i32,
     pub points: u32,
     pub egg: Option<Ride>,
+    /// Fire of the bombs it lays (`ability: bomb`); 0 for the usual.
+    pub fire: u32,
     pub colors: Vec<(char, [u8; 3])>,
     pub art: Vec<String>,
     pub art2: Vec<String>,
@@ -68,7 +74,7 @@ pub struct Species {
 
 const BASE: i32 = 12;
 
-pub const FILES: [(&str, &str); 19] = [
+pub const FILES: [(&str, &str); 37] = [
     ("grub", include_str!("../baddies/grub.txt")),
     ("beetle", include_str!("../baddies/beetle.txt")),
     ("hedgehog", include_str!("../baddies/hedgehog.txt")),
@@ -90,6 +96,27 @@ pub const FILES: [(&str, &str); 19] = [
     ("cache", include_str!("../baddies/cache.txt")),
     ("overflow", include_str!("../baddies/overflow.txt")),
     ("purged", include_str!("../baddies/purged.txt")),
+    // Act 2, the Forgotten Game: Cold Storage
+    ("puff", include_str!("../baddies/puff.txt")),
+    ("skid", include_str!("../baddies/skid.txt")),
+    ("packrat", include_str!("../baddies/packrat.txt")),
+    ("hail", include_str!("../baddies/hail.txt")),
+    ("plow", include_str!("../baddies/plow.txt")),
+    ("freezer", include_str!("../baddies/freezer.txt")),
+    // the Recycle Bin
+    ("scrap", include_str!("../baddies/scrap.txt")),
+    ("clip", include_str!("../baddies/clip.txt")),
+    ("wad", include_str!("../baddies/wad.txt")),
+    ("fade", include_str!("../baddies/fade.txt")),
+    ("shortcut", include_str!("../baddies/shortcut.txt")),
+    ("compactor", include_str!("../baddies/compactor.txt")),
+    // the Games Folder
+    ("fizz", include_str!("../baddies/fizz.txt")),
+    ("stick", include_str!("../baddies/stick.txt")),
+    ("bonus", include_str!("../baddies/bonus.txt")),
+    ("diskette", include_str!("../baddies/diskette.txt")),
+    ("turbo", include_str!("../baddies/turbo.txt")),
+    ("demo", include_str!("../baddies/demo.txt")),
 ];
 
 pub fn roster() -> Vec<Species> {
@@ -114,6 +141,7 @@ pub fn parse(id: &str, text: &str) -> Result<Species, String> {
         size: 1,
         points: 100,
         egg: None,
+        fire: 0,
         colors: Vec::new(),
         art: Vec::new(),
         art2: Vec::new(),
@@ -157,6 +185,8 @@ pub fn parse(id: &str, text: &str) -> Result<Species, String> {
                 s.ability = match v {
                     "hop" => Ability::Hop,
                     "roll" => Ability::Roll,
+                    "chill" => Ability::Chill,
+                    "bomb" => Ability::Bomb,
                     "none" => Ability::None,
                     _ => return Err(bad()),
                 }
@@ -165,6 +195,7 @@ pub fn parse(id: &str, text: &str) -> Result<Species, String> {
             "mimic" => s.mimic = v == "yes",
             "flies" => s.flies = v == "yes",
             "size" => s.size = v.parse().map_err(|_| bad())?,
+            "fire" => s.fire = v.parse().map_err(|_| bad())?,
             "points" => s.points = v.parse().map_err(|_| bad())?,
             "egg" => {
                 s.egg = match v {
@@ -457,6 +488,15 @@ impl Game {
                         self.baddies[k].state = State::Curl(40);
                         return;
                     }
+                    Ability::Chill => {
+                        self.chill(tx, ty, sp.size as usize);
+                        self.baddies[k].state = State::Pause(30);
+                        return;
+                    }
+                    Ability::Bomb => {
+                        // laid, and it goes on its way
+                        self.house_bomb(tx, ty, sp.fire);
+                    }
                     Ability::None => {}
                 }
             }
@@ -586,6 +626,23 @@ impl Game {
         }
     }
 
+    /// Plain floor within two tiles of a body of `size` at (bx, by) turns to ice.
+    fn chill(&mut self, bx: usize, by: usize, size: usize) {
+        let n = size as i32;
+        for y in by as i32 - 2..by as i32 + n + 2 {
+            for x in bx as i32 - 2..bx as i32 + n + 2 {
+                if x < 1 || y < 1 || x >= self.w as i32 - 1 || y >= self.h as i32 - 1 {
+                    continue;
+                }
+                let (ux, uy) = (x as usize, y as usize);
+                if self.ground[uy][ux] == crate::game::Ground::Plain && self.exit != Some((ux, uy)) && self.tiles[uy][ux] == Tile::Floor {
+                    self.ground[uy][ux] = crate::game::Ground::Ice;
+                }
+            }
+        }
+        self.events.push(Event::Chilled);
+    }
+
     fn summon(&mut self, id: &str, bx: usize, by: usize) {
         let Some(si) = self.species.iter().position(|s| s.id == id) else { return };
         if self.baddies.iter().filter(|b| b.alive && b.species == si).count() >= 4 {
@@ -625,6 +682,7 @@ impl Game {
                 }
             }
             if let Some(owner) = by
+                && owner != crate::game::HOUSE
                 && !b.immune()
             {
                 let b = &mut self.baddies[k];
@@ -639,6 +697,9 @@ impl Game {
                     self.homing.push(home);
                     if self.species[species].egg.is_some() {
                         self.eggs.push(crate::game::Egg { x: centre(tx), y: centre(ty), species });
+                    } else if self.theme == crate::game::Theme::Bin && size == 1 {
+                        // the Recycle Bin keeps what was deleted, and restores it
+                        self.restores.push(crate::game::Restore { x: tx, y: ty, species, left: crate::game::RESTORE });
                     }
                 } else {
                     self.events.push(Event::BaddieHit { species: b.species });

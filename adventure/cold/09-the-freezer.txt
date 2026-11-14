@@ -1,0 +1,36 @@
+name: The Freezer
+about: the game's first boss
+world: Cold Storage
+clock: 04:17
+theme: cold
+goal: boss
+time: 240
+map: 5 1
+story: The end of the first episode, and its boss: the Freezer, a great
+story: old freezer that turns the floor to ice round it and charges when
+story: it sees {dot} lined up. On ice there is no stopping. Keep the
+story: crates between you, and keep moving.
+ending: The Freezer's door swings open, and the first episode is over.
+ending: The old game plays a jingle nobody has heard in thirty years and
+ending: shows its map again: EPISODE 2. But episode 2 was never paid
+ending: for, and its files were deleted long ago. The game goes after
+ending: them anyway, into the Recycle Bin, and takes {dot} along.
+baddie: p puff
+baddie: k skid
+baddie: m packrat
+baddie: h hail
+baddie: n plow
+baddie: x freezer
+grid:
+#####################
+#1.2................#
+#.................=.#
+#..B....#...#....B..#
+#...................#
+#.=.......x.......=.#
+#...................#
+#..B....#...#....B..#
+#...................#
+#.=...............=.#
+#.......p.....p.....#
+#####################

@@ -1,0 +1,31 @@
+name: The Shortcuts
+about: open floor, and shortcuts that charge
+world: The Recycle Bin
+clock: 04:26
+theme: bin
+goal: clear
+time: 180
+map: 2 2
+next: 7 6
+story: Deleted shortcuts still point somewhere, and when they see {dot}
+story: lined up they take the short way there, at a charge. Hide behind
+story: the heaps. Beat a shortcut and ride its copy.
+baddie: s scrap
+baddie: c clip
+baddie: j wad
+baddie: f fade
+baddie: q shortcut
+baddie: x compactor
+grid:
+#######################
+#1.2...+++.....+++....#
+#..##..+.+..#..+.+.##.#
+#.......q.....s.......#
+#.+++..##..+++..##..+.#
+#.+.+......+.+......+.#
+#.+++..s...+++.q....+.#
+#..........++.........#
+#.##..+++.......+++.#.#
+#....+...+..q..+.....s#
+#..s.....+.......+...E#
+#######################

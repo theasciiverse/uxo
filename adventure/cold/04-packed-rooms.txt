@@ -1,0 +1,32 @@
+name: Packed Rooms
+about: rooms shut behind packed archives, and four parts for the sockets
+world: Cold Storage
+clock: 04:08
+theme: cold
+goal: exit
+time: 220
+map: 2 0
+next: 6 7
+story: Everything here was packed to save space, and a packed archive
+story: does not break. A blast unpacks it, and its files spill out all
+story: round it. Four parts are packed away in the rooms; they open the
+story: sockets in front of the hatch.
+baddie: p puff
+baddie: k skid
+baddie: m packrat
+baddie: h hail
+baddie: n plow
+baddie: x freezer
+grid:
+#####################
+#1.2..........=...$.#
+#.#####=#####.#.###.#
+#.#$..#.#...#.#.#...#
+#.#...=.=.p.=.=.=.#.#
+#.###.#.#...#.#.###.#
+#.....#.##=##.#.....#
+###=###.......#.###=#
+#$..m.#..p....###.$.#
+#.....#=#####.....###
+#..k..=....SS.....SE#
+#####################

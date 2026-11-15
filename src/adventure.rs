@@ -141,6 +141,19 @@ pub fn code_of(index: usize) -> String {
     format!("?-{}", index + 1)
 }
 
+/// The act stage `index` is in: 0 for the Daemon, 1 the Forgotten Game, 2 the Virus.
+pub fn act_of(index: usize) -> usize {
+    let world = WORLDS.iter().scan(0, |acc, &n| {
+        *acc += n;
+        Some(*acc)
+    });
+    match world.take_while(|&end| end <= index).count() {
+        0..=2 => 0,
+        3..=5 => 1,
+        _ => 2,
+    }
+}
+
 pub fn load(i: usize) -> Stage {
     stage::parse(STAGES[i]).unwrap_or_else(|e| panic!("adventure stage {}: {e}", i + 1))
 }
@@ -306,6 +319,15 @@ impl Run {
                 continue;
             }
             self.game.join(i);
+            if !carry {
+                // starting cold (Continue, or again after a game over): the power-ups a
+                // player would have found by this act
+                let act = act_of(self.index) as u32;
+                let p = &mut self.game.players[i];
+                p.bombs += act;
+                p.fire += act;
+                p.speed += act as i32;
+            }
             if carry && old[i].joined {
                 let (o, p) = (&old[i], &mut self.game.players[i]);
                 p.bombs = o.bombs;
@@ -350,6 +372,11 @@ impl Run {
         if i < 2 || self.game.spawns.len() > i {
             self.game.join(i);
             self.game.players[i].invuln = crate::game::INVULN;
+            let act = act_of(self.index) as u32;
+            let p = &mut self.game.players[i];
+            p.bombs += act;
+            p.fire += act;
+            p.speed += act as i32;
         }
         i
     }
@@ -597,6 +624,17 @@ impl Run {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_cold_start_brings_the_acts_power_ups() {
+        assert_eq!((act_of(0), act_of(26), act_of(27), act_of(53), act_of(54), act_of(89)), (0, 0, 1, 1, 2, 2));
+        let r = Run::new(1, 1, 0);
+        assert_eq!((r.game.players[0].bombs, r.game.players[0].fire), (1, 2));
+        let r = Run::new(1, 1, index_of("4-1").unwrap());
+        assert_eq!((r.game.players[0].bombs, r.game.players[0].fire, r.game.players[0].speed), (2, 3, 1));
+        let r = Run::new(1, 1, index_of("10-9").unwrap());
+        assert_eq!((r.game.players[0].bombs, r.game.players[0].fire, r.game.players[0].speed), (3, 4, 2));
+    }
 
     /// Every stage runs a minute untouched (baddies hopping, summoning, charging,
     /// shutters on the beat) without a panic.

@@ -873,7 +873,7 @@ pub fn draw_arena(g: &Game, zoom: Zoom, cam: (i32, i32), shake: i16, area: Rect,
     }
 
     // Scrollback: the next row to go flashes red for its last two seconds
-    if g.scroll_every > 0 && g.scroll_top <= g.scroll_last && g.clock + g.scroll_every > 4 * HZ && g.scroll_every - (g.clock + g.scroll_every - 4 * HZ) % g.scroll_every <= crate::game::SCROLL_WARN && (t / 8) % 2 == 0 {
+    if g.scroll_every > 0 && g.scroll_top <= g.scroll_last && g.clock + g.scroll_every > crate::game::SCROLL_GRACE && g.scroll_every - (g.clock + g.scroll_every - crate::game::SCROLL_GRACE) % g.scroll_every <= crate::game::SCROLL_WARN && (t / 8) % 2 == 0 {
         let y = g.scroll_top as i32 * s;
         for tx in 1..gw - 1 {
             for v in 0..a {

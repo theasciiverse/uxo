@@ -11,6 +11,7 @@
 
 mod adventure;
 mod baddie;
+mod bot;
 mod battle;
 mod game;
 mod input;
@@ -52,6 +53,9 @@ fn main() -> io::Result<()> {
                 std::process::exit(2);
             }
         }
+    }
+    if let Some(i) = args.iter().position(|a| a == "--bot-test") {
+        return bot_test(&args[i + 1..]);
     }
     if let Some(i) = args.iter().position(|a| a == "--snapshot") {
         return snapshot(&args, args.get(i + 1).map_or("snapshot.ppm", String::as_str));
@@ -155,6 +159,9 @@ fn run() -> io::Result<()> {
     let mut cam = Camera::new();
     let mut seen_scene = (u8::MAX, 0, 0);
     let mut paused = false;
+    // `UXO_BOT=1`: the playtest bot plays player one's adventure (for watching a
+    // play-through in tmux); the keyboard still pauses and quits
+    let mut autoplay = std::env::var_os("UXO_BOT").filter(|v| !v.is_empty()).map(|_| (bot::Bot::new(), 0u32));
     let mut shake = 0u32;
     let mut toast: Option<(String, u32)> = None;
     let step = 1.0 / HZ as f32;
@@ -248,6 +255,20 @@ fn run() -> io::Result<()> {
                 cmds[i].tap = input.take_tap(ctl);
                 cmds[i].ride = input.take_ride(ctl);
             }
+            if let (Some((b, beat)), Mode::Adventure(r)) = (autoplay.as_mut(), &mode)
+                && !seats.is_empty()
+            {
+                *beat += 1;
+                match r.phase {
+                    adventure::Phase::Play => cmds[0] = b.cmd(&r.game, 0),
+                    adventure::Phase::Done => {}
+                    _ => {
+                        // a card, the map, an ending: read for a moment, then on
+                        *b = bot::Bot::new();
+                        cmds[0] = Cmd { bomb: *beat % 150 == 0, ..Cmd::default() };
+                    }
+                }
+            }
             let events = match &mut mode {
                 Mode::Title(t) => {
                     let pick = title_step(t, &cmds, seats.len());
@@ -262,8 +283,11 @@ fn run() -> io::Result<()> {
                 }
                 Mode::Battle(m) => m.step(&cmds),
                 Mode::Adventure(r) => {
+                    // THE END stays up until a press made while it shows, not the one
+                    // that closed the ending before it
+                    let was_done = r.phase == adventure::Phase::Done;
                     let ev = r.step(&cmds);
-                    if r.phase == adventure::Phase::Done && cmds.iter().any(|c| c.bomb) {
+                    if was_done && cmds.iter().any(|c| c.bomb) {
                         mode = Mode::Title(Title::new(seed()));
                     }
                     ev
@@ -1599,4 +1623,61 @@ fn write_ppm(buf: &Buffer, out: &str) -> io::Result<()> {
     let mut data = format!("P6\n{w} {h}\n255\n").into_bytes();
     data.extend_from_slice(&img);
     std::fs::write(out, data)
+}
+
+/// `--bot-test [stages|all] [seeds]`: the playtest bot plays stages headless, each
+/// from a fresh start, and prints how it went; `--bot-test through [seed]` plays the
+/// whole adventure from 1-1 (or `through SEED 7-1` from there) to THE END. Stages are codes like 3-4 or ranges 3-1..3-9.
+fn bot_test(args: &[String]) -> io::Result<()> {
+    let what = args.first().map_or("all", String::as_str);
+    if what == "through" {
+        let seed = args.get(1).and_then(|s| s.parse().ok()).unwrap_or(7);
+        let from = args.get(2).and_then(|c| adventure::index_of(c)).unwrap_or(0);
+        let ok = bot::play_through(seed, from, &mut |l| println!("{l}"));
+        std::process::exit(if ok { 0 } else { 1 });
+    }
+    let all = adventure::STAGES.len();
+    let stages: Vec<usize> = if what == "all" {
+        (0..all).collect()
+    } else if let Some((a, b)) = what.split_once("..") {
+        let (a, b) = (adventure::index_of(a).unwrap_or(0), adventure::index_of(b).unwrap_or(all - 1));
+        (a..=b).collect()
+    } else {
+        what.split(',').filter_map(adventure::index_of).collect()
+    };
+    let seeds: u64 = args.get(1).and_then(|s| s.parse().ok()).unwrap_or(1);
+    let threads = std::env::var("UXO_BOT_THREADS").ok().and_then(|v| v.parse().ok()).unwrap_or(4usize);
+    let jobs: Vec<(usize, u64)> = stages.iter().flat_map(|&s| (0..seeds).map(move |k| (s, k + 1))).collect();
+    let next = std::sync::atomic::AtomicUsize::new(0);
+    let out = std::sync::Mutex::new(Vec::new());
+    std::thread::scope(|sc| {
+        for _ in 0..threads {
+            sc.spawn(|| loop {
+                let k = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                let Some(&(s, seed)) = jobs.get(k) else { break };
+                let t = Instant::now();
+                let r = bot::play_stage(s, seed * 7919);
+                let line = format!(
+                    "{:<5} {:<24} seed {:>2} {} lost {} in {:>3}s of {:>3}s ({:.1}s cpu) {}",
+                    r.code,
+                    r.name,
+                    seed,
+                    if r.cleared { "CLEAR" } else { "FAIL " },
+                    r.lives_lost,
+                    r.secs,
+                    r.time,
+                    t.elapsed().as_secs_f32(),
+                    r.notes.join("; ")
+                );
+                eprintln!("{line}");
+                out.lock().unwrap().push((s, seed, line));
+            });
+        }
+    });
+    let mut v = out.into_inner().unwrap();
+    v.sort();
+    for (_, _, l) in v {
+        println!("{l}");
+    }
+    Ok(())
 }

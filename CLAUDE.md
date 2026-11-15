@@ -338,7 +338,7 @@ party bomb game.
   Jolt and the Big Fan. World 8, **Scrollback** (`adventure/scroll/`, theme
   `scroll`, laid out once by a generator, the files are the source of
   truth): stage header `scroll: N`, `Game::tick_scroll` takes the top row
-  every N seconds after 4 s of grace, red for its last two seconds; Echo,
+  every N seconds after 8 s of grace (`SCROLL_GRACE`; 4 s until 1.0), red for its last two seconds; Echo,
   Tail, Grep, Cat, Pipe and the Pager. World 9, **Static**
   (`adventure/static/`, theme `static`): flickering tiles (`!`,
   `Ground::Flicker`); Snow, Noise, Glitch (`ability: warp`), Typo

@@ -3,7 +3,7 @@ world: The Power Supply
 clock: 05:10
 theme: power
 goal: exit
-time: 220
+time: 260
 story: The heat sink's fins, row on row, and the wires between them. Four
 story: parts of the supply's own lie at the ends of the fins; they open the
 story: sockets in front of the hatch. Jolts discharge along the rows.
@@ -17,7 +17,7 @@ grid:
 #######################
 #1.2+.+.+.+.+.+.+.+.+$#
 #.###################.#
-#.+.+.+.+.j.+.+.+.+.+-#
+#.+.+.+.+.s.+.+.+.+.+-#
 ####################.##
 #$+.+.+.+.+.+.+.+.+.+.#
 #.#####################

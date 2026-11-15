@@ -87,6 +87,8 @@ pub const WIRE_LIVE: u64 = 24;
 pub const WIRE_WARN: u64 = 40;
 /// Static's flickering tiles: solid and open in turn, each on its own beat.
 pub const FLICKER: u64 = 3 * HZ as u64;
+/// Scrollback: seconds' grace before the first row goes, time to dig in.
+pub const SCROLL_GRACE: u32 = 8 * HZ;
 /// Scrollback: the next row to go shows this long before it is gone.
 pub const SCROLL_WARN: u32 = 2 * HZ;
 /// The Prompt: a few seconds before the first character of the command is typed.
@@ -641,6 +643,7 @@ pub enum Event {
     Enter,
 }
 
+#[derive(Clone)]
 pub struct Game {
     /// Arena size in tiles.
     pub w: usize,
@@ -1638,8 +1641,7 @@ impl Game {
 
     /// Scrollback: every `scroll_every` steps the top row goes, and whatever is on it.
     fn tick_scroll(&mut self) {
-        // a few seconds' grace before the first row goes
-        let grace = 4 * HZ;
+        let grace = SCROLL_GRACE;
         if self.scroll_every == 0 || self.scroll_top > self.scroll_last || self.clock <= grace || (self.clock - grace) % self.scroll_every != 0 {
             return;
         }
@@ -1652,12 +1654,24 @@ impl Game {
                 charges.push(self.set_off_charge(x, y, HOUSE));
             }
         }
+        // a key or a part is never lost to the scroll (the stage could not be
+        // finished without it): it drops to the nearest free floor below
+        let carried: Vec<(usize, Pickup)> = (1..self.w - 1).filter_map(|x| self.pickups[y][x].map(|p| (x, p))).collect();
         for x in 1..self.w - 1 {
             self.tiles[y][x] = Tile::Wall;
             self.ground[y][x] = Ground::Scrolled;
             self.items[y][x] = None;
             self.pickups[y][x] = None;
             self.flames[y][x] = None;
+        }
+        let (w, h) = (self.w, self.h);
+        for (px, p) in carried {
+            let below = (y + 1..h - 1)
+                .flat_map(|ny| (0..w - 2).map(move |d| ((px - 1 + d) % (w - 2) + 1, ny)))
+                .find(|&(nx, ny)| self.tiles[ny][nx] == Tile::Floor && self.pickups[ny][nx].is_none() && self.exit != Some((nx, ny)));
+            if let Some((nx, ny)) = below {
+                self.pickups[ny][nx] = Some(p);
+            }
         }
         self.bombs.retain(|b| b.tile().1 != y || charges.contains(&b.id));
         let species = &self.species;
@@ -1680,10 +1694,21 @@ impl Game {
             if sy > y {
                 continue;
             }
-            let free = (y + 1..self.h - 1)
-                .flat_map(|ny| (0..self.w).map(move |d| (d, ny)))
-                .map(|(d, ny)| ((sx + d) % (self.w - 2) + 1, ny))
-                .find(|&(nx, ny)| self.tiles[ny][nx] == Tile::Floor && self.ground[ny][nx] == Ground::Plain && !self.occupied(nx, ny));
+            // a few rows clear of the next to go, with room to move, so a life
+            // given back is not taken at once; the nearest floor if there is none
+            let open_round = |nx: usize, ny: usize| {
+                [(0i32, -1i32), (1, 0), (0, 1), (-1, 0)]
+                    .iter()
+                    .filter(|(dx, dy)| self.tiles[(ny as i32 + dy) as usize][(nx as i32 + dx) as usize] == Tile::Floor)
+                    .count()
+            };
+            let ok = |nx: usize, ny: usize| self.tiles[ny][nx] == Tile::Floor && self.ground[ny][nx] == Ground::Plain && !self.occupied(nx, ny);
+            let rows = |from: usize| {
+                (from.min(self.h - 1)..self.h - 1).flat_map(|ny| (0..self.w).map(move |d| (d, ny))).map(|(d, ny)| ((sx + d) % (self.w - 2) + 1, ny))
+            };
+            let free = rows(y + 4)
+                .find(|&(nx, ny)| ok(nx, ny) && open_round(nx, ny) >= 2)
+                .or_else(|| rows(y + 1).find(|&(nx, ny)| ok(nx, ny)));
             if let Some(at) = free {
                 self.spawns[i] = at;
             }
@@ -3385,14 +3410,16 @@ mod tests {
         g.join(0);
         g.join(1);
         (g.players[1].x, g.players[1].y) = (centre(3), centre(3));
-        for _ in 0..5 * HZ {
+        g.pickups[1][4] = Some(Pickup::Key(0));
+        for _ in 0..SCROLL_GRACE + HZ {
             g.step(&[Cmd::default(); MAX_PLAYERS]);
         }
         assert_eq!(g.tiles[1][2], Tile::Wall, "the top row is gone");
         assert_eq!(g.ground[1][2], Ground::Scrolled);
+        assert!(g.pickups[1][4].is_none() && (2..g.h).any(|y| g.pickups[y].contains(&Some(Pickup::Key(0)))), "the key dropped ahead of the scroll");
         assert!(g.players[0].deaths > 0, "player 1 went with it");
         assert_eq!(g.players[1].deaths, 0);
-        assert!(g.spawns[0].1 > 1, "the start moved down");
+        assert!(g.spawns[0].1 >= 5, "the start moved down, clear of the next rows to go");
         for _ in 0..10 * HZ {
             g.step(&[Cmd::default(); MAX_PLAYERS]);
         }

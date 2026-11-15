@@ -4,7 +4,7 @@ world: Cold Storage
 clock: 04:04
 theme: cold
 goal: clear
-time: 170
+time: 200
 map: 1 2
 next: 5
 story: Long lanes of ice, and skids racing up and down them, turning only

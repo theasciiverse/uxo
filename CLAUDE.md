@@ -7,14 +7,15 @@ that made those games feel like chaos you could still read. Same kind of
 mechanics, our own identity. Not a clone.
 
 Own git repo, private at github.com/theasciiverse/uxo (`main`).
-Version 0.9.0 (2026-11-14). What comes next, release by release, is in `ROADMAP.md`.
+Version 1.0.0 (2026-11-15, tagged before David's own play-through, on his go-ahead). What comes next, release by release, is in `ROADMAP.md`.
 
 **Status:** All three acts of Adventure playable, ten worlds, 90 stages: act
 1's three worlds (the Clock and the Buffer built 2026-10-29), act 2's, the
 Forgotten Game (Cold Storage, the Recycle Bin and the Games Folder on branching
 maps), and act 3's Power Supply, Scrollback, Static and the Prompt with the
-ending (both built 2026-11-14); battle mode complete (2026-10-04). Next: a
-play-through by hand, then 1.0.0. A title screen (big
+ending (both built 2026-11-14); battle mode complete (2026-10-04). 1.0.0
+(2026-11-15): played through and tuned with the playtest bot (`src/bot.rs`,
+`--bot-test`, `UXO_BOT=1`; see `ROADMAP.md`). Next: David's play-through by hand. A title screen (big
 pixel logo over fireworks) leads to **Adventure** (alone or two together: the
 Screensaver's, the Clock's and the Buffer's nine stages each, story cards,
 fifty-two baddie species and ten bosses, act 2's branching maps, purged's charges, tamed mounts, lives,
@@ -50,6 +51,9 @@ RUST_LOG=info cargo run --release 2>uxo.log; grep playtest uxo.log  # per stage:
 cargo run --release -- --snapshot out.ppm --zoom l --size 100x42  # staged scene as an image (zoom s, m or l)
 cargo run --release -- --snapshot out.ppm --adventure 31 --map     # the map after clearing adventure stage 31 (4-4)
 cargo test --release                          # movement, assist, chains, determinism
+uxo --bot-test all 2                          # the playtest bot plays every stage cold, two seeds (UXO_BOT_KIT=b,f,s for power-ups)
+uxo --bot-test through 7 [7-1]                # a whole run to THE END, carrying power-ups (UXO_BOT_TRACE=1: every decision)
+UXO_BOT=1 uxo                                 # the bot plays player one in the real game (tmux); keyboard still pauses
 ```
 
 ## Name

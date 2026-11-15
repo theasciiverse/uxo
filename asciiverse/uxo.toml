@@ -1,0 +1,40 @@
+schema_version = 1
+id = "uxo"
+kind = "game"
+title = "uXo"
+description = "3:14 AM, and the machine pulled Dot in! Blast through purged's charges, puzzles and creatures to escape to the real world, or grab three friends and blow each other sky-high in Battle!"
+year = 2026
+new = true
+license = "MIT"
+repo = "theasciiverse/uxo"
+provenance = "Asciiverse made uXo in Rust in 2026, a love letter to the 90s bomb-arena games."
+topics = ["action", "arena", "party", "gamepad"]
+genre = "action"
+
+[developer]
+name = "Asciiverse"
+url = "https://asciiverse.sh"
+
+[exec]
+game = "uxo"
+args = []
+
+# no [min_terminal]: it scales to the terminal and checks no minimum
+
+[requires]
+utf8 = true
+color = "truecolor"
+mouse = false
+gamepad = true
+
+system_deps = ["libudev1"]
+
+# 100x30, recorded with hub/tools/castrec.py: UXO_SEED=5 uxo --from 8-1,
+# Continue at Scrollback's Last Login with the playtest bot at the keys
+# (UXO_BOT=1): the card, then digging down ahead of the scrolling top line
+[media]
+cast = "asciiverse/uxo.cast"
+thumbnail_at = 24.0
+
+[release]
+source = "github"

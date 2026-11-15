@@ -1,14 +1,15 @@
 # Roadmap
 
-uXo is at 0.9.0 (2026-11-14): battle mode complete and all three acts of
+uXo is at 1.0.0 (2026-11-15), played through by a script and tuned; it
+was at 0.9.0 (2026-11-14): battle mode complete and all three acts of
 the adventure in, ten worlds and 90 stages: act 1 (the Screensaver, the
 Clock, the Buffer and purged's fight), act 2 (Cold Storage, the Recycle
 Bin, the Games Folder and Demo's fight, on the Forgotten Game's branching
 maps) and act 3 (the Power Supply, Scrollback, Static, the Prompt and
 Payload's last copy, and the way out), with the world's rules settled
-(`WORLD.md`). What is left for 1.0.0 is a play-through by hand. The adventure is a story in three
-acts, inside the machine, built one world at a time. 1.0.0 is when all
-three acts are in.
+(`WORLD.md`). David's own play-through by hand is still to come. The
+adventure is a story in three acts, inside the machine, built one world
+at a time.
 
 ## 0.3.0: built
 
@@ -107,10 +108,42 @@ three acts are in.
   seconds, every hatch can be reached and no locked hatch can be walked
   round
 
-## 1.0.0
+## 1.0.0: played through and tuned (2026-11-15)
 
-- [ ] Everything played through by hand and tuned (David's call: tag
-  1.0.0 then)
+Tagged on David's go-ahead to tag 1.0.0 once a game is thoroughly played
+and tuned. **David's own play-through by hand is still to come**; what
+was played here was played by a script.
+
+- [x] A playtest bot (`src/bot.rs`): it plays player one by trying each
+  plan (walk somewhere, drop a bomb, walk out of the blast, push a crate
+  onto a switch) on a copy of the deterministic game and only plays one
+  that keeps Dot alive. `uxo --bot-test all 2` plays every stage cold,
+  `--bot-test through SEED [FROM]` a whole run carrying power-ups, and
+  `UXO_BOT=1 uxo` lets it play the real game in a terminal (tmux). It
+  proves stages can be cleared and finds where it gets caught; it says
+  little about how a stage feels to a person
+- [x] Played through: whole runs from 1-1 and cold from 7-1 to THE END,
+  every stage cold on two seeds, the last two stages and the ending in
+  the real game in tmux. A run from 1-1 cleared all 81 stages of its
+route to THE END with 9 game overs on the way (6 of them on the Hedge
+Maze, whose clock went from 180 to 210 s); a cold run from 7-1 reached
+THE END with none. Cold, two seeds each, it cleared 166 of 180 tries:
+every stage at least once except the Zip Lines (on ice the bot steers
+badly and runs out of time hunting Skids; it cleared it 3 times in 10
+other tries, and its clock went from 170 to 200 s) and the Heat Sink
+(cleared in both whole runs)
+- [x] Tuned from it: the Zip Lines' start (a Skid slid into Dot's corner
+  six seconds in); Scrollback waits 8 s before the first row goes (was 4),
+  respawns a player well clear of the next rows to go, and drops keys and
+  parts ahead of the scroll instead of eating them (The History could be
+  lost for good, a soft-lock until the clock ran out; its key now starts
+  lower too); the Heat Sink's upper fin has a Spark for a Jolt and 260 s
+  (was 220); starting cold (Continue, or again after a game over) brings
+  the act's power-ups (act 2: 2 bombs, fire 3, speed 1; act 3: 3, 4, 2),
+  as a player arriving would have them
+- [x] THE END stays up: the press that closed the last ending used to skip
+  it straight to the title
+- [ ] David's play-through by hand, and any tuning it asks for
 
 ## After 1.0
 
